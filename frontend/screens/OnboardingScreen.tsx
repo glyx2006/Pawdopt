@@ -23,17 +23,17 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
 
         {/* Buttons */}
         <TouchableOpacity
-          style={[styles.button, styles.adopterButton]} // Apply shared button style and specific adopter style
-          onPress={() => navigation.navigate('SignupAdopter')} // Navigate to an Adopter Signup screen
+            style={[styles.button, styles.adopterButton]}
+            onPress={() => navigation.navigate('UniversalCreateAccount', { role: 'adopter' })} // Pass role
         >
-          <Text style={styles.buttonText}>SIGN UP AS ADOPTER</Text>
+            <Text style={styles.buttonText}>SIGN UP AS ADOPTER</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.button, styles.shelterButton]} // Apply shared button style and specific shelter style
-          onPress={() => navigation.navigate('SignupShelter')} // Navigate to a Shelter Signup screen
+            style={[styles.button, styles.shelterButton]}
+            onPress={() => navigation.navigate('UniversalCreateAccount', { role: 'shelter' })} // Pass role
         >
-          <Text style={styles.buttonText}>SIGN UP AS SHELTER</Text>
+            <Text style={styles.buttonText}>SIGN UP AS SHELTER</Text>
         </TouchableOpacity>
 
         {/* Login Link */}

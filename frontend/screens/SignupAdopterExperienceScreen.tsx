@@ -1,0 +1,171 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  NavigationProp // <--- Import NavigationProp as well
+} from '@react-navigation/native';
+
+import { RootStackParamList } from '../App'; // Import your RootStackParamList type
+
+// Define the type for the route parameters for this screen
+type SignupAdopterExperienceScreenRouteProp = RouteProp<RootStackParamList, 'SignupAdopterExperience'>;
+
+// Define the type for the navigation prop for this screen
+type SignupAdopterExperienceScreenNavigationProp = NavigationProp<RootStackParamList, 'SignupAdopterExperience'>;
+
+// Pass both navigation and route types to React.FC
+const SignupAdopterExperienceScreen: React.FC<{
+  navigation: SignupAdopterExperienceScreenNavigationProp;
+  route: SignupAdopterExperienceScreenRouteProp;
+}> = ({ navigation, route }) => { // <--- Destructure navigation and route here
+
+  // Get all previously collected data - ENSURE THESE ARE DEFINED IN RootStackParamList IN App.tsx
+  const { email, password, name, dob, gender, address, postcode, phoneNo } = route.params;
+
+  const [experience, setExperience] = useState<string>('');
+
+  const handleContinue = () => {
+    // Basic client-side validation
+    if (!experience) {
+      Alert.alert('Error', 'Please describe your experience with pets.');
+      return;
+    }
+
+    console.log('Adopter Experience:', {
+      email,
+      password,
+      name,
+      dob,
+      gender,
+      address,
+      postcode,
+      phoneNo,
+      experience,
+    });
+
+    // TODO: This is the final step for adopter signup.
+    // Here you would make the actual API call to your backend to register the adopter.
+    Alert.alert('Adopter Signup Complete!', 'Your adopter account has been created.');
+    // On successful API call, navigate to the Adopter Dashboard
+    navigation.navigate('AdopterDashboard');
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.scrollViewContent}>
+      <View style={styles.container}>
+        {/* Back Arrow */}
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>{'<'}</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.title}>Experience with pets</Text>
+        <Text style={styles.subtitle}>
+          Enter your experience with pets (e.g. Any current pets? Have you ever had a dog?)
+        </Text>
+
+        {/* Experience Input */}
+        <Text style={styles.inputLabel}>Experience</Text>
+        <TextInput
+          style={styles.textAreaInput} // Use a different style for multi-line text
+          placeholder="Enter your experience here..."
+          placeholderTextColor="#999"
+          multiline={true} // Enable multi-line input
+          numberOfLines={6} // Suggest initial height
+          textAlignVertical="top" // Align text to top for multi-line
+          value={experience}
+          onChangeText={setExperience}
+        />
+
+        {/* Continue Button */}
+        <TouchableOpacity onPress={handleContinue} style={styles.continueButtonWrapper}>
+          <LinearGradient
+            colors={['#FFD194', '#FFACAC']}
+            style={styles.continueButtonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text style={styles.continueButtonText}>CONTINUE</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 30,
+    paddingTop: 60,
+    paddingBottom: 40,
+    alignItems: 'center',
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 30,
+    padding: 5,
+  },
+  backButtonText: {
+    fontSize: 24,
+    color: '#FF7B7B',
+    fontWeight: 'bold',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+    alignSelf: 'flex-start',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 40,
+    alignSelf: 'flex-start',
+  },
+  inputLabel: {
+    alignSelf: 'flex-start',
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 5,
+    marginTop: 15,
+  },
+  textAreaInput: {
+    width: '100%',
+    height: 150, // Adjust height for multi-line input
+    borderColor: '#ddd',
+    borderWidth: 1, // Solid border for text area
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 10, // Vertical padding for multi-line
+    fontSize: 18,
+    color: '#333',
+    marginBottom: 10,
+  },
+  continueButtonWrapper: {
+    width: '100%',
+    marginTop: 50,
+    borderRadius: 50,
+    overflow: 'hidden',
+  },
+  continueButtonGradient: {
+    paddingVertical: 15,
+    alignItems: 'center',
+  },
+  continueButtonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+});
+
+export default SignupAdopterExperienceScreen;

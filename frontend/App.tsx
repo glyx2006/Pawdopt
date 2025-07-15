@@ -1,41 +1,133 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { View, Text, StyleSheet } from 'react-native'; // Import View and Text for dummy dashboards
 
-// Import your screens
+// Import all your screen components
 import OnboardingScreen from './screens/OnboardingScreen';
 import LoginScreen from './screens/LoginScreen';
-// You'll create these next
-// import SignupAdopterScreen from './screens/SignupAdopterScreen';
-// import SignupShelterScreen from './screens/SignupShelterScreen';
+import UniversalCreateAccountScreen from './screens/UniversalCreateAccountScreen';
+import SignupAdopterDetailsScreen from './screens/SignupAdopterDetailsScreen';
+import SignupShelterDetailsScreen from './screens/SignupShelterDetailsScreen';
+import SignupAdopterExperienceScreen from './screens/SignupAdopterExperienceScreen';
 
-// Define the type for your navigation stack parameters
+// --- Define the type for your navigation stack parameters ---
+// This is crucial for TypeScript to understand what parameters each screen expects
 export type RootStackParamList = {
-  Onboarding: undefined;
-  Login: undefined;
-  SignupAdopter: undefined;
-  SignupShelter: undefined;
+  Onboarding: undefined; // No parameters expected for the Onboarding screen
+  Login: undefined; // No parameters expected for the Login screen
+  UniversalCreateAccount: { role: 'adopter' | 'shelter' }; // Expects a 'role' parameter
+  SignupAdopterDetails: { email: string; password: string }; // Expects email and password
+  SignupShelterDetails: { email: string; password: string }; // Expects email and password
+  SignupAdopterExperience: { // Expects all previously collected adopter details
+    email: string;
+    password: string;
+    name: string;
+    dob: string;
+    gender: string;
+    address: string;
+    postcode: string;
+    phoneNo: string;
+  };
+  AdopterDashboard: undefined; // No parameters expected for the dashboard (for now)
+  ShelterDashboard: undefined; // No parameters expected for the dashboard (for now)
+  // Add other screens here as you create them (e.g., DogSwipe, DogProfile, Chat)
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+// --- Dummy Dashboard Components (to avoid inline function warnings) ---
+// These will be replaced by your actual dashboard screens later
+const AdopterDashboardScreen: React.FC = () => {
+  return (
+    <View style={dashboardStyles.container}>
+      <Text style={dashboardStyles.text}>Adopter Dashboard</Text>
+    </View>
+  );
+};
+
+const ShelterDashboardScreen: React.FC = () => {
+  return (
+    <View style={dashboardStyles.container}>
+      <Text style={dashboardStyles.text}>Shelter Dashboard</Text>
+    </View>
+  );
+};
+
+const dashboardStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0', // Light grey background
+  },
+  text: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+});
+// --- End Dummy Dashboard Components ---
+
 
 export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Onboarding">
+        {/* Onboarding Screen */}
         <Stack.Screen
           name="Onboarding"
           component={OnboardingScreen}
-          options={{ headerShown: false }}
+          options={{ headerShown: false }} // Hides the header for a clean onboarding look
         />
+
+        {/* Login Screen */}
         <Stack.Screen
           name="Login"
           component={LoginScreen}
+          options={{ headerShown: false }} // Hides the header for the login page
+        />
+
+        {/* Universal Create Account Screen (Email, Password) */}
+        <Stack.Screen
+          name="UniversalCreateAccount"
+          component={UniversalCreateAccountScreen}
+          options={{ headerShown: false }} // Hides the header for signup steps
+        />
+
+        {/* Adopter Signup Flow */}
+        <Stack.Screen
+          name="SignupAdopterDetails"
+          component={SignupAdopterDetailsScreen}
           options={{ headerShown: false }}
         />
-        {/* Add your other signup screens here once you create them */}
-        {/* <Stack.Screen name="SignupAdopter" component={SignupAdopterScreen} /> */}
-        {/* <Stack.Screen name="SignupShelter" component={SignupShelterScreen} /> */}
+        <Stack.Screen
+          name="SignupAdopterExperience"
+          component={SignupAdopterExperienceScreen}
+          options={{ headerShown: false }}
+        />
+
+        {/* Shelter Signup Flow */}
+        <Stack.Screen
+          name="SignupShelterDetails"
+          component={SignupShelterDetailsScreen}
+          options={{ headerShown: false }}
+        />
+
+        {/* Dashboard Screens (will be replaced by actual implementations) */}
+        <Stack.Screen
+          name="AdopterDashboard"
+          component={AdopterDashboardScreen} // Use the separate dummy component
+          options={{ headerShown: false }} // Or customize header for dashboard
+        />
+        <Stack.Screen
+          name="ShelterDashboard"
+          component={ShelterDashboardScreen} // Use the separate dummy component
+          options={{ headerShown: false }} // Or customize header for dashboard
+        />
+
+        {/* Add more Stack.Screen components here as you develop new pages */}
+
       </Stack.Navigator>
     </NavigationContainer>
   );
