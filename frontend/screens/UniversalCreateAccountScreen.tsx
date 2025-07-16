@@ -99,7 +99,7 @@ const UniversalCreateAccountScreen: React.FC = () => {
       {/* Next Button */}
       <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
         <LinearGradient
-          colors={['#FFD194', '#FFACAC']} // Matching your Figma gradient
+          colors={['#F48B7B', '#F9E286']} // Matching your Figma gradient
           style={styles.nextButtonGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -125,20 +125,20 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 24,
-    color: '#FF7B7B', // Matching your app's accent color
+    color: '#F7B781', // Matching your app's accent color
     fontWeight: 'bold',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#F7B781',
     marginBottom: 40, // Space below title
-    alignSelf: 'flex-start', // Align to left
+    alignSelf: 'center', // Align to left
   },
   inputLabel: {
     alignSelf: 'flex-start',
     fontSize: 16,
-    color: '#555',
+    color: '#F7B781',
     marginBottom: 5,
     marginTop: 15,
   },

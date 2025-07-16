@@ -1,36 +1,62 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+  Platform,
+  KeyboardAvoidingView
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
+
 import { RootStackParamList } from '../App';
 
-// Define the type for the route parameters for this screen
 type SignupAdopterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupAdopterDetails'>;
+type SignupAdopterDetailsScreenNavigationProp = NavigationProp<RootStackParamList, 'SignupAdopterDetails'>;
 
-const SignupAdopterDetailsScreen: React.FC = () => {
-  const navigation = useNavigation();
-  const route = useRoute<SignupAdopterDetailsScreenRouteProp>();
-  const { email, password } = route.params; // Get email and password from previous screen
+const SignupAdopterDetailsScreen: React.FC<{
+  navigation: SignupAdopterDetailsScreenNavigationProp;
+  route: SignupAdopterDetailsScreenRouteProp;
+}> = ({ navigation, route }) => {
+  const { email = '', password = '' } = route.params || {};
 
-  // State for form fields
   const [name, setName] = useState<string>('');
-  const [dob, setDob] = useState<string>(''); // Format: YYYY/MM/DD
-  const [gender, setGender] = useState<string>(''); // Could be a dropdown/picker later
+  const [dob, setDob] = useState<string>('');
+  const [gender, setGender] = useState<string>(''); 
   const [address, setAddress] = useState<string>('');
   const [postcode, setPostcode] = useState<string>('');
   const [phoneNo, setPhoneNo] = useState<string>('');
 
+  const formatDob = (text: string) => {
+    // Remove all non-digit characters
+    let cleanedText = text.replace(/\D/g, '');
+
+    // Apply YYYY/MM/DD format
+    let formattedText = '';
+    if (cleanedText.length > 0) {
+      formattedText = cleanedText.substring(0, 4); // Year
+      if (cleanedText.length >= 5) {
+        formattedText += '/' + cleanedText.substring(4, 6); // Month
+      }
+      if (cleanedText.length >= 7) {
+        formattedText += '/' + cleanedText.substring(6, 8); // Day
+      }
+    }
+    setDob(formattedText);
+  };
+
   const handleNext = () => {
-    // Basic client-side validation
     if (!name || !dob || !gender || !address || !postcode || !phoneNo) {
       Alert.alert('Error', 'All fields are required.');
       return;
     }
-    // Add more specific validation (e.g., DOB format, phone number regex)
 
     console.log('Adopter Details:', { email, password, name, dob, gender, address, postcode, phoneNo });
 
-    // Navigate to the next screen for Adopter: Experience with pets
     navigation.navigate('SignupAdopterExperience', {
       email,
       password,
@@ -44,106 +70,117 @@ const SignupAdopterDetailsScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollViewContent}>
-      <View style={styles.container}>
-        {/* Back Arrow */}
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>{'<'}</Text>
-        </TouchableOpacity>
+    <KeyboardAvoidingView
+      style={styles.keyboardAvoidingContainer}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.container}>
+          {/* Back Arrow */}
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>{'<'}</Text>
+          </TouchableOpacity>
 
-        <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.title}>Create Account</Text>
 
-        {/* Name Input */}
-        <Text style={styles.inputLabel}>Name</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Your Name"
-          placeholderTextColor="#999"
-          value={name}
-          onChangeText={setName}
-        />
+          {/* Name Input */}
+          <Text style={styles.inputLabel}>Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Your Name"
+            placeholderTextColor="#999"
+            value={name}
+            onChangeText={setName}
+          />
 
-        {/* Date of Birth Input */}
-        <Text style={styles.inputLabel}>Date of Birth</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="YYYY/MM/DD"
-          placeholderTextColor="#999"
-          keyboardType="numeric" // Suggest numeric keyboard
-          value={dob}
-          onChangeText={setDob}
-        />
+          {/* Date of Birth Input */}
+          <Text style={styles.inputLabel}>Date of Birth</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="YYYY/MM/DD"
+            placeholderTextColor="#999"
+            keyboardType="numeric"
+            value={dob}
+            onChangeText={formatDob}
+          />
 
-        {/* Gender Input (Placeholder for now, could be Picker/Dropdown) */}
-        <Text style={styles.inputLabel}>Gender</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Your Gender"
-          placeholderTextColor="#999"
-          value={gender}
-          onChangeText={setGender}
-        />
+          {/* Gender Input (as TextInput) */}
+          <Text style={styles.inputLabel}>Gender</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Your Gender"
+            placeholderTextColor="#999"
+            value={gender}
+            onChangeText={setGender}
+          />
 
-        {/* Address Input */}
-        <Text style={styles.inputLabel}>Address</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Your Location"
-          placeholderTextColor="#999"
-          value={address}
-          onChangeText={setAddress}
-        />
+          {/* Address Input */}
+          <Text style={styles.inputLabel}>Address</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Your Location"
+            placeholderTextColor="#999"
+            value={address}
+            onChangeText={setAddress}
+          />
 
-        {/* Postcode Input */}
-        <Text style={styles.inputLabel}>Postcode</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Your Postcode"
-          placeholderTextColor="#999"
-          keyboardType="numeric"
-          value={postcode}
-          onChangeText={setPostcode}
-        />
+          {/* Postcode Input */}
+          <Text style={styles.inputLabel}>Postcode</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Your Postcode"
+            placeholderTextColor="#999"
+            value={postcode}
+            onChangeText={setPostcode}
+          />
 
-        {/* Phone No. Input */}
-        <Text style={styles.inputLabel}>Phone No.</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="+44-" // Placeholder for international format
-          placeholderTextColor="#999"
-          keyboardType="phone-pad"
-          value={phoneNo}
-          onChangeText={setPhoneNo}
-        />
+          {/* Phone No. Input */}
+          <Text style={styles.inputLabel}>Phone No.</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="+44-"
+            placeholderTextColor="#999"
+            keyboardType="phone-pad"
+            value={phoneNo}
+            onChangeText={setPhoneNo}
+          />
 
-        {/* Next Button */}
-        <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
-          <LinearGradient
-            colors={['#FFD194', '#FFACAC']}
-            style={styles.nextButtonGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Text style={styles.nextButtonText}>Next</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          {/* Next Button */}
+          <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
+            <LinearGradient
+              colors={['#F48B7B', '#F9E286']}
+              style={styles.nextButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={styles.nextButtonText}>Next</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  keyboardAvoidingContainer: {
+    flex: 1,
+  },
   scrollViewContent: {
-    flexGrow: 1, // Allows content to grow and scroll
-    justifyContent: 'center', // Center content vertically if it doesn't fill screen
+    flexGrow: 1,
+    paddingBottom: 100,
+    paddingTop: 0,
   },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 30,
     paddingTop: 60,
-    paddingBottom: 40, // Add some bottom padding for scroll
-    alignItems: 'center', // Center content horizontally
+    alignItems: 'center',
   },
   backButton: {
     alignSelf: 'flex-start',
@@ -152,20 +189,20 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 24,
-    color: '#FF7B7B',
+    color: '#F7B781',
     fontWeight: 'bold',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#F7B781',
     marginBottom: 40,
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
   },
   inputLabel: {
     alignSelf: 'flex-start',
     fontSize: 16,
-    color: '#555',
+    color: '#F7B781',
     marginBottom: 5,
     marginTop: 15,
   },
@@ -182,6 +219,7 @@ const styles = StyleSheet.create({
   nextButtonWrapper: {
     width: '100%',
     marginTop: 50,
+    marginBottom: 100,
     borderRadius: 50,
     overflow: 'hidden',
   },

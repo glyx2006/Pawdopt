@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../App';
@@ -36,7 +36,12 @@ const SignupShelterDetailsScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollViewContent}>
+    <KeyboardAvoidingView
+          style={styles.keyboardAvoidingContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
+            <ScrollView contentContainerStyle={styles.scrollViewContent}>
       <View style={styles.container}>
         {/* Back Arrow */}
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -71,7 +76,6 @@ const SignupShelterDetailsScreen: React.FC = () => {
           style={styles.input}
           placeholder="Enter Shelter Postcode"
           placeholderTextColor="#999"
-          keyboardType="numeric"
           value={postcode}
           onChangeText={setPostcode}
         />
@@ -90,7 +94,7 @@ const SignupShelterDetailsScreen: React.FC = () => {
         {/* Next Button */}
         <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
           <LinearGradient
-            colors={['#FFD194', '#FFACAC']}
+            colors={['#F48B7B', '#F9E286']}
             style={styles.nextButtonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
@@ -100,10 +104,16 @@ const SignupShelterDetailsScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
     </ScrollView>
+            
+    </KeyboardAvoidingView>
+    
   );
 };
 
 const styles = StyleSheet.create({
+  keyboardAvoidingContainer: {
+    flex: 1,
+  },
   scrollViewContent: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -123,20 +133,20 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 24,
-    color: '#FF7B7B',
+    color: '#F7B781',
     fontWeight: 'bold',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#F7B781',
     marginBottom: 40,
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
   },
   inputLabel: {
     alignSelf: 'flex-start',
     fontSize: 16,
-    color: '#555',
+    color: '#F7B781',
     marginBottom: 5,
     marginTop: 15,
   },
