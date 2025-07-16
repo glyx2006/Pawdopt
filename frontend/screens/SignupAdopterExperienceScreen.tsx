@@ -63,15 +63,14 @@ const SignupAdopterExperienceScreen: React.FC<{
         </TouchableOpacity>
 
         <Text style={styles.title}>Experience with pets</Text>
-        <Text style={styles.subtitle}>
-          Enter your experience with pets (e.g. Any current pets? Have you ever had a dog?)
-        </Text>
+    
 
         {/* Experience Input */}
         <Text style={styles.inputLabel}>Experience</Text>
         <TextInput
           style={styles.textAreaInput} // Use a different style for multi-line text
-          placeholder="Enter your experience here..."
+          placeholder="Enter your experience with pets
+          (e.g. Any current pets? Have you ever had a dog?)"
           placeholderTextColor="#999"
           multiline={true} // Enable multi-line input
           numberOfLines={6} // Suggest initial height
@@ -83,7 +82,7 @@ const SignupAdopterExperienceScreen: React.FC<{
         {/* Continue Button */}
         <TouchableOpacity onPress={handleContinue} style={styles.continueButtonWrapper}>
           <LinearGradient
-            colors={['#FFD194', '#FFACAC']}
+            colors={['#F48B7B', '#F9E286']}
             style={styles.continueButtonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
@@ -116,32 +115,26 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 24,
-    color: '#FF7B7B',
+    color: '#F7B781',
     fontWeight: 'bold',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-    alignSelf: 'flex-start',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 40,
-    alignSelf: 'flex-start',
+    color: '#F7B781',
+    marginBottom: 50,
+    alignSelf: 'center',
   },
   inputLabel: {
     alignSelf: 'flex-start',
     fontSize: 16,
-    color: '#555',
+    color: '#F7B781',
     marginBottom: 5,
     marginTop: 15,
   },
   textAreaInput: {
     width: '100%',
-    height: 150, // Adjust height for multi-line input
+    height: 370, // Adjust height for multi-line input
     borderColor: '#ddd',
     borderWidth: 1, // Solid border for text area
     borderRadius: 8,

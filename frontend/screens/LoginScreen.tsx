@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient'; // Make sure this is installed: npx expo install expo-linear-gradient
+import { NavigationProp } from '@react-navigation/native'; // <-- Import NavigationProp
+import { RootStackParamList } from '../App'; // <-- Import RootStackParamList
 
-// Define props for navigation
-interface LoginScreenProps {
-  navigation: any; // React Navigation will provide this prop
-}
+type LoginScreenProps = NavigationProp<RootStackParamList, 'Login'>;
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
+
+const LoginScreen: React.FC<{navigation: LoginScreenProps}> = ({ navigation }) => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false); // State to toggle password visibility
@@ -88,7 +88,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       {/* Login Button */}
       <TouchableOpacity onPress={handleLogin} style={styles.loginButtonWrapper}>
         <LinearGradient
-          colors={['#FFD194', '#FFACAC']} // Matching your Onboarding gradient
+          colors={['#F9E286', '#F48B7B']} // Matching your Onboarding gradient
           style={styles.loginButtonGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -124,12 +124,12 @@ const styles = StyleSheet.create({
   greetingTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#F7B781',
     marginBottom: 5,
   },
   greetingSubtitle: {
     fontSize: 20,
-    color: '#666',
+    color: '#aaa',
     marginBottom: 20,
   },
   logoContainer: {
@@ -146,12 +146,12 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#FF7B7B', // Matching your Figma logo color
+    color: '#F7B781', // Matching your Figma logo color
   },
   inputLabel: {
     alignSelf: 'flex-start', // Align label to the left
     fontSize: 16,
-    color: '#555',
+    color: '#F7B781',
     marginBottom: 5,
     marginTop: 15, // Space between inputs
   },
@@ -209,7 +209,8 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   createAccountContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
+    alignItems: 'center',
     marginTop: 150, // Large space to push it to bottom as per Figma
     // Use position: 'absolute' and bottom: X if you want it fixed at the very bottom
   },
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   createAccountLink: {
-    color: '#FF7B7B', // Reddish color for "Create an Account" link
+    color: '#F7B781', // Reddish color for "Create an Account" link
     fontSize: 16,
     fontWeight: 'bold',
     textDecorationLine: 'underline',

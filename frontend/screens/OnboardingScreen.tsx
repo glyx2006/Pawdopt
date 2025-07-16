@@ -1,16 +1,17 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native"; // Import necessary components
 import { LinearGradient } from "expo-linear-gradient"; // Import LinearGradient from expo-linear-gradient
+import { NavigationProp } from '@react-navigation/native'; // <-- Import NavigationProp
+import { RootStackParamList } from '../App'; // <-- Import RootStackParamList
 
-// Define props for navigation since this screen will lead to others
-interface OnboardingScreenProps {
-  navigation: any; // Will be typed more specifically with React Navigation
-}
+// Define the type for the navigation prop for this screen
+type OnboardingScreenProps = NavigationProp<RootStackParamList, 'Onboarding'>; // <-- Define specific type
 
-const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
+
+const OnboardingScreen: React.FC<{navigation: OnboardingScreenProps}> = ({ navigation }) => {
   return (
     <LinearGradient // Use LinearGradient for the background
-      colors={["#FFD194", "#FFACAC"]} // Adjust these colors to match your Figma gradient
+      colors={["#F9E286", "#F48B7B"]} // Adjust these colors to match your Figma gradient
       style={styles.gradient}
     >
       <View style={styles.container}>
@@ -41,7 +42,6 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
         <View style={styles.loginContainer}>
           <Text style={styles.loginText}>Already have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-            {" "}
             {/* Navigate to your Login screen */}
             <Text style={styles.loginLink}>Login</Text>
           </TouchableOpacity>
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#FF7B7B", // Reddish color for text on white button
+    color: "#F5A27E", // Reddish color for text on white button
   },
   loginContainer: {
     flexDirection: "row", // Align text and link horizontally
