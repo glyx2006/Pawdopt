@@ -10,6 +10,9 @@ import UniversalCreateAccountScreen from './screens/UniversalCreateAccountScreen
 import SignupAdopterDetailsScreen from './screens/SignupAdopterDetailsScreen';
 import SignupShelterDetailsScreen from './screens/SignupShelterDetailsScreen';
 import SignupAdopterExperienceScreen from './screens/SignupAdopterExperienceScreen';
+import DogSwipeScreen from './screens/DogSwipeScreen';
+import DogProfileDetailScreen from './screens/DogProfileDetailScreen';
+
 
 // --- Define the type for your navigation stack parameters ---
 // This is crucial for TypeScript to understand what parameters each screen expects
@@ -29,6 +32,8 @@ export type RootStackParamList = {
     postcode: string;
     phoneNo: string;
   };
+  DogSwipe: undefined;
+  DogProfileDetail: {dogId: string};
   AdopterDashboard: undefined; // No parameters expected for the dashboard (for now)
   ShelterDashboard: undefined; // No parameters expected for the dashboard (for now)
   // Add other screens here as you create them (e.g., DogSwipe, DogProfile, Chat)
@@ -114,17 +119,34 @@ export default function App() {
           options={{ headerShown: false }}
         />
 
-        {/* Dashboard Screens (will be replaced by actual implementations) */}
+
+
+        <Stack.Screen
+          name="DogSwipe" // <-- NEW SCREEN
+          component={DogSwipeScreen}
+          options={{ headerShown: false }} // Hide header for full control
+        />
+        <Stack.Screen
+          name="DogProfileDetail" // <-- NEW SCREEN (placeholder)
+          component={DogProfileDetailScreen}
+          options={{ headerShown: false }} // Hide header for full control
+        />
+
+        {/* Update AdopterDashboard to navigate to DogSwipe */}
+        {/* You can remove the old AdopterDashboard screen if DogSwipe is its replacement */}
         <Stack.Screen
           name="AdopterDashboard"
-          component={AdopterDashboardScreen} // Use the separate dummy component
-          options={{ headerShown: false }} // Or customize header for dashboard
+          component={DogSwipeScreen} // <-- DIRECTLY USE DOGSWIPESCREEN FOR ADOPTER DASHBOARD
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="ShelterDashboard"
           component={ShelterDashboardScreen} // Use the separate dummy component
           options={{ headerShown: false }} // Or customize header for dashboard
         />
+
+
+
 
         {/* Add more Stack.Screen components here as you develop new pages */}
 
