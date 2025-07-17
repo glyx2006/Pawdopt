@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Image,
-  TouchableOpacity,
+  TouchableOpacity, // Still useful for header buttons
   Dimensions,
   Alert,
   Platform,
@@ -115,10 +115,16 @@ const DogSwipeScreen: React.FC = () => {
     setCurrentDogIndex(prevIndex => prevIndex + 1); // Move to the next dog
   };
 
-  // Define the Pan gesture
+  // Navigate to DogProfileDetailScreen (runs on JS thread)
+  const goToDogDetailsJS = () => {
+    if (currentDog) {
+      navigation.navigate('DogProfileDetail', { dogId: currentDog.id });
+    }
+  };
+
+  // Define the Pan gesture for swiping
   const panGesture = Gesture.Pan()
     .onUpdate((event) => {
-      // Update shared values as user drags
       translateX.value = event.translationX;
       translateY.value = event.translationY;
     })
@@ -126,34 +132,36 @@ const DogSwipeScreen: React.FC = () => {
       if (event.translationX > SWIPE_THRESHOLD) {
         // Swiped right (like)
         translateX.value = withTiming(width * 1.5, { duration: SWIPE_OUT_DURATION }, () => {
-          runOnJS(onSwipeCompleteJS)('right'); // Run JS function on completion
+          runOnJS(onSwipeCompleteJS)('right');
         });
-        translateY.value = withTiming(event.translationY, { duration: SWIPE_OUT_DURATION }); // Animate Y as well
+        translateY.value = withTiming(event.translationY, { duration: SWIPE_OUT_DURATION });
       } else if (event.translationX < -SWIPE_THRESHOLD) {
         // Swiped left (dislike)
         translateX.value = withTiming(-width * 1.5, { duration: SWIPE_OUT_DURATION }, () => {
-          runOnJS(onSwipeCompleteJS)('left'); // Run JS function on completion
+          runOnJS(onSwipeCompleteJS)('left');
         });
-        translateY.value = withTiming(event.translationY, { duration: SWIPE_OUT_DURATION }); // Animate Y as well
+        translateY.value = withTiming(event.translationY, { duration: SWIPE_OUT_DURATION });
       } else {
         // Not a full swipe, snap back to origin
         translateX.value = withSpring(0);
         translateY.value = withSpring(0);
       }
-    })
-    .onStart(() => {
-        // Optional: Could add logic here if needed when gesture starts
-    })
-    // MODIFICATION START: Refined onTouchesUp logic
-    .onTouchesUp((event, success) => {
-        // If the pan gesture was NOT successfully recognized (i.e., it was a tap-like action)
-        // and it was a single touch, then navigate to dog details.
-        // `success` here indicates if the gesture (Pan in this case) was activated.
-        if (!success && event.numberOfTouches === 1) {
-            runOnJS(goToDogDetails)(); // Trigger the detail view
-        }
     });
-    // MODIFICATION END
+
+  // Define the Tap gesture for viewing details
+  const tapGesture = Gesture.Tap()
+    .onEnd((event, success) => {
+      // Only trigger if the tap gesture was successful (i.e., not overridden by pan)
+      if (success) {
+        runOnJS(goToDogDetailsJS)();
+      }
+    });
+
+  // Combine Pan and Tap gestures using Gesture.Exclusive
+  // Exclusive means only one of them will be recognized.
+  // If Pan starts, Tap is cancelled. If Pan doesn't start, Tap can be recognized.
+  const composedGesture = Gesture.Exclusive(panGesture, tapGesture);
+
 
   // Define animated style for the card
   const animatedCardStyle = useAnimatedStyle(() => {
@@ -172,7 +180,7 @@ const DogSwipeScreen: React.FC = () => {
     const opacity = translateX.value / SWIPE_THRESHOLD;
     return {
       opacity: opacity,
-      transform: [{ rotate: '-20deg' }], // Keep fixed rotation
+      transform: [{ rotate: '-20deg' }],
     };
   });
 
@@ -180,7 +188,7 @@ const DogSwipeScreen: React.FC = () => {
     const opacity = -translateX.value / SWIPE_THRESHOLD;
     return {
       opacity: opacity,
-      transform: [{ rotate: '20deg' }], // Keep fixed rotation
+      transform: [{ rotate: '20deg' }],
     };
   });
 
@@ -194,14 +202,6 @@ const DogSwipeScreen: React.FC = () => {
   const goToChat = () => {
     Alert.alert('Chat', 'Navigating to Chat List (TODO)');
     // navigation.navigate('ChatListScreen'); // You'll create this screen later
-  };
-
-  // Navigate to DogProfileDetailScreen (runs on JS thread)
-  const goToDogDetails = () => {
-    if (currentDog) {
-      // No need to reset position.value directly here as it's handled by gesture.onEnd
-      navigation.navigate('DogProfileDetail', { dogId: currentDog.id });
-    }
   };
 
   return (
@@ -219,31 +219,40 @@ const DogSwipeScreen: React.FC = () => {
 
       {/* Dog Card Area */}
       <View style={styles.cardContainer}>
-        {currentDog ? (
-          <GestureDetector gesture={panGesture}>
-            <Animated.View
-              key={currentDog.id} // Important: Forces re-render/re-mount for new dog, resetting animations
-              style={[styles.dogCard, animatedCardStyle]}
-            >
-              {/* "LIKE" and "NOPE" labels */}
-              <Animated.Text style={[styles.likeLabel, likeLabelStyle]}>LIKE</Animated.Text>
-              <Animated.Text style={[styles.nopeLabel, nopeLabelStyle]}>NOPE</Animated.Text>
+        {/*
+          Moved GestureDetector outside the conditional rendering.
+          It now always wraps a single Animated.View.
+          The content inside Animated.View is conditionally rendered.
+        */}
+        <GestureDetector gesture={composedGesture}>
+          <Animated.View
+            // Key is still important here if you want the card to reset its animation
+            // when a new dog appears, but it's on the Animated.View, not GestureDetector.
+            key={currentDog ? currentDog.id : 'no-dog'}
+            style={[styles.dogCard, animatedCardStyle]}
+          >
+            {currentDog ? (
+              <>
+                {/* "LIKE" and "NOPE" labels */}
+                <Animated.Text style={[styles.likeLabel, likeLabelStyle]}>LIKE</Animated.Text>
+                <Animated.Text style={[styles.nopeLabel, nopeLabelStyle]}>NOPE</Animated.Text>
 
-              <Image source={{ uri: currentDog.photoUrl }} style={styles.dogImage} />
-              <View style={styles.dogInfo}>
-                  <View style={styles.dogNameAge}>
-                      <Text style={styles.dogName}>{currentDog.name}</Text>
-                      <Text style={styles.dogAge}>, {currentDog.age}</Text>
-                  </View>
-                  <Text style={styles.dogBreed}>{currentDog.breed}</Text>
+                <Image source={{ uri: currentDog.photoUrl }} style={styles.dogImage} />
+                <View style={styles.dogInfo}>
+                    <View style={styles.dogNameAge}>
+                        <Text style={styles.dogName}>{currentDog.name}</Text>
+                        <Text style={styles.dogAge}>, {currentDog.age}</Text>
+                    </View>
+                    <Text style={styles.dogBreed}>{currentDog.breed}</Text>
+                </View>
+              </>
+            ) : (
+              <View style={styles.noDogsContent}> {/* New style for content inside the card */}
+                <Text style={styles.noDogsText}>No dogs available right now. Check back later!</Text>
               </View>
-            </Animated.View>
-          </GestureDetector>
-        ) : (
-          <View style={styles.noDogsContainer}>
-            <Text style={styles.noDogsText}>No dogs available right now. Check back later!</Text>
-          </View>
-        )}
+            )}
+          </Animated.View>
+        </GestureDetector>
       </View>
     </View>
   );
@@ -294,6 +303,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'absolute', // Important for stacking cards if you add more
   },
+  noDogsContent: { // New style for the "No dogs available" message inside the card
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20, // Add padding to prevent text from touching edges
+  },
   dogImage: {
     width: '100%',
     height: '75%',
@@ -324,7 +339,7 @@ const styles = StyleSheet.create({
     color: '#888',
     marginBottom: 5,
   },
-  noDogsContainer: {
+  noDogsContainer: { // This style is now redundant, but keeping for reference if needed elsewhere
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

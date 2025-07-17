@@ -1,7 +1,8 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, Text, StyleSheet } from 'react-native'; // Import View and Text for dummy dashboards
+import { View, Text, StyleSheet } from 'react-native'; 
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Import all your screen components
 import OnboardingScreen from './screens/OnboardingScreen';
@@ -77,80 +78,82 @@ const dashboardStyles = StyleSheet.create({
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Onboarding">
-        {/* Onboarding Screen */}
-        <Stack.Screen
-          name="Onboarding"
-          component={OnboardingScreen}
-          options={{ headerShown: false }} // Hides the header for a clean onboarding look
-        />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Onboarding">
+          {/* Onboarding Screen */}
+          <Stack.Screen
+            name="Onboarding"
+            component={OnboardingScreen}
+            options={{ headerShown: false }} // Hides the header for a clean onboarding look
+          />
 
-        {/* Login Screen */}
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ headerShown: false }} // Hides the header for the login page
-        />
+          {/* Login Screen */}
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }} // Hides the header for the login page
+          />
 
-        {/* Universal Create Account Screen (Email, Password) */}
-        <Stack.Screen
-          name="UniversalCreateAccount"
-          component={UniversalCreateAccountScreen}
-          options={{ headerShown: false }} // Hides the header for signup steps
-        />
+          {/* Universal Create Account Screen (Email, Password) */}
+          <Stack.Screen
+            name="UniversalCreateAccount"
+            component={UniversalCreateAccountScreen}
+            options={{ headerShown: false }} // Hides the header for signup steps
+          />
 
-        {/* Adopter Signup Flow */}
-        <Stack.Screen
-          name="SignupAdopterDetails"
-          component={SignupAdopterDetailsScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="SignupAdopterExperience"
-          component={SignupAdopterExperienceScreen}
-          options={{ headerShown: false }}
-        />
+          {/* Adopter Signup Flow */}
+          <Stack.Screen
+            name="SignupAdopterDetails"
+            component={SignupAdopterDetailsScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="SignupAdopterExperience"
+            component={SignupAdopterExperienceScreen}
+            options={{ headerShown: false }}
+          />
 
-        {/* Shelter Signup Flow */}
-        <Stack.Screen
-          name="SignupShelterDetails"
-          component={SignupShelterDetailsScreen}
-          options={{ headerShown: false }}
-        />
-
-
-
-        <Stack.Screen
-          name="DogSwipe" // <-- NEW SCREEN
-          component={DogSwipeScreen}
-          options={{ headerShown: false }} // Hide header for full control
-        />
-        <Stack.Screen
-          name="DogProfileDetail" // <-- NEW SCREEN (placeholder)
-          component={DogProfileDetailScreen}
-          options={{ headerShown: false }} // Hide header for full control
-        />
-
-        {/* Update AdopterDashboard to navigate to DogSwipe */}
-        {/* You can remove the old AdopterDashboard screen if DogSwipe is its replacement */}
-        <Stack.Screen
-          name="AdopterDashboard"
-          component={DogSwipeScreen} // <-- DIRECTLY USE DOGSWIPESCREEN FOR ADOPTER DASHBOARD
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ShelterDashboard"
-          component={ShelterDashboardScreen} // Use the separate dummy component
-          options={{ headerShown: false }} // Or customize header for dashboard
-        />
+          {/* Shelter Signup Flow */}
+          <Stack.Screen
+            name="SignupShelterDetails"
+            component={SignupShelterDetailsScreen}
+            options={{ headerShown: false }}
+          />
 
 
 
+          <Stack.Screen
+            name="DogSwipe" // <-- NEW SCREEN
+            component={DogSwipeScreen}
+            options={{ headerShown: false }} // Hide header for full control
+          />
+          <Stack.Screen
+            name="DogProfileDetail" // <-- NEW SCREEN (placeholder)
+            component={DogProfileDetailScreen}
+            options={{ headerShown: false }} // Hide header for full control
+          />
 
-        {/* Add more Stack.Screen components here as you develop new pages */}
+          {/* Update AdopterDashboard to navigate to DogSwipe */}
+          {/* You can remove the old AdopterDashboard screen if DogSwipe is its replacement */}
+          <Stack.Screen
+            name="AdopterDashboard"
+            component={DogSwipeScreen} // <-- DIRECTLY USE DOGSWIPESCREEN FOR ADOPTER DASHBOARD
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ShelterDashboard"
+            component={ShelterDashboardScreen} // Use the separate dummy component
+            options={{ headerShown: false }} // Or customize header for dashboard
+          />
 
-      </Stack.Navigator>
-    </NavigationContainer>
+
+
+
+          {/* Add more Stack.Screen components here as you develop new pages */}
+
+        </Stack.Navigator>
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 }
