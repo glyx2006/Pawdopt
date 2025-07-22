@@ -1,0 +1,275 @@
+components:
+  schemas:
+    Dog:
+      type: object
+      description: Detailed dog profile
+      required:
+        - id
+        - name
+        - age
+        - breed
+        - gender
+        - photoUrl
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        age: { type: integer }
+        breed: { type: string }
+        gender: { type: string }
+        photoUrl: { type: array { type: string } }
+        createdAt: { type: string, format: date-time }
+
+    DogCreate:
+      description: Create a dog
+      allOf:
+        - $ref: '#/components/schemas/Dog'
+        - type: object
+          properties:
+            id: {}  # auto-generated
+            createdAt: {}  # auto-generated
+
+    DogSummary:
+      type: object
+      description: Used in a list view of all dogs
+      required:
+        - id
+        - name
+        - photoUrl
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        photoUrl: { type: array { type: string } }
+
+    DogPartialUpdate:
+      type: object
+      description: Fields that can be updated in part
+      properties:
+        name: { type: string }
+        age: { type: integer }
+        breed: { type: string }
+        gender: { type: string }
+        photoUrl: { type: array { type: string } }
+      # No required fields – all are optional
+
+    # Delete a dog profile uses Dog schema
+
+    User:
+      type: object
+      description: Detailed user profile
+      required:
+        - id
+        - name
+        - email
+        - address
+        - postcode
+        - contact
+        - isAdopter
+        - iconUrl
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        address: { type: string }
+        postcode: { type: string }
+        contact: { type: string }
+        isAdopter: { type: boolean }
+        dob: { type: string, format: date }
+        gender: { type: string }
+        experience: { type: string }
+        iconUrl: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    UserCreate:
+      type: object
+      description: Create a new user
+      required:
+        - name
+        - email
+        - address
+        - postcode
+        - contact
+        - isAdopter
+      properties:
+        name: { type: string }
+        email: { type: string }
+        address: { type: string }
+        postcode: { type: string }
+        contact: { type: string }
+        isAdopter: { type: boolean }
+        dob: { type: string, format: date }
+        gender: { type: string }
+        experience: { type: string }
+
+    UserSummary:
+      type: object
+      description: Retrive basic user info, used for contact lists
+      required:
+        - id
+        - name
+        - iconUrl
+      properties: 
+        id: { type: integer }
+        name: { type: string }
+        iconUrl: { type: string }
+    
+    UserPartialUpdate:
+      type: object
+      description: Partial update profile
+      properties:
+        name: { type: string }
+        address: { type: string }
+        postcode: { type: string }
+        contact: { type: string }
+        dob: { type: string, format: date }
+        gender: { type: string }
+        experience: { type: string }
+        iconUrl: { type: string }
+      # No required field - so all are optional
+
+    # UserDelete would be using the same schema as User so it is not required to define separately
+
+    Adoption:
+      type: object
+      description: Details of an Adoption
+      required: 
+        - id
+        - adopterId
+        - dogId
+        - shelterId
+        - status
+        - appliedAt
+      properties:
+        id: { type: integer }
+        adopterId: { type: integer }
+        dogId: { type: integer }
+        shelterId: { type: integer }
+        status:
+          type: string
+          enum: 
+            - 'Pending'
+            - 'Approved'
+            - 'Rejected'
+        appliedAt: { type: string, format: date-time }
+        approvedAt: { type: string, format: date-time }
+
+    AdoptionCreate:
+      description: Create an Adoption
+      allOf:
+        - $ref: '#/components/schemas/Adoption'
+        - type: object
+          properties:
+            id: {}  # auto-generated
+            appliedAt: {}  # auto-generated
+            approvedAt: {}  # null
+
+    AdoptionSummary:
+      type: object
+      description: List view of Adoptions
+      required:
+        - id
+        - dogId
+        - status
+      properties: 
+        id: { type: integer }
+        dogId: { type: integer }
+        status: 
+          type: string
+          enum:
+            - 'Pending'
+            - 'Approved'
+            - 'Rejected'
+        appliedAt: { type: string, format: date-time }
+    
+    AdoptionEdit:
+      type: object
+      description: Update Adoption
+      required:
+        - id
+        - status
+      properties:
+        id: { type: int }
+        status: 
+          type: string
+          enum:
+            - 'Pending'
+            - 'Approved'
+            - 'Rejected'
+        approvedAt: { type: string, format: date-time }
+
+
+    # AdoptionDelete would be using the same schema as Adoption
+
+    SwipeCreate:
+      type: object
+      description: Details of each Swipe
+      required:
+        - id
+        - adopterId
+        - dogId
+        - direction
+        - createdAt
+      properties:
+        id: { type: integer }
+        adopterId: { type: integer }
+        dogId: { type: integer }
+        direction:
+          type: string
+          enum: 
+            - 'Left'
+            - 'Right'
+        createdAt: { type: string, format: date-time }
+
+    Swipe:
+      description: Create a new Swipe
+      allof:
+        type: object
+        $ref: '#/components/schemas/SwipeCreate'
+      properties:
+        createdAt: {}
+
+    # No SwipeSummary required. Get details of all swipes through Swipe schema directly
+
+    # Cannot update swipe
+
+    # Use Swipe schema for SwipeDelete
+
+    Message:
+      type: object
+      description: Details of each message
+      required:
+        - id
+        - senderId
+        - receiverId
+        - content
+        - sentAt
+      properties:
+        id: { type: integer }
+        senderId: { type: integer }
+        receiverId: { type: integer }
+        content: { type: integer }
+        sentAt: { type: string, format: date-time }
+
+    MessageCreate:
+      description: Create new message
+      allof:
+        type: object
+        $ref: '#/components/schemas/Message'
+        properties:
+          id: {}  # auto-generated
+          sentAt: {}  # auto-generated
+
+    # No message summary required
+
+    MessageEdit:
+      type: object
+      description: Edit message
+      required:
+        - id
+        - content
+        - sentAt
+      properties:
+        id: { type: integer }
+        content: { type: string }
+        sentAt: {}  # auto-generated
+
+    # MessageDelete uses same schema as Message
