@@ -21,6 +21,8 @@ import Animated, {
   withTiming,
   runOnJS, // To run JS functions from Reanimated worklets
 } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view'; // <-- Import MaskedView
 
 const { width } = Dimensions.get('window'); // Get screen width for responsive sizing
 
@@ -208,13 +210,25 @@ const DogSwipeScreen: React.FC = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={goToProfile} style={styles.headerIcon}>
-          <Text style={styles.iconText}>👤</Text> {/* Placeholder for profile icon */}
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Pawdopt</Text>
-        <TouchableOpacity onPress={goToChat} style={styles.headerIcon}>
-          <Text style={styles.iconText}>💬</Text> {/* Placeholder for chat icon */}
-        </TouchableOpacity>
+        <View style={styles.logoTitleContainer}>
+          <Image
+            source={require('../assets/pawdopt_logo.png')} // Your logo image
+            style={styles.logo}
+          />
+          <MaskedView
+            style={styles.headerTitleMaskedView}
+            maskElement={
+              <Text style={[styles.headerTitle, { backgroundColor: 'transparent' }]}>Pawdopt</Text>
+            }
+          >
+            <LinearGradient
+              colors={["#F9E286", "#F48B7B"]} // Gradient colors for the header title
+              start={{ x: 0.3, y: 0 }}
+              end={{ x: 0.7, y: 0}}
+              style={styles.headerTitleGradientBackground}
+            />
+          </MaskedView>
+          </View>
       </View>
 
       {/* Dog Card Area */}
@@ -254,6 +268,18 @@ const DogSwipeScreen: React.FC = () => {
           </Animated.View>
         </GestureDetector>
       </View>
+      {/* Footer */}
+      <View style={styles.footer}>
+        <TouchableOpacity onPress={goToProfile} style={styles.headerIcon}>
+          <Text style={styles.iconText}>👤</Text> {/* Placeholder for profile icon */}
+        </TouchableOpacity>
+        <TouchableOpacity onPress={goToProfile} style={styles.headerIcon}>
+          <Text style={styles.iconText}>🏠</Text> {/* Placeholder for profile icon */}
+        </TouchableOpacity>
+        <TouchableOpacity onPress={goToChat} style={styles.headerIcon}>
+          <Text style={styles.iconText}>💬</Text> {/* Placeholder for chat icon */}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -267,32 +293,60 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     width: '90%',
-    marginBottom: 20,
+    marginTop: 30,
+  },
+  logoTitleContainer: {
+    flexDirection: 'row', // Arrange logo and text horizontally
+    alignItems: 'center', // Align them vertically in the middle
+    flex: 1, // Allow this container to take up available space
+    justifyContent: 'center', // Center the logo and text within this container
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
-    color: '#FF7B7B',
+    textAlign: 'center',
+    width: '100%',
+  },
+   headerTitleMaskedView: {
+    width: 150,
+    height: 40, // Adjust height to fit the text size
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitleGradientBackground: {
+    flex: 1,
+    width: '100%', // Ensure gradient covers the mask area
   },
   headerIcon: {
-    padding: 10,
+    padding: 15,
   },
   iconText: {
-    fontSize: 24,
+    fontSize: 30,
+  },
+  logo: {
+    width: 40, // Adjust size as needed
+    height: 40, // Adjust size as needed
+    resizeMode: 'contain',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    width: '90%',
+    marginBottom: 50,
   },
   cardContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
-    paddingHorizontal: 20,
   },
   dogCard: {
-    width: width * 0.9,
-    height: width * 1.2,
+    width: width * 1,
+    height: width * 1.4,
     borderRadius: 15,
     backgroundColor: '#fff',
     shadowColor: '#000',
