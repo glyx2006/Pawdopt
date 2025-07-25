@@ -1,36 +1,41 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient'; // Make sure this is installed: npx expo install expo-linear-gradient
-import { NavigationProp } from '@react-navigation/native'; // <-- Import NavigationProp
-import { RootStackParamList } from '../App'; // <-- Import RootStackParamList
+import { NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../App';
+import { CognitoUser, AuthenticationDetails, userPool } from '../services/CognitoService';
 
 type LoginScreenProps = NavigationProp<RootStackParamList, 'Login'>;
 
-
-const LoginScreen: React.FC<{navigation: LoginScreenProps}> = ({ navigation }) => {
+const LoginScreen: React.FC<{ navigation: LoginScreenProps }> = ({ navigation }) => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false); // State to toggle password visibility
 
+
   // Handle Login button press
   const handleLogin = () => {
-    // Basic validation for demonstration.
-    // In a real app, you'd send these credentials to your backend API.
     if (!email || !password) {
       Alert.alert('Error', 'Please enter both email and password.');
       return;
     }
 
-    // For MVP, simulate login success and navigate
-    console.log('Attempting login with:', { email, password });
-    Alert.alert('Login Success', 'You are now logged in!');
+    const user = new CognitoUser({ Username: email, Pool: userPool });
+    const authDetails = new AuthenticationDetails({
+      Username: email,
+      Password: password,
+    });
 
-    // TODO: Replace with actual authentication logic (API call to backend)
-    // On successful login, navigate based on user type (Adopter or Shelter)
-    // For now, let's assume successful login always goes to the Adopter Dashboard for testing.
-    // You'll add logic here to check if the user is an adopter or shelter
-    // and navigate to 'AdopterDashboard' or 'ShelterDashboard' accordingly.
-    navigation.navigate('AdopterDashboard'); // Example navigation after successful login
+    user.authenticateUser(authDetails, {
+      onSuccess: (session) => {
+        // You can check user attributes or tokens here to determine user type
+        Alert.alert('Login Success', 'You are now logged in!');
+        navigation.navigate('AdopterDashboard'); // Or 'ShelterDashboard' based on user type
+      },
+      onFailure: (err) => {
+        Alert.alert('Login Failed', err.message || JSON.stringify(err));
+      },
+    });
   };
 
   // Navigate to the Onboarding/Signup page
