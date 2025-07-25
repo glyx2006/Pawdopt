@@ -3,6 +3,10 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView,
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../App';
+import {
+  userPool,
+  CognitoUserAttribute,
+} from '../services/CognitoService';
 
 // Define the type for the route parameters for this screen
 type SignupShelterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupShelterDetails'>;
@@ -26,13 +30,25 @@ const SignupShelterDetailsScreen: React.FC = () => {
     }
     // Add more specific validation (e.g., phone number regex)
 
-    console.log('Shelter Details:', { email, password, shelterName, address, postcode, phoneNo });
+    // Prepare Cognito attributes
+    const attributeList = [
+      new CognitoUserAttribute({ Name: 'email', Value: email }),
+      new CognitoUserAttribute({ Name: 'name', Value: shelterName }),
+      new CognitoUserAttribute({ Name: 'address', Value: address }),
+      new CognitoUserAttribute({ Name: 'phone_number', Value: phoneNo }),
+      new CognitoUserAttribute({ Name: 'custom:postcode', Value: postcode }),
+      new CognitoUserAttribute({ Name: 'custom:role', Value: 'shelter' }),
+    ];
+    // Only add custom:postcode if it has a value
 
-    // TODO: This is the final step for shelter signup.
-    // Here you would make the actual API call to your backend to register the shelter.
-    Alert.alert('Shelter Signup Complete!', 'Your shelter account has been created.');
-    // On successful API call, navigate to the Shelter Dashboard
-    navigation.navigate('ShelterDashboard');
+    userPool.signUp(email, password, attributeList, [], (err, result) => {
+      if (err) {
+        Alert.alert('Sign Up Error', err.message || JSON.stringify(err));
+        return;
+      }
+      Alert.alert('Shelter Signup Complete!', 'Your shelter account has been created. Please check your email for a confirmation link.');
+      navigation.navigate('ShelterDashboard');
+    });
   };
 
   return (
