@@ -28,10 +28,32 @@ const LoginScreen: React.FC<{ navigation: LoginScreenProps }> = ({ navigation })
 
     user.authenticateUser(authDetails, {
       onSuccess: (session) => {
-        // You can check user attributes or tokens here to determine user type
-        Alert.alert('Login Success', 'You are now logged in!');
-        navigation.navigate('AdopterDashboard'); // Or 'ShelterDashboard' based on user type
-      },
+      if (session && typeof session.getIdToken === 'function') {
+      const idToken = session.getIdToken();
+
+      // Ensure idToken and its payload exist
+      if (idToken && idToken.payload) {
+        const userRole = idToken.payload['custom:role']; // Access the custom:role attribute
+
+        if (userRole === 'shelter') {
+          Alert.alert('Login Success', 'Welcome, Shelter User!');
+          navigation.navigate('ShelterDashboard');
+        } else {
+          // Default to AdopterDashboard if role is not 'shelter' or is undefined
+          Alert.alert('Login Success', 'Welcome, Adopter!');
+          navigation.navigate('AdopterDashboard');
+        }
+      } else {
+        // Fallback if idToken or its payload is unexpected
+        Alert.alert('Login Success', 'Authentication successful, but ID Token payload could not be determined.');
+        navigation.navigate('AdopterDashboard'); // Or a default dashboard
+      }
+    } else {
+      // Fallback if session or getIdToken method is unexpected
+      Alert.alert('Login Success', 'Authentication successful, but session structure is unexpected.');
+      navigation.navigate('AdopterDashboard'); // Or a default dashboard
+    }
+  },
       onFailure: (err) => {
         Alert.alert('Login Failed', err.message || JSON.stringify(err));
       },

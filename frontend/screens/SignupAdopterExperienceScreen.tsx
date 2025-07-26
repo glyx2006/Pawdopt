@@ -43,8 +43,7 @@ const SignupAdopterExperienceScreen: React.FC<{
   route: SignupAdopterExperienceScreenRouteProp;
 }> = ({ navigation, route }) => {
   // Get all previously collected data - ENSURE THESE ARE DEFINED IN RootStackParamList IN App.tsx
-  const { email, password, name, dob, gender, address, postcode, phoneNo } =
-    route.params;
+  const { email, password } = route.params;
 
   const [experience, setExperience] = useState<string>("");
 
@@ -54,33 +53,13 @@ const SignupAdopterExperienceScreen: React.FC<{
       Alert.alert("Error", "Please describe your experience with pets.");
       return;
     }
-
-    // Prepare Cognito attributes (required and custom)
+    const cognitoUser = new CognitoUser({ Username: email, Pool: userPool });
     const attributeList = [
-      new CognitoUserAttribute({ Name: "email", Value: email }),
-      new CognitoUserAttribute({ Name: "name", Value: name }),
-      new CognitoUserAttribute({ Name: "address", Value: address }),
-      new CognitoUserAttribute({ Name: "birthdate", Value: dob }),
-      new CognitoUserAttribute({ Name: "phone_number", Value: phoneNo }),
-      new CognitoUserAttribute({ Name: "custom:postcode", Value: postcode }),
-      new CognitoUserAttribute({ Name: "custom:role", Value: "adopter" }), // Custom role attribute
-      // new CognitoUserAttribute({
-      //   Name: "custom:experience",
-      //   Value: experience,
-      // }),
+      new CognitoUserAttribute({ Name: "custom:experience", Value: experience }),
     ];
 
-    userPool.signUp(email, password, attributeList, null, (err, result) => {
-      if (err) {
-        Alert.alert("Sign Up Error", err.message || JSON.stringify(err));
-        return;
-      }
-      Alert.alert(
-        "Adopter Signup Complete!",
-        "Your adopter account has been created. Please check your email for a confirmation link."
-      );
-      navigation.navigate("AdopterDashboard");
-    });
+    navigation.navigate("AdopterDashboard")
+   
   };
 
   return (
@@ -195,22 +174,22 @@ const styles = StyleSheet.create({
   },
 });
 
-// Optional: signIn helper function if you need it elsewhere
-const signIn = (username, password) => {
-  const user = new CognitoUser({ Username: username, Pool: userPool });
-  const authDetails = new AuthenticationDetails({
-    Username: username,
-    Password: password,
-  });
+// // Optional: signIn helper function if you need it elsewhere
+// const signIn = (username, password) => {
+//   const user = new CognitoUser({ Username: username, Pool: userPool });
+//   const authDetails = new AuthenticationDetails({
+//     Username: username,
+//     Password: password,
+//   });
 
-  user.authenticateUser(authDetails, {
-    onSuccess: (session) => {
-      console.log("Logged in:", session.getIdToken().getJwtToken());
-    },
-    onFailure: (err) => {
-      console.error("Login failed:", err);
-    },
-  });
-};
+//   user.authenticateUser(authDetails, {
+//     onSuccess: (session) => {
+//       console.log("Logged in:", session.getIdToken().getJwtToken());
+//     },
+//     onFailure: (err) => {
+//       console.error("Login failed:", err);
+//     },
+//   });
+// };
 
 export default SignupAdopterExperienceScreen;

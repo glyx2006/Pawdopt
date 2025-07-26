@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
+import { userPool, CognitoUserAttribute } from '../services/CognitoService'; 
+
 
 import { RootStackParamList } from '../App';
 
@@ -55,17 +57,35 @@ const SignupAdopterDetailsScreen: React.FC<{
       return;
     }
 
-    console.log('Adopter Details:', { email, password, name, dob, gender, address, postcode, phoneNo });
+    const attributeList = [
+      new CognitoUserAttribute({ Name: "email", Value: email }),
+      new CognitoUserAttribute({ Name: "name", Value: name }),
+      new CognitoUserAttribute({ Name: "address", Value: address }),
+      new CognitoUserAttribute({ Name: "birthdate", Value: dob }),
+      new CognitoUserAttribute({ Name: "phone_number", Value: phoneNo }),
+      new CognitoUserAttribute({ Name: "custom:postcode", Value: postcode }),
+      new CognitoUserAttribute({ Name: "custom:role", Value: "adopter" }), // Custom role attribute
+      // Removed 'custom:experience' from here
+    ];
 
-    navigation.navigate('SignupAdopterExperience', {
-      email,
-      password,
-      name,
-      dob,
-      gender,
-      address,
-      postcode,
-      phoneNo,
+    userPool.signUp(email, password, attributeList, null, (err, result) => {
+      if (err) {
+        Alert.alert("Sign Up Error", err.message || JSON.stringify(err));
+        return;
+      }
+      // User created successfully, now navigate to the experience screen
+      Alert.alert(
+        "Adopter Account Created!", // Changed message slightly
+        "Please provide your pet experience. You will also need to verify your email."
+      );
+
+      // Pass relevant data to the next screen if needed (e.g., email for direct update)
+      // Or if you only want to update once they are logged in, just navigate.
+      // For now, let's navigate to the experience screen which will handle the update.
+      navigation.navigate("SignupAdopterExperience", {
+        email,
+        password,
+      });
     });
   };
 
