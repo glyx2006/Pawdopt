@@ -236,28 +236,16 @@ const SignupAdopterDetailsScreen: React.FC<{
       return;
     }
 
-    const attributeList = [
-      new CognitoUserAttribute({ Name: "email", Value: email }),
-      new CognitoUserAttribute({ Name: "name", Value: name }),
-      new CognitoUserAttribute({ Name: "address", Value: address }),
-      new CognitoUserAttribute({ Name: "birthdate", Value: dob }),
-      new CognitoUserAttribute({ Name: "phone_number", Value: phoneNo }),
-      new CognitoUserAttribute({ Name: "custom:postcode", Value: postcode }),
-      new CognitoUserAttribute({ Name: "custom:role", Value: "adopter" }), // Custom role attribute
-      // Removed 'custom:experience' from here
-    ];
-
-    userPool.signUp(email, password, attributeList, [], (err, result) => {
-      if (err) {
-        Alert.alert("Sign Up Error", err.message || JSON.stringify(err));
-        return;
-      }
-      // User created successfully, now navigate to the experience screen
-      Alert.alert(
-        "Adopter Account Created!",
-        "Please verify your email and login."
-      );
-      navigation.navigate('Login');
+    // Pass all collected info to experience screen for final sign-up
+    navigation.navigate('SignupAdopterExperience', {
+      email,
+      password,
+      name,
+      dob,
+      gender,
+      address,
+      postcode,
+      phoneNo,
     });
   };
 

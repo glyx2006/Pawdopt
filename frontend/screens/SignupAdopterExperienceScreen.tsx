@@ -46,53 +46,38 @@ const SignupAdopterExperienceScreen: React.FC<{
   route: SignupAdopterExperienceScreenRouteProp;
 }> = ({ navigation, route }) => {
   // Get all previously collected data - ENSURE THESE ARE DEFINED IN RootStackParamList IN App.tsx
-  const { email, password } = route.params;
+  const { email, password, name, dob, gender, address, postcode, phoneNo } = route.params;
 
   const [experience, setExperience] = useState<string>("");
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     if (!experience) {
       Alert.alert("Error", "Please describe your experience with pets.");
       return;
     }
 
-    // Get the current user from the user pool - requires user to be logged in
-    const cognitoUser = userPool.getCurrentUser();
+    // Prepare Cognito attributes (required and custom)
+    const attributeList = [
+      new CognitoUserAttribute({ Name: "email", Value: email }),
+      new CognitoUserAttribute({ Name: "name", Value: name }),
+      new CognitoUserAttribute({ Name: "address", Value: address }),
+      new CognitoUserAttribute({ Name: "birthdate", Value: dob }),
+      new CognitoUserAttribute({ Name: "phone_number", Value: phoneNo }),
+      new CognitoUserAttribute({ Name: "custom:postcode", Value: postcode }),
+      new CognitoUserAttribute({ Name: "custom:role", Value: "adopter" }),
+      new CognitoUserAttribute({ Name: "custom:experience", Value: experience }),
+    ];
 
-    if (!cognitoUser) {
-      Alert.alert('Authentication Required', 'Please log in to update your profile.');
-      navigation.navigate('Login'); // Redirect to login
-      return;
-    }
-
-    // Get session to ensure user is authenticated and session is valid
-    cognitoUser.getSession((err: any, session: any) => {
-      if (err || !session.isValid()) {
-        Alert.alert('Authentication Error', err?.message || 'Your session has expired. Please log in again.');
-        navigation.navigate('Login');
+    userPool.signUp(email, password, attributeList, [], (err, result) => {
+      if (err) {
+        Alert.alert("Sign Up Error", err.message || JSON.stringify(err));
         return;
       }
-
-      // User is authenticated, proceed to update attributes
-      const attributeList = [
-        new CognitoUserAttribute({ Name: "custom:experience", Value: experience }),
-      ];
-
-      cognitoUser.updateAttributes(attributeList, (updateErr: any, result: any) => {
-        if (updateErr) {
-          Alert.alert("Update Error", updateErr.message || JSON.stringify(updateErr));
-          return;
-        }
-        console.log('User experience updated successfully:', result);
-
-        Alert.alert(
-          "Profile Updated!",
-          "Your experience details have been saved."
-        );
-
-        // Navigate to the user's main dashboard after all details are filled
-        navigation.navigate("AdopterDashboard"); // Assuming AdopterDashboard is your main screen post-login
-      });
+      Alert.alert(
+        "Adopter Signup Complete!",
+        "Your adopter account has been created. Please check your email for a confirmation link."
+      );
+      navigation.navigate("AdopterDashboard");
     });
   };
 
