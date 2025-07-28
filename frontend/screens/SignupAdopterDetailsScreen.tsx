@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
+import { userPool, CognitoUserAttribute } from '../services/CognitoService'; 
+
 
 import { RootStackParamList } from '../App';
 
@@ -31,6 +33,13 @@ const SignupAdopterDetailsScreen: React.FC<{
   const [postcode, setPostcode] = useState<string>('');
   const [phoneNo, setPhoneNo] = useState<string>('');
 
+  const [nameError, setNameError] = useState<string>('');
+  const [dobError, setDobError] = useState<string>('');
+  const [genderError, setGenderError] = useState<string>('');
+  const [addressError, setAddressError] = useState<string>('');
+  const [postcodeError, setPostcodeError] = useState<string>('');
+  const [phoneNoError, setPhoneNoError] = useState<string>('');
+
   const formatDob = (text: string) => {
     // Remove all non-digit characters
     let cleanedText = text.replace(/\D/g, '');
@@ -49,14 +58,185 @@ const SignupAdopterDetailsScreen: React.FC<{
     setDob(formattedText);
   };
 
+  const formatPhoneNo = (text: string) => {
+    // If the input starts with anything other than '+', prepend it.
+    // This handles accidental deletion of '+' or initial paste without it.
+    if (!text.startsWith('+')) {
+      setPhoneNo('+' + text.replace(/\D/g, '')); // Ensure only digits follow the '+'
+    } else {
+      // Remove any non-digits after the '+'
+      const cleaned = '+' + text.substring(1).replace(/\D/g, '');
+      setPhoneNo(cleaned);
+    }
+  };
+
+  const validateName = (nameString: string): boolean => {
+    setNameError('');
+    if (nameString.trim().length < 2) {
+      setNameError('Name must be at least 2 characters.');
+      return false;
+    }
+    //Optional: Add regex for only alphabetic characters if desired
+    if (!/^[a-zA-Z\s]+$/.test(nameString)) {
+      setNameError('Name can only contain letters and spaces.');
+      return false;
+    }
+    return true;
+  };
+
+  const validateDob = (dobString: string): boolean => {
+    setDobError(''); // Clear previous error at the start of validation
+    const parts = dobString.split('/');
+
+    // Allow empty string to pass validation when not yet complete
+    if (dobString.length === 0) {
+      return true;
+    }
+
+    // Check for correct YYYY/MM/DD format structure
+    if (parts.length !== 3 || parts.some(part => part === '')) {
+      setDobError('Format: YYYY/MM/DD');
+      return false;
+    }
+
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+
+    // Check if parsed parts are valid numbers
+    if (isNaN(year) || isNaN(month) || isNaN(day)) {
+      setDobError('Invalid date components (not numbers).');
+      return false;
+    }
+
+    // Basic range checks for year, month, day
+    const currentYear = new Date().getFullYear();
+    if (year < 1900 || year > currentYear) { // Adjust 1900 if your minimum birth year is different
+      setDobError('Year must be between 1900 and ' + currentYear + '.');
+      return false;
+    }
+    if (month < 1 || month > 12) {
+      setDobError('Month must be between 01 and 12.');
+      return false;
+    }
+    if (day < 1 || day > 31) { // Initial day check, more precise check follows
+      setDobError('Day must be between 01 and 31.');
+      return false;
+    }
+
+    // Comprehensive date validation using Date object to handle month-day limits (e.g., Feb 30th)
+    // Month is 0-indexed in Date object (e.g., January is 0, December is 11)
+    const date = new Date(year, month - 1, day);
+    // If the Date object "corrects" the date (e.g., turns Feb 30 into March 2), it means it was invalid
+    if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
+      setDobError('Please enter a valid calendar date (e.g., February 30th is invalid).');
+      return false;
+    }
+
+    // Check if the date is not in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to start of day for accurate comparison
+    if (date > today) {
+      setDobError('Date of Birth cannot be in the future.');
+      return false;
+    }
+
+    return true; // Date is valid
+  };
+
+   const validateGender = (genderString: string): boolean => {
+    setGenderError('');
+    // Optional: More specific gender validation if you have a predefined list
+    const validGenders = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
+    if (!validGenders.includes(genderString.trim())) {
+      setGenderError('Please enter a valid gender (Male, Female, Non-binary, Prefer not to say)');
+      return false;
+    }
+    return true;
+  };
+
+  const validateAddress = (addressString: string): boolean => {
+    setAddressError('');
+    if (addressString.trim().length < 5) {
+      setAddressError('Address must be at least 5 characters.');
+      return false;
+    }
+    return true;
+  };
+
+  const validatePostcode = (postcodeString: string): boolean => {
+    setPostcodeError('');
+    // Basic UK postcode regex, adjust as needed for other regions
+    const ukPostcodeRegex = /^[A-Z]{1,2}[0-9][A-Z0-9]?\s?[0-9][A-Z]{2}$/i;
+    if (!ukPostcodeRegex.test(postcodeString.trim())) {
+      setPostcodeError('Please enter a valid postcode format (e.g., SW1A 0AA).');
+      return false;
+    }
+    return true;
+  };
+
+  const validatePhoneNo = (phoneNoString: string): boolean => {
+    setPhoneNoError('');
+    // Basic phone number regex, allows digits, spaces, hyphens, and plus sign for international
+    const phoneRegex = /^\+?[0-9\s-]{7,20}$/; // Example: 7 to 20 digits/symbols
+    if (!phoneRegex.test(phoneNoString.trim())) {
+      setPhoneNoError('Please enter a valid phone number (7-20 digits, may include +,-,spaces).');
+      return false;
+    }
+    return true;
+  };
+
+  const handleNameChange = (text: string) => {
+    setName(text);
+    validateName(text); // Validate as user types
+  };
+
+  const handleDobChange = (text: string) => {
+    formatDob(text);
+    validateDob(text); // Validate as user types
+  };
+
+  const handleGenderChange = (text: string) => {
+    setGender(text);
+    validateGender(text); // Validate as user types
+  };
+
+  const handleAddressChange = (text: string) => {
+    setAddress(text);
+    validateAddress(text); // Validate as user types
+  };
+
+  const handlePostcodeChange = (text: string) => {
+    setPostcode(text);
+    validatePostcode(text); // Validate as user types
+  };
+
+  const handlePhoneNoChange = (text: string) => {
+    formatPhoneNo(text);
+    validatePhoneNo(text); // Validate as user types
+  };
+
   const handleNext = () => {
-    if (!name || !dob || !gender || !address || !postcode || !phoneNo) {
+    const isNameValid = validateName(name);
+    const isDobValid = validateDob(dob);
+    const isGenderValid = validateGender(gender);
+    const isAddressValid = validateAddress(address);
+    const isPostcodeValid = validatePostcode(postcode);
+    const isPhoneNoValid = validatePhoneNo(phoneNo);
+
+    // Check if any field is empty (required check)
+    if (!name.trim() || !dob.trim() || !gender.trim() || !address.trim() || !postcode.trim() || !phoneNo.trim()) {
       Alert.alert('Error', 'All fields are required.');
       return;
     }
 
-    console.log('Adopter Details:', { email, password, name, dob, gender, address, postcode, phoneNo });
+    // Check if all individual validations passed
+    if (!isNameValid || !isDobValid || !isGenderValid || !isAddressValid || !isPostcodeValid || !isPhoneNoValid) {
+      Alert.alert('Validation Error', 'Please correct the highlighted fields before proceeding.');
+      return;
+    }
 
+    // Pass all collected info to experience screen for final sign-up
     navigation.navigate('SignupAdopterExperience', {
       email,
       password,
@@ -90,64 +270,73 @@ const SignupAdopterDetailsScreen: React.FC<{
           {/* Name Input */}
           <Text style={styles.inputLabel}>Name</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, nameError ? styles.inputError : null]}
             placeholder="Enter Your Name"
             placeholderTextColor="#999"
             value={name}
-            onChangeText={setName}
+            onChangeText={handleNameChange}
           />
+          {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null} {/* <-- Used here to display the message */}
+
 
           {/* Date of Birth Input */}
           <Text style={styles.inputLabel}>Date of Birth</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, dobError ? styles.inputError : null]}
             placeholder="YYYY/MM/DD"
             placeholderTextColor="#999"
             keyboardType="numeric"
             value={dob}
-            onChangeText={formatDob}
+            onChangeText={handleDobChange}
+            maxLength={10} 
           />
+          {dobError ? <Text style={styles.errorText}>{dobError}</Text> : null} {/* <-- Used here to display the message */}
+
 
           {/* Gender Input (as TextInput) */}
           <Text style={styles.inputLabel}>Gender</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, genderError ? styles.inputError : null]}
             placeholder="Enter Your Gender"
             placeholderTextColor="#999"
             value={gender}
-            onChangeText={setGender}
+            onChangeText={handleGenderChange}
           />
+          {genderError ? <Text style={styles.errorText}>{genderError}</Text> : null}
 
           {/* Address Input */}
           <Text style={styles.inputLabel}>Address</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, addressError ? styles.inputError : null]}
             placeholder="Enter Your Location"
             placeholderTextColor="#999"
             value={address}
-            onChangeText={setAddress}
+            onChangeText={handleAddressChange}
           />
+          {addressError ? <Text style={styles.errorText}>{addressError}</Text> : null}
 
           {/* Postcode Input */}
           <Text style={styles.inputLabel}>Postcode</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, postcodeError ? styles.inputError : null]}
             placeholder="Enter Your Postcode"
             placeholderTextColor="#999"
             value={postcode}
-            onChangeText={setPostcode}
+            onChangeText={handlePostcodeChange}
           />
+          {postcodeError ? <Text style={styles.errorText}>{postcodeError}</Text> : null}
 
           {/* Phone No. Input */}
           <Text style={styles.inputLabel}>Phone No.</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, phoneNoError ? styles.inputError : null]}
             placeholder="+44-"
             placeholderTextColor="#999"
             keyboardType="phone-pad"
             value={phoneNo}
-            onChangeText={setPhoneNo}
+            onChangeText={handlePhoneNoChange}
           />
+          {phoneNoError ? <Text style={styles.errorText}>{phoneNoError}</Text> : null}
 
           {/* Next Button */}
           <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
@@ -174,6 +363,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 100,
     paddingTop: 0,
+    backgroundColor: '#fff',
   },
   container: {
     flex: 1,
@@ -231,6 +421,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  inputError: {
+    borderColor: '#FF6F61', 
+  },
+  errorText: {
+    color: '#FF6F61',
+    fontSize: 14,
+    marginBottom: 5,
+    alignSelf: 'flex-start',
   },
 });
 
