@@ -8,7 +8,7 @@ import { RootStackParamList } from '../App'; // Import your RootStackParamList t
 type UniversalCreateAccountScreenRouteProp = RouteProp<RootStackParamList, 'UniversalCreateAccount'>;
 
 const UniversalCreateAccountScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<import('@react-navigation/native').NavigationProp<RootStackParamList>>();
   const route = useRoute<UniversalCreateAccountScreenRouteProp>();
   const { role } = route.params; // Get the 'role' parameter passed from OnboardingScreen
 

@@ -3,12 +3,16 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView,
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../App';
+import {
+  userPool,
+  CognitoUserAttribute,
+} from '../services/CognitoService';
 
 // Define the type for the route parameters for this screen
 type SignupShelterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupShelterDetails'>;
 
 const SignupShelterDetailsScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<import('@react-navigation/native').NavigationProp<RootStackParamList>>();
   const route = useRoute<SignupShelterDetailsScreenRouteProp>();
   const { email, password } = route.params; // Get email and password from previous screen
 
@@ -18,21 +22,124 @@ const SignupShelterDetailsScreen: React.FC = () => {
   const [postcode, setPostcode] = useState<string>('');
   const [phoneNo, setPhoneNo] = useState<string>('');
 
+  const [nameError, setNameError] = useState<string>('');
+  const [addressError, setAddressError] = useState<string>('');
+  const [postcodeError, setPostcodeError] = useState<string>('');
+  const [phoneNoError, setPhoneNoError] = useState<string>('');
+  
+  const formatPhoneNo = (text: string) => {
+    // If the input starts with anything other than '+', prepend it.
+    // This handles accidental deletion of '+' or initial paste without it.
+    if (!text.startsWith('+')) {
+      setPhoneNo('+' + text.replace(/\D/g, '')); // Ensure only digits follow the '+'
+    } else {
+      // Remove any non-digits after the '+'
+      const cleaned = '+' + text.substring(1).replace(/\D/g, '');
+      setPhoneNo(cleaned);
+    }
+  };
+
+  const validateName = (nameString: string): boolean => {
+    setNameError('');
+    if (nameString.trim().length < 2) {
+      setNameError('Name must be at least 2 characters.');
+      return false;
+    }
+    //Optional: Add regex for only alphabetic characters if desired
+    if (!/^[a-zA-Z\s]+$/.test(nameString)) {
+      setNameError('Name can only contain letters and spaces.');
+      return false;
+    }
+    return true;
+  };
+  const validateAddress = (addressString: string): boolean => {
+    setAddressError('');
+    if (addressString.trim().length < 5) {
+      setAddressError('Address must be at least 5 characters.');
+      return false;
+    }
+    return true;
+  };
+
+  const validatePostcode = (postcodeString: string): boolean => {
+    setPostcodeError('');
+    // Basic UK postcode regex, adjust as needed for other regions
+    const ukPostcodeRegex = /^[A-Z]{1,2}[0-9][A-Z0-9]?\s?[0-9][A-Z]{2}$/i;
+    if (!ukPostcodeRegex.test(postcodeString.trim())) {
+      setPostcodeError('Please enter a valid postcode format (e.g., SW1A 0AA).');
+      return false;
+    }
+    return true;
+  };
+
+  const validatePhoneNo = (phoneNoString: string): boolean => {
+    setPhoneNoError('');
+    // Basic phone number regex, allows digits, spaces, hyphens, and plus sign for international
+    const phoneRegex = /^\+?[0-9\s-]{7,20}$/; // Example: 7 to 20 digits/symbols
+    if (!phoneRegex.test(phoneNoString.trim())) {
+      setPhoneNoError('Please enter a valid phone number (7-20 digits, may include +,-,spaces).');
+      return false;
+    }
+    return true;
+  };
+
+  const handleNameChange = (text: string) => {
+    setShelterName(text);
+    validateName(text); // Validate as user types
+  };
+
+  const handleAddressChange = (text: string) => {
+    setAddress(text);
+    validateAddress(text); // Validate as user types
+  };
+
+  const handlePostcodeChange = (text: string) => {
+    setPostcode(text);
+    validatePostcode(text); // Validate as user types
+  };
+
+  const handlePhoneNoChange = (text: string) => {
+    formatPhoneNo(text);
+    validatePhoneNo(text); // Validate as user types
+  };
+
   const handleNext = () => {
+    const isNameValid = validateName(shelterName);
+    const isAddressValid = validateAddress(address);
+    const isPostcodeValid = validatePostcode(postcode);
+    const isPhoneNoValid = validatePhoneNo(phoneNo);
+    
     // Basic client-side validation
-    if (!shelterName || !address || !postcode || !phoneNo) {
+    if (!shelterName.trim || !address.trim || !postcode.trim || !phoneNo.trim) {
       Alert.alert('Error', 'All fields are required.');
       return;
     }
     // Add more specific validation (e.g., phone number regex)
+    if (!isNameValid || !isAddressValid || !isPostcodeValid || !isPhoneNoValid) {
+      Alert.alert('Validation Error', 'Please correct the highlighted fields before proceeding.');
+      return;
+    }
+    // Prepare Cognito attributes
+    const attributeList = [
+      new CognitoUserAttribute({ Name: 'email', Value: email }),
+      new CognitoUserAttribute({ Name: 'name', Value: shelterName }),
+      new CognitoUserAttribute({ Name: 'address', Value: address }),
+      new CognitoUserAttribute({ Name: 'phone_number', Value: phoneNo }),
+      new CognitoUserAttribute({ Name: 'custom:postcode', Value: postcode }),
+      new CognitoUserAttribute({ Name: 'custom:role', Value: 'shelter' }),
+    ];
 
-    console.log('Shelter Details:', { email, password, shelterName, address, postcode, phoneNo });
-
-    // TODO: This is the final step for shelter signup.
-    // Here you would make the actual API call to your backend to register the shelter.
-    Alert.alert('Shelter Signup Complete!', 'Your shelter account has been created.');
-    // On successful API call, navigate to the Shelter Dashboard
-    navigation.navigate('ShelterDashboard');
+    userPool.signUp(email, password, attributeList, [], (err, result) => {
+      if (err) {
+        Alert.alert('Sign Up Error', err.message || JSON.stringify(err));
+        return;
+      }
+      Alert.alert(
+        "Shelter Account Created!", // Changed message slightly
+        "Please verify your email and login."
+      );      
+      navigation.navigate('Login'); 
+    });
   };
 
   return (
@@ -53,43 +160,49 @@ const SignupShelterDetailsScreen: React.FC = () => {
         {/* Shelter Name Input */}
         <Text style={styles.inputLabel}>Shelter Name</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, nameError ? styles.inputError : null]}
           placeholder="Enter Shelter Name"
           placeholderTextColor="#999"
           value={shelterName}
-          onChangeText={setShelterName}
+          onChangeText={handleNameChange}
         />
+        {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null} {/* <-- Used here to display the message */}
+        
 
         {/* Address Input */}
         <Text style={styles.inputLabel}>Address</Text>
         <TextInput
-          style={styles.input}
-          placeholder="Enter Shelter Location"
+          style={[styles.input, addressError ? styles.inputError : null]}
+          placeholder="Enter Your Location"
           placeholderTextColor="#999"
           value={address}
-          onChangeText={setAddress}
+          onChangeText={handleAddressChange}
         />
+        {addressError ? <Text style={styles.errorText}>{addressError}</Text> : null}
 
         {/* Postcode Input */}
         <Text style={styles.inputLabel}>Postcode</Text>
         <TextInput
-          style={styles.input}
-          placeholder="Enter Shelter Postcode"
+          style={[styles.input, postcodeError ? styles.inputError : null]}
+          placeholder="Enter Your Postcode"
           placeholderTextColor="#999"
           value={postcode}
-          onChangeText={setPostcode}
+          onChangeText={handlePostcodeChange}
         />
+        {postcodeError ? <Text style={styles.errorText}>{postcodeError}</Text> : null}
 
         {/* Phone No. Input */}
         <Text style={styles.inputLabel}>Phone No.</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, phoneNoError ? styles.inputError : null]}
           placeholder="+44-"
           placeholderTextColor="#999"
           keyboardType="phone-pad"
           value={phoneNo}
-          onChangeText={setPhoneNo}
+          onChangeText={handlePhoneNoChange}
         />
+        {phoneNoError ? <Text style={styles.errorText}>{phoneNoError}</Text> : null}
+
 
         {/* Next Button */}
         <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
@@ -174,6 +287,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  inputError: {
+    borderColor: '#FF6F61', 
+  },
+  errorText: {
+    color: '#FF6F61',
+    fontSize: 14,
+    marginBottom: 5,
+    alignSelf: 'flex-start',
   },
 });
 

@@ -23,16 +23,7 @@ export type RootStackParamList = {
   UniversalCreateAccount: { role: 'adopter' | 'shelter' }; // Expects a 'role' parameter
   SignupAdopterDetails: { email: string; password: string }; // Expects email and password
   SignupShelterDetails: { email: string; password: string }; // Expects email and password
-  SignupAdopterExperience: { // Expects all previously collected adopter details
-    email: string;
-    password: string;
-    name: string;
-    dob: string;
-    gender: string;
-    address: string;
-    postcode: string;
-    phoneNo: string;
-  };
+  SignupAdopterExperience: { email: string; password: string };
   DogSwipe: undefined;
   DogProfileDetail: {dogId: string};
   AdopterDashboard: undefined; // No parameters expected for the dashboard (for now)
