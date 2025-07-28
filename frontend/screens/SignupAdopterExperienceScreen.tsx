@@ -1,3 +1,6 @@
+// nothing is stored in this file, but this screen will be accessed after login
+//
+
 import React, { useState } from "react";
 import {
   View,
@@ -47,19 +50,50 @@ const SignupAdopterExperienceScreen: React.FC<{
 
   const [experience, setExperience] = useState<string>("");
 
-  const handleContinue = () => {
-    // Basic client-side validation
+  const handleContinue = async () => {
     if (!experience) {
       Alert.alert("Error", "Please describe your experience with pets.");
       return;
     }
-    const cognitoUser = new CognitoUser({ Username: email, Pool: userPool });
-    const attributeList = [
-      new CognitoUserAttribute({ Name: "custom:experience", Value: experience }),
-    ];
 
-    navigation.navigate("AdopterDashboard")
-   
+    // Get the current user from the user pool - requires user to be logged in
+    const cognitoUser = userPool.getCurrentUser();
+
+    if (!cognitoUser) {
+      Alert.alert('Authentication Required', 'Please log in to update your profile.');
+      navigation.navigate('Login'); // Redirect to login
+      return;
+    }
+
+    // Get session to ensure user is authenticated and session is valid
+    cognitoUser.getSession((err: any, session: any) => {
+      if (err || !session.isValid()) {
+        Alert.alert('Authentication Error', err?.message || 'Your session has expired. Please log in again.');
+        navigation.navigate('Login');
+        return;
+      }
+
+      // User is authenticated, proceed to update attributes
+      const attributeList = [
+        new CognitoUserAttribute({ Name: "custom:experience", Value: experience }),
+      ];
+
+      cognitoUser.updateAttributes(attributeList, (updateErr: any, result: any) => {
+        if (updateErr) {
+          Alert.alert("Update Error", updateErr.message || JSON.stringify(updateErr));
+          return;
+        }
+        console.log('User experience updated successfully:', result);
+
+        Alert.alert(
+          "Profile Updated!",
+          "Your experience details have been saved."
+        );
+
+        // Navigate to the user's main dashboard after all details are filled
+        navigation.navigate("AdopterDashboard"); // Assuming AdopterDashboard is your main screen post-login
+      });
+    });
   };
 
   return (
