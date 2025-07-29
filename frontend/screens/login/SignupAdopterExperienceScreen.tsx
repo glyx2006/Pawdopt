@@ -59,6 +59,7 @@ const SignupAdopterExperienceScreen: React.FC<{
       new CognitoUserAttribute({ Name: "name", Value: name }),
       new CognitoUserAttribute({ Name: "address", Value: address }),
       new CognitoUserAttribute({ Name: "birthdate", Value: dob }),
+      new CognitoUserAttribute({ Name: "gender", Value: gender }),
       new CognitoUserAttribute({ Name: "phone_number", Value: phoneNo }),
       new CognitoUserAttribute({ Name: "custom:postcode", Value: postcode }),
       new CognitoUserAttribute({ Name: "custom:role", Value: "adopter" }),
