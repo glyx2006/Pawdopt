@@ -212,7 +212,7 @@ const DogSwipeScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.logoTitleContainer}>
           <Image
-            source={require('../assets/pawdopt_logo.png')} // Your logo image
+            source={require('../../assets/pawdopt_logo.png')} // Your logo image
             style={styles.logo}
           />
           <MaskedView
