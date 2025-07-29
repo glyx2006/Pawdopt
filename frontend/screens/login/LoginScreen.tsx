@@ -37,7 +37,7 @@ const LoginScreen: React.FC<{ navigation: LoginScreenProps }> = ({ navigation })
 
         if (userRole === 'shelter') {
           Alert.alert('Login Success', 'Welcome, Shelter User!');
-          navigation.navigate('ShelterDashboard');
+          navigation.navigate('ShelterDashboard', {}); // Pass email to the ShelterDashboard
         } else {
           // Default to AdopterDashboard if role is not 'shelter' or is undefined
           Alert.alert('Login Success', 'Welcome, Adopter!');
@@ -74,7 +74,7 @@ const LoginScreen: React.FC<{ navigation: LoginScreenProps }> = ({ navigation })
       {/* Pawdopt Logo and Name */}
       <View style={styles.logoContainer}>
         <Image
-          source={require('../assets/pawdopt_logo.png')} // Make sure you have your logo in the assets folder
+          source={require('../../assets/pawdopt_logo.png')} // Make sure you have your logo in the assets folder
           style={styles.logo}
         />
         <Text style={styles.appName}>Pawdopt</Text>

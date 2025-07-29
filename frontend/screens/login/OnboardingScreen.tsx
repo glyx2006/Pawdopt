@@ -17,7 +17,7 @@ const OnboardingScreen: React.FC<{navigation: OnboardingScreenProps}> = ({ navig
       <View style={styles.container}>
         {/* Pawdopt Logo */}
         <Image
-          source={require("../assets/pawdopt_logo_white.png")} // Make sure you have your logo in the assets folder
+          source={require("../../assets/pawdopt_logo_white.png")} // Make sure you have your logo in the assets folder
           style={styles.logo}
         />
         <Text style={styles.logoText}>Pawdopt</Text> {/* Text for 'Pawdopt' */}
