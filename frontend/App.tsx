@@ -13,8 +13,21 @@ import SignupShelterDetailsScreen from './screens/login/SignupShelterDetailsScre
 import SignupAdopterExperienceScreen from './screens/login/SignupAdopterExperienceScreen';
 import DogSwipeScreen from './screens/adopters/DogSwipeScreen';
 import DogProfileDetailScreen from './screens/adopters/DogProfileDetailScreen';
-import ShelterDashboardScreen from './screens/shelters/ShelterDashboardScreen'; 
+import ShelterDashboardScreen from './screens/shelters/ShelterDashboardScreen';
+import AddDogScreen from './screens/shelters/AddDogScreen'; 
 
+export interface Dog {
+  id: string;
+  name: string;
+  breed: string;
+  age: number;
+  gender: string;
+  description: string;
+  photoURLs: string[];
+  shelterId: string;
+  status: string; // e.g., "Available", "Adopted", "Pending"
+  createdAt: string; // Using string for simplicity with mock data
+}
 
 // --- Define the type for your navigation stack parameters ---
 // This is crucial for TypeScript to understand what parameters each screen expects
@@ -36,7 +49,17 @@ export type RootStackParamList = {
   };
   DogProfileDetail: {dogId: string};
   AdopterDashboard: undefined; // No parameters expected for the dashboard (for now)
-  ShelterDashboard: undefined; // No parameters expected for the dashboard (for now)
+  ShelterDashboard: {
+    // When navigating to ShelterDashboard, we might pass a newDog if coming from AddDogScreen
+    newDog?: Dog;
+  };
+  AddDog: {
+    // Pass a callback function to AddDogScreen to update the list on the dashboard
+    onAddDog: (newDog: Dog) => void;
+    // You might also pass shelter details here if needed for pre-filling
+    shelterId?: string;
+    shelterPostcode?: string;
+  };
   // Add other screens here as you create them (e.g., DogSwipe, DogProfile, Chat)
 };
 
@@ -108,9 +131,11 @@ export default function App() {
             component={ShelterDashboardScreen} // Use the separate dummy component
             options={{ headerShown: false }} // Or customize header for dashboard
           />
-
-
-
+          <Stack.Screen 
+            name="AddDog" 
+            component={AddDogScreen} 
+            options={{ headerShown: false }} 
+          />
 
           {/* Add more Stack.Screen components here as you develop new pages */}
 
