@@ -15,6 +15,7 @@ import DogSwipeScreen from './screens/adopters/DogSwipeScreen';
 import DogProfileDetailScreen from './screens/adopters/DogProfileDetailScreen';
 import ShelterDashboardScreen from './screens/shelters/ShelterDashboardScreen';
 import AddDogScreen from './screens/shelters/AddDogScreen'; 
+import AddDogPicScreen from './screens/shelters/AddDogPicScreen';
 
 export interface Dog {
   id: string;
@@ -27,7 +28,7 @@ export interface Dog {
   shelterId: string;
   status: string; // e.g., "Available", "Adopted", "Pending"
   createdAt: string; // Using string for simplicity with mock data
-}import UploadDogDetailsScreen from './screens/upload_dogs/UploadDogDetails'; // Import the new UploadDogDetails screen
+}
 
 
 // --- Define the type for your navigation stack parameters ---
@@ -61,8 +62,15 @@ export type RootStackParamList = {
     shelterId?: string;
     shelterPostcode?: string;
   };
-  UploadDogDetails: undefined; // No parameters expected for the upload dog details screen
-  // Add other screens here as you create them (e.g., DogSwipe, DogProfile, Chat)
+  AddDogPic:{
+    onAddDog: (newDog: Dog) => void;
+    shelterId?: string;
+    shelterPostcode?: string;
+    name: string;
+    breed: string;
+    dob: string;
+    gender: string;
+  }
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -74,7 +82,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="UploadDogDetails">
+        <Stack.Navigator initialRouteName="AddDogPic">
           {/* Onboarding Screen */}
           <Stack.Screen
             name="Onboarding"
@@ -133,15 +141,15 @@ export default function App() {
             component={ShelterDashboardScreen} // Use the separate dummy component
             options={{ headerShown: false }} // Or customize header for dashboard
           />
-          <Stack.Screen
-            name="UploadDogDetails"
-            component={UploadDogDetailsScreen} // Use the separate dummy component
-            options={{ headerShown: false }} // Or customize header for dashboard
-          />
           <Stack.Screen 
             name="AddDog" 
             component={AddDogScreen} 
             options={{ headerShown: false }} 
+          />
+          <Stack.Screen
+            name="AddDogPic"
+            component={AddDogPicScreen} // Use the separate dummy component
+            options={{ headerShown: false }} // Or customize header for dashboard
           />
 
           {/* Add more Stack.Screen components here as you develop new pages */}
