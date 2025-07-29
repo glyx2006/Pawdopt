@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient'; // Make sure this is installed: npx expo install expo-linear-gradient
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'; // Import hooks for navigation and route params
-import { RootStackParamList } from '../App'; // Import your RootStackParamList type
+import { RootStackParamList } from '../../App'; // Import your RootStackParamList type
 
 // Define the type for the route parameters for this screen
 type UniversalCreateAccountScreenRouteProp = RouteProp<RootStackParamList, 'UniversalCreateAccount'>;

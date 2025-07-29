@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient'; // Make sure this is installed: npx expo install expo-linear-gradient
 import { NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../App';
-import { CognitoUser, AuthenticationDetails, userPool } from '../services/CognitoService';
+import { RootStackParamList } from '../../App';
+import { CognitoUser, AuthenticationDetails, userPool } from '../../services/CognitoService';
 
 type LoginScreenProps = NavigationProp<RootStackParamList, 'Login'>;
 

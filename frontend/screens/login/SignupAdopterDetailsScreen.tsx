@@ -12,10 +12,10 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
-import { userPool, CognitoUserAttribute } from '../services/CognitoService'; 
+import { userPool, CognitoUserAttribute } from '../../services/CognitoService'; 
 
 
-import { RootStackParamList } from '../App';
+import { RootStackParamList } from '../../App';
 
 type SignupAdopterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupAdopterDetails'>;
 type SignupAdopterDetailsScreenNavigationProp = NavigationProp<RootStackParamList, 'SignupAdopterDetails'>;

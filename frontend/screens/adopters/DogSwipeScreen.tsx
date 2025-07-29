@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../App'; // Import RootStackParamList
+import { RootStackParamList } from '../../App'; // Import RootStackParamList
 
 // Import gesture-handler and reanimated components/hooks
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -27,7 +27,7 @@ import MaskedView from '@react-native-masked-view/masked-view'; // <-- Import Ma
 const { width } = Dimensions.get('window'); // Get screen width for responsive sizing
 
 // Define the type for the navigation prop for this screen
-type DogSwipeScreenNavigationProp = NavigationProp<RootStackParamList, 'DogSwipe'>;
+type DogSwipeScreenNavigationProp = NavigationProp<RootStackParamList, 'AdopterDashboard'>; // <-- Use the correct screen name
 
 // Define a simple interface for a Dog object
 interface Dog {

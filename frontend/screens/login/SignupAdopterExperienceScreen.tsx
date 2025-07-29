@@ -1,6 +1,3 @@
-// nothing is stored in this file, but this screen will be accessed after login
-//
-
 import React, { useState } from "react";
 import {
   View,
@@ -20,14 +17,14 @@ import {
   NavigationProp, // <--- Import NavigationProp as well
 } from "@react-navigation/native";
 
-import { RootStackParamList } from "../App"; // Import your RootStackParamList type
+import { RootStackParamList } from "../../App"; // Import your RootStackParamList type
 
 import {
   userPool,
   CognitoUser,
   AuthenticationDetails,
   CognitoUserAttribute,
-} from "../services/CognitoService";
+} from "../../services/CognitoService";
 
 // Define the type for the route parameters for this screen
 type SignupAdopterExperienceScreenRouteProp = RouteProp<
@@ -74,10 +71,10 @@ const SignupAdopterExperienceScreen: React.FC<{
         return;
       }
       Alert.alert(
-        "Adopter Signup Complete!",
-        "Your adopter account has been created. Please check your email for a confirmation link."
+        "Adopter Account Created!", 
+        "Please verify your email and login."
       );
-      navigation.navigate("AdopterDashboard");
+      navigation.navigate("Login");
     });
   };
 
