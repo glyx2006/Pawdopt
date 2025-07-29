@@ -133,7 +133,7 @@ export function DogFromJSONTyped(json: any, ignoreDiscriminator: boolean): Dog {
         'age': json['age'],
         'breed': json['breed'],
         'gender': json['gender'],
-        'photoURLs': json['photo_key'],
+        'photoURLs': json['photoURLs'],
         'description': json['description'],
         'shelterId': json['shelter_id'],
         'createdAt': json['created_at'],
