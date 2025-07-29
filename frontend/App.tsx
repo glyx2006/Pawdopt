@@ -14,6 +14,7 @@ import SignupAdopterExperienceScreen from './screens/login/SignupAdopterExperien
 import DogSwipeScreen from './screens/adopters/DogSwipeScreen';
 import DogProfileDetailScreen from './screens/adopters/DogProfileDetailScreen';
 import ShelterDashboardScreen from './screens/shelters/ShelterDashboardScreen'; 
+import UploadDogDetailsScreen from './screens/upload_dogs/UploadDogDetails'; // Import the new UploadDogDetails screen
 
 
 // --- Define the type for your navigation stack parameters ---
@@ -37,6 +38,7 @@ export type RootStackParamList = {
   DogProfileDetail: {dogId: string};
   AdopterDashboard: undefined; // No parameters expected for the dashboard (for now)
   ShelterDashboard: undefined; // No parameters expected for the dashboard (for now)
+  UploadDogDetails: undefined; // No parameters expected for the upload dog details screen
   // Add other screens here as you create them (e.g., DogSwipe, DogProfile, Chat)
 };
 
@@ -49,7 +51,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Onboarding">
+        <Stack.Navigator initialRouteName="UploadDogDetails">
           {/* Onboarding Screen */}
           <Stack.Screen
             name="Onboarding"
@@ -106,6 +108,11 @@ export default function App() {
           <Stack.Screen
             name="ShelterDashboard"
             component={ShelterDashboardScreen} // Use the separate dummy component
+            options={{ headerShown: false }} // Or customize header for dashboard
+          />
+          <Stack.Screen
+            name="UploadDogDetails"
+            component={UploadDogDetailsScreen} // Use the separate dummy component
             options={{ headerShown: false }} // Or customize header for dashboard
           />
 
