@@ -31,14 +31,14 @@ const LoginScreen: React.FC = () => {
     user.authenticateUser(authDetails, {
       onSuccess: async (session) => {
       if (session && typeof session.getIdToken === 'function') {
-      const idToken = session.getIdToken();
+      const idToken = session.getIdToken()
 
       // Ensure idToken and its payload exist
       if (idToken && idToken.payload) {
         const userRole = idToken.payload['custom:role']; // Access the custom:role attribute
 
         // Store token for use in other screens
-        const tokenString = idToken.getJwtToken()
+        const tokenString = idToken.getJwtToken();
         await AsyncStorage.setItem('idToken', tokenString);
 
         // Navigate to dashboard

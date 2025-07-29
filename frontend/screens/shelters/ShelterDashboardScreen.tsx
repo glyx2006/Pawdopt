@@ -11,7 +11,7 @@ import AppHeader from '../components/AppHeader';
 import AppFooter from '../components/AppFooter';
 
 import { DogsApi } from '../../generated/apis';
-import { DogPage, DogSummary } from '../../generated/models';
+import { DogPage } from '../../generated/models';
 import { Configuration } from '../../generated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -43,11 +43,11 @@ const initialMockDogs: Dog[] = [
   },
 ];
 
-const ShelterDashboardScreen: React.FC = async () => {
+const ShelterDashboardScreen: React.FC = () => {
   const navigation = useNavigation<ShelterDashboardScreenNavigationProp>();
   const addDogNavigation = useNavigation<AddDogScreenNavigationProp>();
 
-  // const [dogs, setDogs] = useState<Dog[]>([]);
+  const [dogs, setDogs] = useState<Dog[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [shelterId, setShelterId] = useState<string>('mock-shelter-id-1'); // Mock shelter ID for now
@@ -55,7 +55,7 @@ const ShelterDashboardScreen: React.FC = async () => {
 
   // Config api
   const apiConfig = new Configuration({
-    basePath: 'https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/test',
+    basePath: 'https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default',
     accessToken: async () => {
         const token = await AsyncStorage.getItem('idToken');
         return token || '';
@@ -65,22 +65,23 @@ const ShelterDashboardScreen: React.FC = async () => {
   const dogsApi = new DogsApi(apiConfig);
 
   // Simulate fetching dogs (replace with actual API call later)
-  const [dogs, setDogs] = useState<DogSummary[]>([]);
   const fetchDogs = useCallback(async () => {
     setIsRefreshing(true);
     setLoading(true);
     // In a real app, you'd fetch dogs specific to 'shelterId' from your backend
     // For now, we'll filter the mock data
     try {
-      const response: DogPage = await dogsApi.listDogs({
-        limit: 15,
-      });
-      
+      const response: DogPage = await dogsApi.listDogs();
       if (response.dogs) {
         setDogs(response.dogs);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch dogs:', error);
+
+      if (error.response) {
+        const text = await error.response.text();
+        console.error('Backend error response: ', text);
+      }
     }  
 
     // await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
