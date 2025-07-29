@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
 import { CognitoUser, AuthenticationDetails, userPool } from '../../services/CognitoService';
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 type LoginScreenProps = NavigationProp<RootStackParamList, 'Login'>;
 
@@ -28,7 +29,7 @@ const LoginScreen: React.FC = () => {
     });
 
     user.authenticateUser(authDetails, {
-      onSuccess: (session) => {
+      onSuccess: async (session) => {
       if (session && typeof session.getIdToken === 'function') {
       const idToken = session.getIdToken();
 
@@ -36,8 +37,11 @@ const LoginScreen: React.FC = () => {
       if (idToken && idToken.payload) {
         const userRole = idToken.payload['custom:role']; // Access the custom:role attribute
 
-        const tokenString = idToken.getJwtToken() // Raw string token for API calls
+        // Store token for use in other screens
+        const tokenString = idToken.getJwtToken()
+        await AsyncStorage.setItem('idToken', tokenString);
 
+        // Navigate to dashboard
         if (userRole === 'shelter') {
           Alert.alert('Login Success', 'Welcome, Shelter User!');
           navigation.navigate('ShelterDashboard', {}); // Pass email to the ShelterDashboard
