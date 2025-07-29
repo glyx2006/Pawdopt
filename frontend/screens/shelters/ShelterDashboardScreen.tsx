@@ -13,6 +13,7 @@ import AppFooter from '../components/AppFooter';
 import { DogsApi } from '../../generated/apis';
 import { DogPage, DogSummary } from '../../generated/models';
 import { Configuration } from '../../generated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Mock data for initial display
 const initialMockDogs: Dog[] = [
@@ -42,7 +43,7 @@ const initialMockDogs: Dog[] = [
   },
 ];
 
-const ShelterDashboardScreen: React.FC = () => {
+const ShelterDashboardScreen: React.FC = async () => {
   const navigation = useNavigation<ShelterDashboardScreenNavigationProp>();
   const addDogNavigation = useNavigation<AddDogScreenNavigationProp>();
 
@@ -54,8 +55,11 @@ const ShelterDashboardScreen: React.FC = () => {
 
   // Config api
   const apiConfig = new Configuration({
-    basePath: 'https://apirul',
-    accessToken: async () => 'token'
+    basePath: 'https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/test',
+    accessToken: async () => {
+        const token = await AsyncStorage.getItem('idToken');
+        return token || '';
+    }
   });
 
   const dogsApi = new DogsApi(apiConfig);
