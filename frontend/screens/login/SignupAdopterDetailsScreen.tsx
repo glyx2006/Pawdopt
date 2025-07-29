@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Dropdown } from 'react-native-element-dropdown';
 import {
   View,
   Text,
@@ -144,16 +145,6 @@ const SignupAdopterDetailsScreen: React.FC<{
     return true; // Date is valid
   };
 
-   const validateGender = (genderString: string): boolean => {
-    setGenderError('');
-    // Optional: More specific gender validation if you have a predefined list
-    const validGenders = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
-    if (!validGenders.includes(genderString.trim())) {
-      setGenderError('Please enter a valid gender (Male, Female, Non-binary, Prefer not to say)');
-      return false;
-    }
-    return true;
-  };
 
   const validateAddress = (addressString: string): boolean => {
     setAddressError('');
@@ -198,7 +189,6 @@ const SignupAdopterDetailsScreen: React.FC<{
 
   const handleGenderChange = (text: string) => {
     setGender(text);
-    validateGender(text); // Validate as user types
   };
 
   const handleAddressChange = (text: string) => {
@@ -219,7 +209,6 @@ const SignupAdopterDetailsScreen: React.FC<{
   const handleNext = () => {
     const isNameValid = validateName(name);
     const isDobValid = validateDob(dob);
-    const isGenderValid = validateGender(gender);
     const isAddressValid = validateAddress(address);
     const isPostcodeValid = validatePostcode(postcode);
     const isPhoneNoValid = validatePhoneNo(phoneNo);
@@ -231,7 +220,7 @@ const SignupAdopterDetailsScreen: React.FC<{
     }
 
     // Check if all individual validations passed
-    if (!isNameValid || !isDobValid || !isGenderValid || !isAddressValid || !isPostcodeValid || !isPhoneNoValid) {
+    if (!isNameValid || !isDobValid  || !isAddressValid || !isPostcodeValid || !isPhoneNoValid) {
       Alert.alert('Validation Error', 'Please correct the highlighted fields before proceeding.');
       return;
     }
@@ -293,14 +282,27 @@ const SignupAdopterDetailsScreen: React.FC<{
           {dobError ? <Text style={styles.errorText}>{dobError}</Text> : null} {/* <-- Used here to display the message */}
 
 
-          {/* Gender Input (as TextInput) */}
+          {/* Gender Dropdown */}
           <Text style={styles.inputLabel}>Gender</Text>
-          <TextInput
+          <Dropdown
             style={[styles.input, genderError ? styles.inputError : null]}
-            placeholder="Enter Your Gender"
-            placeholderTextColor="#999"
+            data={[
+              { label: 'Male', value: 'Male' },
+              { label: 'Female', value: 'Female' },
+              { label: 'Non-binary', value: 'Non-binary' },
+              { label: 'Prefer not to say', value: 'Prefer not to say' },
+            ]}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Gender"
+            placeholderStyle={{ color: '#999' }}
             value={gender}
-            onChangeText={handleGenderChange}
+            onChange={item => handleGenderChange(item.value)}
+            selectedTextStyle={{ color: '#333', fontSize: 18 }}
+            itemTextStyle={{ color: '#333', fontSize: 18 }}
+            containerStyle={{ borderRadius: 8 }}
+            activeColor="#F7B781"
+            renderLeftIcon={() => null}
           />
           {genderError ? <Text style={styles.errorText}>{genderError}</Text> : null}
 
