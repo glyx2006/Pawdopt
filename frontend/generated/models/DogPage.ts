@@ -65,7 +65,6 @@ export function DogPageFromJSON(json: any): DogPage {
 }
 
 export function DogPageFromJSONTyped(json: any, ignoreDiscriminator: boolean): DogPage {
-    console.log(json["dogs"])
     if (json == null) {
         return json;
     }
