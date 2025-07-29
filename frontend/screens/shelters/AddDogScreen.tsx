@@ -30,7 +30,6 @@ const AddDogScreen: React.FC = () => {
   const [breed, setBreed] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
-  const [size, setSize] = useState('');
   const [description, setDescription] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [status, setStatus] = useState('Available');
@@ -117,9 +116,6 @@ const AddDogScreen: React.FC = () => {
 
           <Text style={styles.inputLabel}>Gender</Text>
           <TextInput style={styles.textInput} placeholder="e.g., Male/Female" value={gender} onChangeText={setGender} />
-
-          <Text style={styles.inputLabel}>Size</Text>
-          <TextInput style={styles.textInput} placeholder="e.g., Small/Medium/Large" value={size} onChangeText={setSize} />
 
           <Text style={styles.inputLabel}>Description</Text>
           <TextInput
