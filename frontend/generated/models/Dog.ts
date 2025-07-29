@@ -62,7 +62,7 @@ export interface Dog {
      * @type {Array<string>}
      * @memberof Dog
      */
-    photoKeys: Array<string>;
+    photoURLs: Array<string>;
     /**
      * 
      * @type {string}
@@ -71,16 +71,16 @@ export interface Dog {
     description: string;
     /**
      * 
-     * @type {DogShelter}
+     * @type {string}
      * @memberof Dog
      */
-    shelter: DogShelter;
+    shelterId: string;
     /**
      * 
-     * @type {Date}
+     * @type {string}
      * @memberof Dog
      */
-    createdAt?: Date;
+    createdAt: string;
     /**
      * 
      * @type {string}
@@ -94,9 +94,9 @@ export interface Dog {
  * @export
  */
 export const DogStatusEnum = {
-    Available: 'available',
-    Pending: 'pending',
-    Adopted: 'adopted'
+    Available: 'Available',
+    Pending: 'Pending Adoption',
+    Adopted: 'Adopted'
 } as const;
 export type DogStatusEnum = typeof DogStatusEnum[keyof typeof DogStatusEnum];
 
@@ -110,9 +110,10 @@ export function instanceOfDog(value: object): value is Dog {
     if (!('age' in value) || value['age'] === undefined) return false;
     if (!('breed' in value) || value['breed'] === undefined) return false;
     if (!('gender' in value) || value['gender'] === undefined) return false;
-    if (!('photoKeys' in value) || value['photoKeys'] === undefined) return false;
+    if (!('photoURLs' in value) || value['photoURLs'] === undefined) return false;
     if (!('description' in value) || value['description'] === undefined) return false;
     if (!('shelter' in value) || value['shelter'] === undefined) return false;
+    if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
@@ -127,16 +128,16 @@ export function DogFromJSONTyped(json: any, ignoreDiscriminator: boolean): Dog {
     }
     return {
         
-        'id': json['id'],
+        'id': json['dog_id'],
         'name': json['name'],
         'age': json['age'],
         'breed': json['breed'],
         'gender': json['gender'],
-        'photoKeys': json['photoKeys'],
+        'photoURLs': json['photo_key'],
         'description': json['description'],
-        'shelter': DogShelterFromJSON(json['shelter']),
-        'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
-        'status': json['status'],
+        'shelterId': json['shelter_id'],
+        'createdAt': json['created_at'],
+        'status': json['dog_status'],
     };
 }
 
@@ -156,10 +157,10 @@ export function DogToJSONTyped(value?: Dog | null, ignoreDiscriminator: boolean 
         'age': value['age'],
         'breed': value['breed'],
         'gender': value['gender'],
-        'photoKeys': value['photoKeys'],
+        'photoURLs': value['photoURLs'],
         'description': value['description'],
-        'shelter': DogShelterToJSON(value['shelter']),
-        'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
+        'shelterId': value['shelterId'],
+        'createdAt': value['createdAt'],
         'status': value['status'],
     };
 }

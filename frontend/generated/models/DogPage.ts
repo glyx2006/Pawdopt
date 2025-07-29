@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { DogSummary } from './DogSummary';
+import type { Dog } from './Dog';
 import {
-    DogSummaryFromJSON,
-    DogSummaryFromJSONTyped,
-    DogSummaryToJSON,
-    DogSummaryToJSONTyped,
-} from './DogSummary';
+    DogFromJSON,
+    DogFromJSONTyped,
+    DogToJSON,
+    DogToJSONTyped,
+} from './Dog';
 
 /**
  * Array of dog summaries
@@ -29,10 +29,10 @@ import {
 export interface DogPage {
     /**
      * 
-     * @type {Array<DogSummary>}
+     * @type {Array<Dog>}
      * @memberof DogPage
      */
-    dogs?: Array<DogSummary>;
+    dogs?: Array<Dog>;
     /**
      * Total number of dogs
      * @type {number}
@@ -65,12 +65,12 @@ export function DogPageFromJSON(json: any): DogPage {
 }
 
 export function DogPageFromJSONTyped(json: any, ignoreDiscriminator: boolean): DogPage {
+    console.log(json["dogs"])
     if (json == null) {
         return json;
     }
     return {
-        
-        'dogs': json['dogs'] == null ? undefined : ((json['dogs'] as Array<any>).map(DogSummaryFromJSON)),
+        'dogs': json['dogs'] == null ? undefined : ((json['dogs'] as Array<any>).map(DogFromJSON)),
         'total': json['total'] == null ? undefined : json['total'],
         'page': json['page'] == null ? undefined : json['page'],
         'perPage': json['perPage'] == null ? undefined : json['perPage'],
@@ -88,7 +88,7 @@ export function DogPageToJSONTyped(value?: DogPage | null, ignoreDiscriminator: 
 
     return {
         
-        'dogs': value['dogs'] == null ? undefined : ((value['dogs'] as Array<any>).map(DogSummaryToJSON)),
+        'dogs': value['dogs'] == null ? undefined : ((value['dogs'] as Array<any>).map(DogToJSON)),
         'total': value['total'],
         'page': value['page'],
         'perPage': value['perPage'],
