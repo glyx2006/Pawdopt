@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '../App';
+import { RootStackParamList } from '../../App';
 import {
   userPool,
   CognitoUserAttribute,
-} from '../services/CognitoService';
+} from '../../services/CognitoService';
 
 // Define the type for the route parameters for this screen
 type SignupShelterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupShelterDetails'>;
@@ -135,7 +135,7 @@ const SignupShelterDetailsScreen: React.FC = () => {
         return;
       }
       Alert.alert(
-        "Shelter Account Created!", // Changed message slightly
+        "Shelter Account Created!", 
         "Please verify your email and login."
       );      
       navigation.navigate('Login'); 

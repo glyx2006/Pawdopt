@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native"; // Import necessary components
 import { LinearGradient } from "expo-linear-gradient"; // Import LinearGradient from expo-linear-gradient
 import { NavigationProp } from '@react-navigation/native'; // <-- Import NavigationProp
-import { RootStackParamList } from '../App'; // <-- Import RootStackParamList
+import { RootStackParamList } from '../../App'; // <-- Import RootStackParamList
 
 // Define the type for the navigation prop for this screen
 type OnboardingScreenProps = NavigationProp<RootStackParamList, 'Onboarding'>; // <-- Define specific type

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Pla
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient'; // For the Apply button
 
-import { RootStackParamList } from '../App'; // Import RootStackParamList
+import { RootStackParamList } from '../../App'; // Import RootStackParamList
 
 // Define the type for the route parameters for this screen
 type DogProfileDetailScreenRouteProp = RouteProp<RootStackParamList, 'DogProfileDetail'>;
