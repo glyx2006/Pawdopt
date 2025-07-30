@@ -64,12 +64,13 @@ export async function uploadDogProfile(data: any, token: string) {
   return response;
 }
 
-export async function deleteDog(dogId: string, token: string) {
+export async function deleteDog(dogId: string, dogCreatedAt: string, token: string) {
   const response = await fetch(`https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default/dog/${dogId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
+      'x-created-at': dogCreatedAt,
     },
   });
 

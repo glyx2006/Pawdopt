@@ -39,8 +39,8 @@ const LoginScreen: React.FC = () => {
         const userRole = idToken.payload['custom:role']; // Access the custom:role attribute
 
         // Store token for use in other screens
-        const tokenString = idToken.getJwtToken();
-        await AsyncStorage.setItem('idToken', tokenString);
+        const tokenString = session.getAccessToken().getJwtToken();
+        await AsyncStorage.setItem('accessToken', tokenString);
 
         // Navigate to dashboard
         if (userRole === 'shelter') {
