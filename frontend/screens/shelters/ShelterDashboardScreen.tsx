@@ -162,7 +162,7 @@ const ShelterDashboardScreen: React.FC = () => {
     } catch (error) {
       alert('Error: ' + (error as Error).message);
     }
-    
+    fetchDogs();
   }
 
   // --- Footer Navigation Functions ---
