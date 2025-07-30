@@ -9,8 +9,9 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList, Dog } from '../../App';
 
 const MAX_PHOTOS = 6;
@@ -23,8 +24,9 @@ const cellHeight = Math.floor(cellWidth * 1.5);
 
 type AddDogPicRouteProp = RouteProp<RootStackParamList, 'AddDogPic'>;
 
+
 const AddDogPicScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [photos, setPhotos] = useState<string[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const route = useRoute<AddDogPicRouteProp>();
@@ -38,7 +40,38 @@ const AddDogPicScreen: React.FC = () => {
     gender = 'Male',
   } = route.params || {};
 
-  const handleCamera = async (index:number) => {
+	const handleNext = () => {
+		navigation.navigate('AddDogDescription', {
+      onAddDog,
+      shelterId,
+      shelterPostcode,
+      name,
+      breed,
+      dob,
+      gender,
+    });
+	}
+// Save image to the correct slot (1-6)
+  const saveImage = async (image: string) => {
+  try {
+    setPhotos(prev =>
+      prev.length < MAX_PHOTOS
+        ? [...prev, image]
+        : prev
+    );
+
+		sendToBackend();
+  } catch (error) {
+    console.error('Error saving image:', error);
+  }
+}
+	const sendToBackend = () => {}
+  // Placeholder for picking an image
+  const handleAddPhoto = async () => {
+    setModalVisible(true);
+  };
+
+  const handleCamera = async () => {
     
     try{
       await ImagePicker.requestCameraPermissionsAsync();
@@ -58,45 +91,23 @@ const AddDogPicScreen: React.FC = () => {
     setModalVisible(false);
   };
 
-// Save image to the correct slot (1-6)
-const saveImage = async (image: string) => {
-  try {
-    setPhotos(prev =>
-      prev.length < MAX_PHOTOS
-        ? [...prev, image]
-        : prev
-    );
-  } catch (error) {
-    console.error('Error saving image:', error);
-  }
-}
-
-
-  // Placeholder for picking an image
-  const handleAddPhoto = async () => {
-    setModalVisible(true);
-  };
-
-  // Modal button handlers (replace with real logic as needed)
-  // const handleCamera = () => {
-  //   setModalVisible(false);
-  //   setPhotos(prev =>
-  //     prev.length < MAX_PHOTOS
-  //       ? [...prev, 'https://images.dog.ceo/breeds/labrador/n02099712_5642.jpg']
-  //       : prev
-  //   );
-  // };
-  const handleGallery = () => {
+  const handleGallery = async() => {
+   try{
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+      let result = await ImagePicker.launchImageLibraryAsync({
+        cameraType: ImagePicker.CameraType.back,
+        allowsEditing: true,
+        aspect: [2, 3],
+        quality: 1,
+      });
+      if (!result.canceled) {
+        await saveImage(result.assets[0].uri);
+      };
+    } catch (error) {
+      alert('Error uploading image: '+ error.message);
+      setModalVisible(false);
+    };
     setModalVisible(false);
-    setPhotos(prev =>
-      prev.length < MAX_PHOTOS
-        ? [...prev, 'https://images.dog.ceo/breeds/labrador/n02099712_5642.jpg']
-        : prev
-    );
-  };
-  const handleRemove = () => {
-    setModalVisible(false);
-    // Optionally remove a photo here if you want
   };
 
   const handleRemovePhoto = (index: number) => {
@@ -145,18 +156,27 @@ const saveImage = async (image: string) => {
       <Text style={styles.title}>Add photos</Text>
       <Text style={styles.subtitle}>Add at least 2 photos to continue</Text>
   <View style={[styles.gridContainer, { width: windowWidth - gridPadding }]}> {photoGrid} </View>
-      <TouchableOpacity
-        style={[styles.continueButton, photos.length < 2 && styles.continueButtonDisabled]}
-        disabled={photos.length < 2}
-      >
-        <Text style={styles.continueButtonText}>CONTINUE</Text>
-      </TouchableOpacity>
+      {photos.length < 2 ? (
+        <View style={[styles.continueButton, styles.continueButtonDisabled]}>
+          <Text style={styles.continueButtonText}>CONTINUE</Text>
+        </View>
+      ) : (
+        <TouchableOpacity style={styles.nextButtonWrapper} activeOpacity={0.8} onPress={handleNext}>
+          <LinearGradient
+            colors={["#F7B781", "#F7C98B"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.nextButtonGradient}
+          >
+            <Text style={styles.nextButtonText}>CONTINUE</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
       <UploadModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onCamera={handleCamera}
         onGallery={handleGallery}
-        onRemove={handleRemove}
       />
     </View>
   );

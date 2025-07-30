@@ -26,9 +26,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose, onCamera, o
           <TouchableOpacity style={styles.button} onPress={onGallery}>
             <Text style={styles.buttonText}>Choose from Gallery</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, styles.removeButton]} onPress={onRemove}>
-            <Text style={[styles.buttonText, styles.removeButtonText]}>Remove Photo</Text>
-          </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>

@@ -37,6 +37,16 @@ const AddDogScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const handleAddDog = () => {
+    const {
+    onAddDog = () => {},
+    shelterId = 'test-shelter',
+    shelterPostcode = '00000',
+    name = 'Test Dog',
+    breed = 'Labrador',
+    dob = '2022/01',
+    gender = 'Male',
+  } = route.params || {};
+
     // Basic validation
     if (!name || !breed || !dob || !gender) {
       Alert.alert('Missing Info', 'Please fill in all required dog details.');
