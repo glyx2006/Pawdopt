@@ -9,7 +9,7 @@ import AppFooter from '../components/AppFooter'; // Adjust path
 
 // Mock data
 const mockShelterProfile = { /* ... (same as before) ... */
-  shelterId: 'shelter-456',
+  shelterId: 'mock-shelter-id-1',
   shelterName: 'Happy Paws Rescue',
   email: 'contact@happypaws.com',
   contact: '017-9876543',
@@ -64,7 +64,7 @@ const ShelterProfileScreen: React.FC<ShelterProfileScreenProps> = ({ navigation 
     navigation.navigate('ShelterDashboard'); // Assuming shelter's home is their dashboard
   };
   const goToChat = () => {
-    navigation.navigate('ChatListScreen'); // Make sure this route exists
+    navigation.navigate('ChatListScreen', { userRole: 'shelter', userId: profile.shelterId });
   };
   // -----------------------------------
 

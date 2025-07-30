@@ -5,27 +5,26 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 interface AppHeaderProps {
   rightComponent?: React.ReactNode;
+  leftComponent?: React.ReactNode;
   style?: ViewStyle;
 }
 
-const AppHeader: React.FC<AppHeaderProps> = ({ rightComponent, style }) => {
-  const isCentered = !rightComponent;
-
+const AppHeader: React.FC<AppHeaderProps> = ({ rightComponent, leftComponent, style }) => {
   return (
-    <View
-      style={[
-        styles.header,
-        isCentered ? styles.headerCentered : styles.headerSpaced,
-        style,
-      ]}
-    >
+    <View style={[styles.header, style]}>
+      {/* Left Component Container */}
+      {/* Always render leftContainer to maintain layout consistency, even if empty */}
+      <View style={styles.leftContainer}>
+        {leftComponent}
+      </View>
+
+      {/* Logo and Title Container - takes flexible space and centers its own content */}
       <View style={styles.logoTitleContainer}>
         <Image
-          source={require('../../assets/pawdopt_logo.png')} // Adjust path if your components folder is deeper
+          source={require('../../assets/pawdopt_logo.png')} 
           style={styles.logo}
         />
         <MaskedView
-          // Adjust height and width to accommodate larger font size
           style={styles.headerTitleMaskedView}
           maskElement={
             <Text style={[styles.headerTitle, { backgroundColor: 'transparent' }]}>Pawdopt</Text>
@@ -40,11 +39,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({ rightComponent, style }) => {
         </MaskedView>
       </View>
 
-      {!isCentered && (
-        <View style={styles.rightContainer}>
-          {rightComponent}
-        </View>
-      )}
+      {/* Right Component Container */}
+      {/* Always render rightContainer to maintain layout consistency, even if empty */}
+      <View style={styles.rightContainer}>
+        {rightComponent}
+      </View>
     </View>
   );
 };
@@ -57,42 +56,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    minHeight: 70, // Increased minimum height to make space for larger text and logo
+    minHeight: 70,
+    justifyContent: 'space-between', // Always space out the three main sections
   },
-  headerSpaced: {
-    justifyContent: 'space-between',
-  },
-  headerCentered: {
-    justifyContent: 'center',
+
+  leftContainer: {
+    flex: 0.2, // Reserve space for the left component
+    alignItems: 'flex-start', // Align content to the left
+    justifyContent: 'center', // Center content vertically
+    // borderColor: '#ddd',
+    // borderWidth: 1, // Optional: Add a right border for separations
   },
   logoTitleContainer: {
+    flex: 0.6, // Allows this container to take up all available space
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center', // Centers the logo and title within this flexible container
   },
   logo: {
-    width: 40, // Increased logo size slightly to match larger text
-    height: 40, // Increased logo size slightly
+    width: 40,
+    height: 40,
     resizeMode: 'contain',
-    marginRight: 10, // Increased margin for spacing
+    marginRight: 10,
   },
   headerTitleMaskedView: {
-    height: 40, // **Adjusted:** Needs to be taller than fontSize 30
-    width: 150, // **Adjusted:** Needs to be wider for "Pawdopt" at fontSize 30
+    height: 40,
+    width: 130, // Adjusted width to ensure "Pawdopt" fits at fontSize 30
   },
   headerTitle: {
-    fontSize: 30, // **Your desired font size**
+    fontSize: 30,
     fontWeight: 'bold',
-    fontFamily: 'Roboto', // If you have a custom font
-    // Ensure text aligns within MaskedView, often `textAlignVertical: 'center'` helps if not already vertically centered
+    fontFamily: 'Roboto', // Keep if you have this font, otherwise remove
   },
   headerTitleGradientBackground: {
     flex: 1,
   },
   rightContainer: {
-    minWidth: 40,
-    alignItems: 'flex-end',
+    flex: 0.2, // Reserve space for the right component
+    alignItems: 'flex-end', // Align content to the right
+    justifyContent: 'center', // Center content vertically
   },
 });
 

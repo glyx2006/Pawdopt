@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'reac
 import { LinearGradient } from 'expo-linear-gradient'; // Make sure this is installed: npx expo install expo-linear-gradient
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'; // Import hooks for navigation and route params
 import { RootStackParamList } from '../../App'; // Import your RootStackParamList type
-
+import AppHeader from '../components/AppHeader';
+import BackButton from '../components/BackButton';
 // Define the type for the route parameters for this screen
 type UniversalCreateAccountScreenRouteProp = RouteProp<RootStackParamList, 'UniversalCreateAccount'>;
 
@@ -48,13 +49,18 @@ const UniversalCreateAccountScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Back Arrow */}
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>{'<'}</Text> {/* Simple arrow, can be an icon */}
-      </TouchableOpacity>
+      <AppHeader
+        leftComponent={
+          <BackButton
+            onPress={() => navigation.goBack()}
+          />
+        }
+      />
 
       <Text style={styles.title}>Create Account</Text>
 
-      {/* Email Input */}
+      <View style={styles.miniContainer}> 
+         {/* Email Input */}
       <Text style={styles.inputLabel}>Email Address</Text>
       <TextInput
         style={styles.input}
@@ -95,7 +101,6 @@ const UniversalCreateAccountScreen: React.FC = () => {
         value={rePassword}
         onChangeText={setRePassword}
       />
-
       {/* Next Button */}
       <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
         <LinearGradient
@@ -107,6 +112,7 @@ const UniversalCreateAccountScreen: React.FC = () => {
           <Text style={styles.nextButtonText}>Next</Text>
         </LinearGradient>
       </TouchableOpacity>
+      </View> 
     </View>
   );
 };
@@ -115,8 +121,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 30,
+    paddingHorizontal: 0,
     paddingTop: 60, // Adjust for top bar content
+  },
+  miniContainer: {
+    paddingHorizontal: 30,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    marginBottom: 20,
   },
   backButton: {
     alignSelf: 'flex-start', // Align to top-left
@@ -132,6 +144,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#F7B781',
+    marginTop: 15, // Space from top
     marginBottom: 40, // Space below title
     alignSelf: 'center', // Align to left
   },
