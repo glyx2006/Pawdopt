@@ -16,6 +16,8 @@ import DogProfileDetailScreen from './screens/adopters/DogProfileDetailScreen';
 import ShelterDashboardScreen from './screens/shelters/ShelterDashboardScreen';
 import AddDogScreen from './screens/shelters/AddDogScreen'; 
 import AddDogPicScreen from './screens/shelters/AddDogPicScreen';
+import ShelterProfileScreen from './screens/shelters/ShelterProfileScreen';
+import AdopterProfileScreen from './screens/adopters/AdopterProfileScreen';
 
 export interface Dog {
   id: string;
@@ -71,6 +73,8 @@ export type RootStackParamList = {
     dob: string;
     gender: string;
   }
+  ShelterProfile: undefined; 
+  AdopterProfile: undefined; 
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -82,7 +86,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="AddDogPic">
+        <Stack.Navigator initialRouteName="Onboarding">
           {/* Onboarding Screen */}
           <Stack.Screen
             name="Onboarding"
@@ -151,7 +155,16 @@ export default function App() {
             component={AddDogPicScreen} // Use the separate dummy component
             options={{ headerShown: false }} // Or customize header for dashboard
           />
-
+          <Stack.Screen
+            name="ShelterProfile"
+            component={ShelterProfileScreen} // Use the separate dummy component
+            options={{ headerShown: false }} // Or customize header for dashboard
+          />
+          <Stack.Screen
+            name="AdopterProfile"
+            component={AdopterProfileScreen} // Use the separate dummy component
+            options={{ headerShown: false }} // Or customize header for dashboard
+          />
           {/* Add more Stack.Screen components here as you develop new pages */}
 
         </Stack.Navigator>

@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert, TouchableOpacity, Image, RefreshControl, Platform, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert, TouchableOpacity, Image, RefreshControl, Platform } from 'react-native'; // Removed Pressable, added TouchableOpacity
 import { useNavigation, NavigationProp, useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList, Dog } from '../../App'; // Import Dog interface and RootStackParamList
+import { SafeAreaView } from 'react-native-safe-area-context'; // Import SafeAreaView
+
 type ShelterDashboardScreenNavigationProp = NavigationProp<RootStackParamList, 'ShelterDashboard'>;
 type AddDogScreenNavigationProp = NavigationProp<RootStackParamList, 'AddDog'>;
+
+import AppHeader from '../components/AppHeader';
+import AppFooter from '../components/AppFooter';
 
 // Mock data for initial display
 const initialMockDogs: Dog[] = [
@@ -90,48 +95,49 @@ const ShelterDashboardScreen: React.FC = () => {
         <Text style={styles.dogName}>{item.name}</Text>
         <Text style={styles.dogBreedAge}>{item.breed}, {item.age} years old</Text>
         <Text style={styles.dogStatus}>Status: {item.status}</Text>
-        <Text style={styles.dogDescription}>{item.description.substring(0, 70)}...</Text>
+        {/* Check if description exists before trying to substring */}
+        {item.description && <Text style={styles.dogDescription}>{item.description.substring(0, 70)}...</Text>}
       </View>
       {/* Add Edit/Delete buttons here later */}
     </TouchableOpacity>
   );
 
-    // --- Footer Navigation Functions ---
+  // --- Footer Navigation Functions ---
   const goToHome = () => {
-    Alert.alert('Navigate', 'Go to Shelter Dashboard Home (Current Screen)');
-    navigation.navigate('ShelterDashboard', {}); // Stay on the current screen
+    // Removed alert for smoother navigation
+    navigation.navigate({ name: 'ShelterDashboard', params: {} }); // Stay on the current screen
   };
 
   const goToChat = () => {
-    Alert.alert('Navigate', 'Go to Chat List (TODO)');
+    console.log("Navigate to Chat List"); // Placeholder for now
     // navigation.navigate('ChatListScreen'); // You'll create this screen later
   };
 
   const goToProfile = () => {
-    Alert.alert('Navigate', 'Go to Shelter Profile (TODO)');
-    // navigation.navigate('ShelterProfileScreen'); // You'll create this screen later
+    navigation.navigate('ShelterProfile'); // You'll create this screen later
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#F7B781" style={styles.loading} />;
+    return (
+      <View style={styles.loadingContainer}> {/* New container for loading spinner */}
+        <ActivityIndicator size="large" color="#F7B781" />
+      </View>
+    );
   }
 
   return (
-    <View style={styles.fullScreenContainer}> {/* New container for full screen */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Your Dogs</Text>
-      </View>
+    // Wrap the entire screen content in SafeAreaView
+    <SafeAreaView style={styles.safeArea}>
+      <AppHeader /> {/* AppHeader will now automatically avoid the safe area */}
 
       <View style={styles.contentContainer}> {/* Scrollable content area */}
-        <Pressable
+        <TouchableOpacity // Changed from Pressable to TouchableOpacity
           onPress={navigateToAddDog}
-          style={({ pressed }) => [
-            styles.addDogButton,
-            { opacity: pressed ? 0.8 : 1 }
-          ]}
+          style={styles.addDogButton} // Simplified style application
+          activeOpacity={0.8} // Added activeOpacity for feedback
         >
           <Text style={styles.addDogButtonText}>+ Add New Dog</Text>
-        </Pressable>
+        </TouchableOpacity>
 
         {dogs.length === 0 ? (
           <Text style={styles.noDogsText}>You haven't added any dogs yet. Tap 'Add New Dog' to get started!</Text>
@@ -148,45 +154,31 @@ const ShelterDashboardScreen: React.FC = () => {
         )}
       </View>
 
-      {/* Fixed Footer Navigation */}
-      <View style={styles.footer}>
-        <Pressable onPress={goToChat} style={({ pressed }) => [styles.footerIcon, { opacity: pressed ? 0.7 : 1 }]}>
-          <Text style={styles.footerIconEmoji}>💬</Text> {/* Chat Emoji */}
-          <Text style={styles.footerIconText}>Chat</Text>
-        </Pressable>
-        <Pressable onPress={goToHome} style={({ pressed }) => [styles.footerIcon, { opacity: pressed ? 0.7 : 1 }]}>
-          <Text style={styles.footerIconEmoji}>🏠</Text> {/* Home Emoji */}
-          <Text style={styles.footerIconText}>Home</Text>
-        </Pressable>
-        <Pressable onPress={goToProfile} style={({ pressed }) => [styles.footerIcon, { opacity: pressed ? 0.7 : 1 }]}>
-          <Text style={styles.footerIconEmoji}>👤</Text> {/* Profile Emoji */}
-          <Text style={styles.footerIconText}>Profile</Text>
-        </Pressable>
-      </View>
-    </View>
+      {/* AppFooter is positioned absolutely, so it will sit at the very bottom of SafeAreaView */}
+      <AppFooter
+        onPressProfile={goToProfile}
+        onPressHome={goToHome}
+        onPressChat={goToChat}
+        activeScreen="home" // Highlight the home icon for Shelter Dashboard
+      />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  fullScreenContainer: {
+  safeArea: {
     flex: 1,
+    backgroundColor: '#f0f2f5', // Background color for the whole screen
+  },
+  loadingContainer: { // Style for loading state
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#f0f2f5',
   },
-  header: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 20, // Adjust for status bar/notch
-    paddingHorizontal: 20,
-    marginBottom: 15,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: '#F7B781',
-    textAlign: 'center',
-  },
   contentContainer: {
-    flex: 1, // Takes up remaining space
-    paddingHorizontal: 20, // Apply horizontal padding here
+    flex: 1, // Takes up remaining space between header and footer
+    paddingHorizontal: 20, // Apply horizontal padding here for the main content
   },
   flatListContent: {
     paddingBottom: 20, // Add padding at the bottom of the list for better scrolling above footer
@@ -208,17 +200,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
-  },
-  loading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    marginTop: 50,
-    fontSize: 16,
   },
   noDogsText: {
     textAlign: 'center',
@@ -265,45 +246,14 @@ const styles = StyleSheet.create({
     color: '#888',
     marginBottom: 5,
   },
-  dogLocation: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 5,
-  },
   dogDescription: {
     fontSize: 14,
     color: '#555',
     lineHeight: 20,
   },
-  // --- Footer Styles ---
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#fff', // White background for the footer
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderColor: '#eee',
-    position: 'absolute', // Make it fixed at the bottom
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 10, // Adjust for iPhone X safe area
-  },
-  footerIcon: {
-    alignItems: 'center',
-    padding: 5,
-  },
-   footerIconEmoji: { // New style for the emoji
-    fontSize: 28, // Adjust size as needed
-    // Emojis typically don't need color property as they are colored by default
-  },
-  footerIconText: {
-    fontSize: 12,
-    color: '#F7B781',
-    marginTop: 4,
-  },
+  // --- Footer Styles (these should ideally be inside AppFooter.tsx now) ---
+  // Removed these from here, as AppFooter now manages its own styles and touch feedback.
+  // Keeping them here for reference if you haven't fully moved them.
 });
 
-
-export default ShelterDashboardScreen
+export default ShelterDashboardScreen;
