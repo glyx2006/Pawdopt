@@ -67,7 +67,7 @@ const AdopterProfileScreen: React.FC<AdopterProfileScreenProps> = ({ navigation 
     navigation.navigate('AdopterDashboard'); // Assuming this is your main home
   };
   const goToChat = () => {
-    navigation.navigate('ChatListScreen'); // Make sure this route exists
+    navigation.navigate('ChatListScreen', { userRole: 'adopter', userId: profile.adopterId });
   };
   // -----------------------------------
 

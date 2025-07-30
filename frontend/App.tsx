@@ -1,11 +1,10 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, Text, StyleSheet } from 'react-native'; 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Import all your screen components
-import OnboardingScreen from './screens/login/OnboardingScreen';
+import OnboardingScreen from "./screens/login/OnboardingScreen";
 import LoginScreen from './screens/login/LoginScreen';
 import UniversalCreateAccountScreen from './screens/login/UniversalCreateAccountScreen';
 import SignupAdopterDetailsScreen from './screens/login/SignupAdopterDetailsScreen';
@@ -18,6 +17,8 @@ import AddDogScreen from './screens/shelters/AddDogScreen';
 import AddDogPicScreen from './screens/shelters/AddDogPicScreen';
 import ShelterProfileScreen from './screens/shelters/ShelterProfileScreen';
 import AdopterProfileScreen from './screens/adopters/AdopterProfileScreen';
+import ChatListScreen from './screens/chat/ChatListScreen';
+import ChatScreen from './screens/chat/ChatScreen';
 
 export interface Dog {
   id: string;
@@ -34,7 +35,6 @@ export interface Dog {
 
 
 // --- Define the type for your navigation stack parameters ---
-// This is crucial for TypeScript to understand what parameters each screen expects
 export type RootStackParamList = {
   Onboarding: undefined; // No parameters expected for the Onboarding screen
   Login: undefined; // No parameters expected for the Login screen
@@ -75,6 +75,19 @@ export type RootStackParamList = {
   }
   ShelterProfile: undefined; 
   AdopterProfile: undefined; 
+  ChatListScreen: {
+    role: 'adopter' | 'shelter';
+    userId: string; // The ID of the logged-in user
+  }
+  ChatScreen: {
+    chatId: string;
+    dogId: string; // ID of the dog the chat is about
+    dogName: string;
+    senderId: string; // The ID of the person you're chatting with
+    receipientId: string;
+    role: 'adopter' | 'shelter'; // Role of the current logged-in user
+    chatStatus: 'pending_request' | 'active' | 'closed' | 'rejected'; // Status of the chat thread
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -86,7 +99,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Onboarding">
+        <Stack.Navigator initialRouteName="AddDogPic">
           {/* Onboarding Screen */}
           <Stack.Screen
             name="Onboarding"
@@ -163,6 +176,16 @@ export default function App() {
           <Stack.Screen
             name="AdopterProfile"
             component={AdopterProfileScreen} // Use the separate dummy component
+            options={{ headerShown: false }} // Or customize header for dashboard
+          />
+          <Stack.Screen
+            name="ChatListScreen"
+            component={ChatListScreen} // Use the separate dummy component
+            options={{ headerShown: false }} // Or customize header for dashboard
+          />
+          <Stack.Screen
+            name="ChatScreen"
+            component={ChatScreen} // Use the separate dummy component
             options={{ headerShown: false }} // Or customize header for dashboard
           />
           {/* Add more Stack.Screen components here as you develop new pages */}
