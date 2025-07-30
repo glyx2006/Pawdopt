@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App'; // Import RootStackParamList
+import AppHeader from '../components/AppHeader';
+import AppFooter from '../components/AppFooter';
 
 // Import gesture-handler and reanimated components/hooks
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -197,7 +199,7 @@ const DogSwipeScreen: React.FC = () => {
   // Navigate to user profile (placeholder for now)
   const goToProfile = () => {
     Alert.alert('Profile', 'Navigating to User Profile (TODO)');
-    // navigation.navigate('UserProfileScreen'); // You'll create this screen later
+    navigation.navigate('AdopterProfile'); // You'll create this screen later
   };
 
   // Navigate to chat list (placeholder for now)
@@ -206,30 +208,14 @@ const DogSwipeScreen: React.FC = () => {
     // navigation.navigate('ChatListScreen'); // You'll create this screen later
   };
 
+  // Navigate to home (placeholder for now)
+  const goToHome = () => {
+    navigation.navigate('AdopterDashboard'); // Assuming this is your main home
+  };
+
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logoTitleContainer}>
-          <Image
-            source={require('../../assets/pawdopt_logo.png')} // Your logo image
-            style={styles.logo}
-          />
-          <MaskedView
-            style={styles.headerTitleMaskedView}
-            maskElement={
-              <Text style={[styles.headerTitle, { backgroundColor: 'transparent' }]}>Pawdopt</Text>
-            }
-          >
-            <LinearGradient
-              colors={["#F9E286", "#F48B7B"]} // Gradient colors for the header title
-              start={{ x: 0.3, y: 0 }}
-              end={{ x: 0.7, y: 0}}
-              style={styles.headerTitleGradientBackground}
-            />
-          </MaskedView>
-          </View>
-      </View>
+      <AppHeader></AppHeader>
 
       {/* Dog Card Area */}
       <View style={styles.cardContainer}>
@@ -269,17 +255,12 @@ const DogSwipeScreen: React.FC = () => {
         </GestureDetector>
       </View>
       {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity onPress={goToProfile} style={styles.headerIcon}>
-          <Text style={styles.iconText}>👤</Text> {/* Placeholder for profile icon */}
-        </TouchableOpacity>
-        <TouchableOpacity onPress={goToProfile} style={styles.headerIcon}>
-          <Text style={styles.iconText}>🏠</Text> {/* Placeholder for profile icon */}
-        </TouchableOpacity>
-        <TouchableOpacity onPress={goToChat} style={styles.headerIcon}>
-          <Text style={styles.iconText}>💬</Text> {/* Placeholder for chat icon */}
-        </TouchableOpacity>
-      </View>
+      <AppFooter
+        onPressHome={goToHome}
+        onPressChat={goToChat}
+        onPressProfile={goToProfile}
+        activeScreen="home"
+      />
     </View>
   );
 };
@@ -297,6 +278,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '90%',
     marginTop: 30,
+    backgroundColor: '#fff',
   },
   logoTitleContainer: {
     flexDirection: 'row', // Arrange logo and text horizontally

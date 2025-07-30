@@ -15,14 +15,14 @@ import {
   KeyboardAvoidingView // Import KeyboardAvoidingView
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList, Dog } from '../../App';
 import { Dropdown } from 'react-native-element-dropdown';
 
 type AddDogRouteProp = RouteProp<RootStackParamList, 'AddDog'>;
 
 const AddDogScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<AddDogRouteProp>();
   const { onAddDog, shelterId, shelterPostcode } = route.params;
 
@@ -78,6 +78,28 @@ const AddDogScreen: React.FC = () => {
   const handleGoBack = () => {
     navigation.goBack(); // Simply go back without adding anything
   };
+  const formatDob = (text: string) => {
+    // Remove all non-digit characters
+    let cleanedText = text.replace(/\D/g, '');
+
+    // Apply YYYY/MM/DD format
+    let formattedText = '';
+    if (cleanedText.length > 0) {
+      formattedText = cleanedText.substring(0, 4); // Year
+      if (cleanedText.length >= 5) {
+        formattedText += '/' + cleanedText.substring(4, 6); // Month
+      }
+      if (cleanedText.length >= 7) {
+        formattedText += '/' + cleanedText.substring(6, 8); // Day
+      }
+    }
+    setDob(formattedText);
+    
+  };
+
+  const handleDobChange = (text: string) => {
+    formatDob(text);
+  };
 
   const handleNext = () => {
     // Validate required fields before navigating
@@ -132,7 +154,7 @@ const AddDogScreen: React.FC = () => {
             placeholder="e.g. 2021/05"
             placeholderTextColor="#999"
             value={dob}
-            onChangeText={setDob}
+            onChangeText={handleDobChange}
             keyboardType="numeric"
             maxLength={7}
           />
