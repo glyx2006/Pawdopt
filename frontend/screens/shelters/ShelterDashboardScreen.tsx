@@ -150,9 +150,8 @@ const ShelterDashboardScreen: React.FC = () => {
 
   const userDeleteDog = async(dog:Dog) => {
     try{
-      const token = await getAccessToken();
-      if (!token) return alert('Please sign in first');
-      const response = await deleteDog(dog.id, token);
+      const token = await AsyncStorage.getItem('idToken') || '';
+      const response = await deleteDog(dog.id, dog.createdAt, token);
       if (response.ok) {
         alert('Dog deleted!');
         closeModal();
