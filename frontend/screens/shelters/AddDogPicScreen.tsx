@@ -38,10 +38,39 @@ const AddDogPicScreen: React.FC = () => {
     gender = 'Male',
   } = route.params || {};
 
-  // const uploadImage = async () =>
-  //   try {
-  //     await ImagePicker.requestCameraPermissionAsync();
-  //   }
+  const handleCamera = async (index:number) => {
+    
+    try{
+      await ImagePicker.requestCameraPermissionsAsync();
+      let result = await ImagePicker.launchCameraAsync({
+        cameraType: ImagePicker.CameraType.back,
+        allowsEditing: true,
+        aspect: [2, 3],
+        quality: 1,
+      });
+      if (!result.canceled) {
+        await saveImage(result.assets[0].uri);
+      };
+    } catch (error) {
+      alert('Error uploading image: '+ error.message);
+      setModalVisible(false);
+    };
+    setModalVisible(false);
+  };
+
+// Save image to the correct slot (1-6)
+const saveImage = async (image: string) => {
+  try {
+    setPhotos(prev =>
+      prev.length < MAX_PHOTOS
+        ? [...prev, image]
+        : prev
+    );
+  } catch (error) {
+    console.error('Error saving image:', error);
+  }
+}
+
 
   // Placeholder for picking an image
   const handleAddPhoto = async () => {
@@ -49,14 +78,14 @@ const AddDogPicScreen: React.FC = () => {
   };
 
   // Modal button handlers (replace with real logic as needed)
-  const handleCamera = () => {
-    setModalVisible(false);
-    setPhotos(prev =>
-      prev.length < MAX_PHOTOS
-        ? [...prev, 'https://images.dog.ceo/breeds/labrador/n02099712_5642.jpg']
-        : prev
-    );
-  };
+  // const handleCamera = () => {
+  //   setModalVisible(false);
+  //   setPhotos(prev =>
+  //     prev.length < MAX_PHOTOS
+  //       ? [...prev, 'https://images.dog.ceo/breeds/labrador/n02099712_5642.jpg']
+  //       : prev
+  //   );
+  // };
   const handleGallery = () => {
     setModalVisible(false);
     setPhotos(prev =>
