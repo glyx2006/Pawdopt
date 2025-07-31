@@ -6,14 +6,21 @@ import { Ionicons } from '@expo/vector-icons';
 // Import the new components
 import AppHeader from '../components/AppHeader'; // Adjust path
 import AppFooter from '../components/AppFooter'; // Adjust path
+import { NavigationProp, RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'; // <--- ADD THIS IMPORT
+import { RootStackParamList } from '../../App';
+import { userPool } from '../../services/CognitoService';
 
 // Mock data
-const mockAdopterProfile = { /* ... (same as before) ... */
+const mockAdopterProfile = {
   adopterId: 'adopter-123',
   name: 'Jane Doe',
   email: 'jane.doe@example.com',
   contact: '012-3456789',
   address: '123 Pet Friendly St, Pawville, 11900 Penang, Malaysia',
+  postcode: '11900',
+  dob: '1990-01-01', // Example date of birth
+  gender: 'Female',
   iconUrl: 'https://via.placeholder.com/150/FFDDC1/000000?text=JD',
   preferences: {
     preferredBreeds: ['Golden Retriever', 'Labrador'],
@@ -24,23 +31,38 @@ const mockAdopterProfile = { /* ... (same as before) ... */
   },
 };
 
+type AdopterProfileScreenRouteProp = RouteProp<RootStackParamList, 'AdopterProfile'>;
+type AdopterProfileScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'AdopterProfile'>;
+
 type AdopterProfileScreenProps = {
   navigation: any;
 };
 
-const AdopterProfileScreen: React.FC<AdopterProfileScreenProps> = ({ navigation }) => {
+const AdopterProfileScreen: React.FC<{
+  navigation: AdopterProfileScreenNavigationProp;
+  route: AdopterProfileScreenRouteProp;
+}> = ({ navigation, route }) => {
   const [profile, setProfile] = useState(mockAdopterProfile);
 
   useEffect(() => {
-    // TODO: Implement actual API call
-  }, []);
+    // Check if there's a refreshed profile passed back from EditAdopterProfileScreen
+    if (route.params?.refreshProfile) {
+      setProfile(route.params.refreshProfile);
+      // Clear the param so it doesn't trigger on subsequent visits
+      navigation.setParams({ refreshProfile: undefined });
+    } else {
+      // TODO: Implement actual API call to fetch initial profile here
+      // For now, it will just use mockAdopterProfile if no refreshProfile is passed
+    }
+  }, [route.params?.refreshProfile, navigation]); // Depend on refreshProfile param and navigation object
+
 
   const handleEditProfile = () => {
     navigation.navigate('EditAdopterProfile', { profile: profile });
   };
 
   const handleMyRequests = () => {
-    navigation.navigate('AdopterRequests'); // Make sure this route exists
+    navigation.navigate('AdoptionRequests'); // Make sure this route exists
   };
 
   const handleLogout = () => {
@@ -51,7 +73,25 @@ const AdopterProfileScreen: React.FC<AdopterProfileScreenProps> = ({ navigation 
         { text: "Cancel", style: "cancel" },
         { text: "Logout", onPress: () => {
             console.log('Logging out...');
-            navigation.replace('Login');
+            try {
+              // Get the current authenticated Cognito user
+              const cognitoUser = userPool.getCurrentUser();
+
+              if (cognitoUser) {
+                // Sign out the Cognito user. This clears the local session.
+                cognitoUser.signOut();
+                console.log('Cognito user signed out successfully.');
+              } else {
+                console.log('No current Cognito user to sign out, proceeding with navigation.');
+              }
+            } catch (error) {
+              console.error('Error during Cognito sign out:', error);
+              // Even if sign-out fails on client-side, proceed to login to prevent stuck state
+              Alert.alert('Logout Error', 'Failed to fully sign out. Please try again or clear app data.');
+            } finally {
+              // Navigate to Login screen and replace the stack
+              navigation.replace('Login');
+            }
           }
         }
       ]
@@ -67,7 +107,7 @@ const AdopterProfileScreen: React.FC<AdopterProfileScreenProps> = ({ navigation 
     navigation.navigate('AdopterDashboard'); // Assuming this is your main home
   };
   const goToChat = () => {
-    navigation.navigate('ChatListScreen', { userRole: 'adopter', userId: profile.adopterId });
+    navigation.navigate('ChatListScreen', { role: 'adopter', userId: profile.adopterId });
   };
   // -----------------------------------
 

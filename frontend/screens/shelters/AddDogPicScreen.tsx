@@ -85,7 +85,11 @@ const AddDogPicScreen: React.FC = () => {
         await saveImage(result.assets[0].uri);
       };
     } catch (error) {
-      alert('Error uploading image: '+ error.message);
+      if (error instanceof Error) {
+        alert('Error uploading image: ' + error.message);
+      } else {
+        alert('Error uploading image');
+      }
       setModalVisible(false);
     };
     setModalVisible(false);
@@ -104,7 +108,11 @@ const AddDogPicScreen: React.FC = () => {
         await saveImage(result.assets[0].uri);
       };
     } catch (error) {
-      alert('Error uploading image: '+ error.message);
+      if (error instanceof Error) {
+        alert('Error uploading image: ' + error.message);
+      } else {
+        alert('Error uploading image');
+      }
       setModalVisible(false);
     };
     setModalVisible(false);
@@ -177,6 +185,7 @@ const AddDogPicScreen: React.FC = () => {
         onClose={() => setModalVisible(false)}
         onCamera={handleCamera}
         onGallery={handleGallery}
+        onRemove={() => {}}
       />
     </View>
   );

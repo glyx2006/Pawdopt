@@ -20,6 +20,8 @@ import ShelterProfileScreen from './screens/shelters/ShelterProfileScreen';
 import AdopterProfileScreen from './screens/adopters/AdopterProfileScreen';
 import ChatListScreen from './screens/chat/ChatListScreen';
 import ChatScreen from './screens/chat/ChatScreen';
+import EditAdopterProfileScreen from './screens/adopters/EditAdopterProfileScreen';
+import AdoptionRequestsScreen from './screens/adopters/AdoptionRequestsScreen';
 
 export interface Dog {
   id: string;
@@ -84,7 +86,9 @@ export type RootStackParamList = {
     gender: string;
   }
   ShelterProfile: undefined; 
-  AdopterProfile: undefined; 
+  AdopterProfile: { refreshProfile?: AdopterProfile }; 
+  AdoptionRequests: undefined;
+  EditAdopterProfile: { profile: AdopterProfile };
   ChatListScreen: {
     role: 'adopter' | 'shelter';
     userId: string; // The ID of the logged-in user
@@ -101,7 +105,25 @@ export type RootStackParamList = {
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
+interface AdopterProfile {
+    adopterId: string;
+    name: string;
+    email: string;
+    contact: string;
+    address: string;
+    postcode: string;
+    dob: string;
+    gender: string;
+    iconUrl: string;
+    preferences: {
+        preferredBreeds: string[];
+        minAge: number;
+        maxAge: number;
+        preferredGenders: string[];
+        preferredPostcode: string;
+        experience?: string;
+    };
+}
 
 
 
@@ -109,7 +131,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="AddDogDescription">
+        <Stack.Navigator initialRouteName="Onboarding">
           {/* Onboarding Screen */}
           <Stack.Screen
             name="Onboarding"
@@ -191,6 +213,16 @@ export default function App() {
           <Stack.Screen
             name="AdopterProfile"
             component={AdopterProfileScreen} // Use the separate dummy component
+            options={{ headerShown: false }} // Or customize header for dashboard
+          />
+          <Stack.Screen
+            name="EditAdopterProfile"
+            component={EditAdopterProfileScreen} // Use the same component for editing
+            options={{ headerShown: false }} // Or customize header for dashboard
+          />
+          <Stack.Screen
+            name="AdoptionRequests"
+            component={AdoptionRequestsScreen} // Use the separate dummy component
             options={{ headerShown: false }} // Or customize header for dashboard
           />
           <Stack.Screen

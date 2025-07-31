@@ -109,8 +109,7 @@ const ShelterDashboardScreen: React.FC = () => {
   };
 
   const goToChat = () => {
-    console.log("Navigate to Chat List"); // Placeholder for now
-    // navigation.navigate('ChatListScreen'); // You'll create this screen later
+    navigation.navigate('ChatListScreen', {role: "shelter", userId: ""}); // You'll create this screen later
   };
 
   const goToProfile = () => {

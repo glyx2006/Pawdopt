@@ -184,7 +184,7 @@ const ChatListScreen: React.FC = () => {
   // Footer Navigation Handlers
   const goToProfile = () => {
     if (userRole === 'adopter') {
-      navigation.navigate('AdopterProfile');
+      navigation.navigate('AdopterProfile', {});
     } else {
       navigation.navigate('ShelterProfile');
     }
