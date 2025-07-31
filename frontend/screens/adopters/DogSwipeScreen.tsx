@@ -25,6 +25,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view'; // <-- Import MaskedView
+import AdopterProfileScreen from './AdopterProfileScreen';
 
 const { width } = Dimensions.get('window'); // Get screen width for responsive sizing
 
@@ -198,14 +199,12 @@ const DogSwipeScreen: React.FC = () => {
 
   // Navigate to user profile (placeholder for now)
   const goToProfile = () => {
-    Alert.alert('Profile', 'Navigating to User Profile (TODO)');
-    navigation.navigate('AdopterProfile'); // You'll create this screen later
+    navigation.navigate('AdopterProfile', {}); // You'll create this screen later
   };
 
   // Navigate to chat list (placeholder for now)
   const goToChat = () => {
-    Alert.alert('Chat', 'Navigating to Chat List (TODO)');
-    // navigation.navigate('ChatListScreen'); // You'll create this screen later
+    navigation.navigate('ChatListScreen', {role: "adopter", userId: "hi"}); // You'll create this screen later
   };
 
   // Navigate to home (placeholder for now)

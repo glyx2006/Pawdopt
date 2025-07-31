@@ -190,25 +190,6 @@ const ChatScreen: React.FC = () => {
     );
   };
 
-  // Footer Navigation Handlers
-  const goToProfile = () => {
-    if (role === 'adopter') {
-      navigation.navigate('AdopterProfile');
-    } else {
-      navigation.navigate('ShelterProfile');
-    }
-  };
-  const goToHome = () => {
-    if (role === 'adopter') {
-      navigation.navigate('AdopterDashboard');
-    } else {
-      navigation.navigate('ShelterDashboard', {});
-    }
-  };
-  const goToChatList = () => {
-    navigation.navigate('ChatListScreen', { role, userId: currentUserId }); // Pass current user context back
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <AppHeader
