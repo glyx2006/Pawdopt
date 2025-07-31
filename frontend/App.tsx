@@ -16,6 +16,7 @@ import ShelterDashboardScreen from './screens/shelters/ShelterDashboardScreen';
 import AddDogScreen from './screens/shelters/AddDogScreen'; 
 import AddDogPicScreen from './screens/shelters/AddDogPicScreen';
 import AddDogDescriptionScreen from './screens/shelters/AddDogDescriptionScreen';
+import AddDogSuccessScreen from './screens/shelters/AddDogSuccessScreen';
 import ShelterProfileScreen from './screens/shelters/ShelterProfileScreen';
 import AdopterProfileScreen from './screens/adopters/AdopterProfileScreen';
 import ChatListScreen from './screens/chat/ChatListScreen';
@@ -84,7 +85,9 @@ export type RootStackParamList = {
     breed: string;
     dob: string;
     gender: string;
+    photos: string[]; // Array of photo URLs
   }
+  AddDogSuccess: undefined; // No parameters expected for success screen
   ShelterProfile: undefined; 
   AdopterProfile: { refreshProfile?: AdopterProfile }; 
   AdoptionRequests: undefined;
@@ -131,7 +134,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="AddDogDescription">
+        <Stack.Navigator initialRouteName="Onboarding">
           <Stack.Screen
             name="Onboarding"
             component={OnboardingScreen}
@@ -192,6 +195,11 @@ export default function App() {
           <Stack.Screen
             name="AddDogDescription"
             component={AddDogDescriptionScreen} 
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen
+            name="AddDogSuccess"
+            component={AddDogSuccessScreen} 
             options={{ headerShown: false }} 
           />
           <Stack.Screen
