@@ -49,6 +49,7 @@ const AddDogPicScreen: React.FC = () => {
       breed,
       dob,
       gender,
+      photos,
     });
 	}
 // Save image to the correct slot (1-6)
@@ -60,12 +61,10 @@ const AddDogPicScreen: React.FC = () => {
         : prev
     );
 
-		sendToBackend();
   } catch (error) {
     console.error('Error saving image:', error);
   }
 }
-	const sendToBackend = () => {}
   // Placeholder for picking an image
   const handleAddPhoto = async () => {
     setModalVisible(true);

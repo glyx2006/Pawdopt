@@ -10,16 +10,47 @@ const AddDogDescriptionScreen: React.FC = () => {
   const route = useRoute<AddDogDescriptionRouteProp>();
   const [bio, setBio] = useState('');
   const {
-    onAddDog = () => {},
-    shelterId = 'test-shelter',
-    shelterPostcode = '00000',
-    name = 'Test Dog',
-    breed = 'Labrador',
-    dob = '2022/01',
-    gender = 'Male',
+    onAddDog,
+    shelterId,
+    shelterPostcode,
+    name,
+    breed,
+    dob,
+    gender,
+    photos
   } = route.params || {};
 
   const canContinue = bio.trim().length > 0;
+
+  const handleContinue = async () => {
+    // const dogData = {
+    // shelterId,
+    // shelterPostcode,
+    // name,
+    // breed,
+    // dob,
+    // gender,
+    // bio,
+    // photos,
+    // };
+    // try {
+    //   const response = await fetch('https://YOUR_API_GATEWAY_URL/dogs', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify(dogData),
+    //   });
+    //   if (response.ok) {
+    //     // Success: navigate or show confirmation
+    //     alert('Dog uploaded!');
+    //     // navigation.navigate('SomeScreen');
+    //   } else {
+    //     alert('Upload failed');
+    //   }
+    // } catch (error) {
+    //   alert('Error: ' + (error instanceof Error ? error.message : 'Unknown'));
+    // }
+  navigation.navigate('AddDogSuccess')  
+};
 
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -42,7 +73,7 @@ const AddDogDescriptionScreen: React.FC = () => {
           <TouchableOpacity
             disabled={!canContinue}
             activeOpacity={canContinue ? 0.8 : 1}
-            onPress={() => {/* handle continue */}}
+            onPress={handleContinue}
           >
             <View style={[styles.continueButtonGradient, { backgroundColor: canContinue ? '#F7B781' : '#E5E5E5' }]}>
               <Text style={[styles.continueButtonText, { color: canContinue ? '#fff' : '#A3A3A3' }]}>CONTINUE</Text>
