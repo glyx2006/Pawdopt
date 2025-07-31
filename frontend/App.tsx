@@ -131,29 +131,22 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Onboarding">
-          {/* Onboarding Screen */}
+        <Stack.Navigator initialRouteName="AddDogDescription">
           <Stack.Screen
             name="Onboarding"
             component={OnboardingScreen}
-            options={{ headerShown: false }} // Hides the header for a clean onboarding look
+            options={{ headerShown: false }} 
           />
-
-          {/* Login Screen */}
           <Stack.Screen
             name="Login"
             component={LoginScreen}
-            options={{ headerShown: false }} // Hides the header for the login page
+            options={{ headerShown: false }} 
           />
-
-          {/* Universal Create Account Screen (Email, Password) */}
           <Stack.Screen
             name="UniversalCreateAccount"
             component={UniversalCreateAccountScreen}
-            options={{ headerShown: false }} // Hides the header for signup steps
+            options={{ headerShown: false }} 
           />
-
-          {/* Adopter Signup Flow */}
           <Stack.Screen
             name="SignupAdopterDetails"
             component={SignupAdopterDetailsScreen}
@@ -164,8 +157,6 @@ export default function App() {
             component={SignupAdopterExperienceScreen}
             options={{ headerShown: false }}
           />
-
-          {/* Shelter Signup Flow */}
           <Stack.Screen
             name="SignupShelterDetails"
             component={SignupShelterDetailsScreen}
@@ -173,22 +164,20 @@ export default function App() {
           />
 
           <Stack.Screen
-            name="DogProfileDetail" // <-- NEW SCREEN (placeholder)
+            name="DogProfileDetail" 
             component={DogProfileDetailScreen}
             options={{ headerShown: false }} // Hide header for full control
           />
 
-          {/* Update AdopterDashboard to navigate to DogSwipe */}
-          {/* You can remove the old AdopterDashboard screen if DogSwipe is its replacement */}
           <Stack.Screen
             name="AdopterDashboard"
-            component={DogSwipeScreen} // <-- DIRECTLY USE DOGSWIPESCREEN FOR ADOPTER DASHBOARD
+            component={DogSwipeScreen} 
             options={{ headerShown: false }}
           />
           <Stack.Screen
             name="ShelterDashboard"
-            component={ShelterDashboardScreen} // Use the separate dummy component
-            options={{ headerShown: false }} // Or customize header for dashboard
+            component={ShelterDashboardScreen} 
+            options={{ headerShown: false }} 
           />
           <Stack.Screen 
             name="AddDog" 
@@ -197,43 +186,43 @@ export default function App() {
           />
           <Stack.Screen
             name="AddDogPic"
-            component={AddDogPicScreen} // Use the separate dummy component
-            options={{ headerShown: false }} // Or customize header for dashboard
+            component={AddDogPicScreen} 
+            options={{ headerShown: false }} 
           />
           <Stack.Screen
             name="AddDogDescription"
-            component={AddDogDescriptionScreen} // Use the separate dummy component
-            options={{ headerShown: false }} // Or customize header for dashboard
+            component={AddDogDescriptionScreen} 
+            options={{ headerShown: false }} 
           />
           <Stack.Screen
             name="ShelterProfile"
-            component={ShelterProfileScreen} // Use the separate dummy component
-            options={{ headerShown: false }} // Or customize header for dashboard
+            component={ShelterProfileScreen} 
+            options={{ headerShown: false }} 
           />
           <Stack.Screen
             name="AdopterProfile"
-            component={AdopterProfileScreen} // Use the separate dummy component
-            options={{ headerShown: false }} // Or customize header for dashboard
+            component={AdopterProfileScreen} 
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="EditAdopterProfile"
-            component={EditAdopterProfileScreen} // Use the same component for editing
-            options={{ headerShown: false }} // Or customize header for dashboard
+            component={EditAdopterProfileScreen} 
+            options={{ headerShown: false }} 
           />
           <Stack.Screen
             name="AdoptionRequests"
-            component={AdoptionRequestsScreen} // Use the separate dummy component
-            options={{ headerShown: false }} // Or customize header for dashboard
+            component={AdoptionRequestsScreen}
+            options={{ headerShown: false }} 
           />
           <Stack.Screen
             name="ChatListScreen"
-            component={ChatListScreen} // Use the separate dummy component
-            options={{ headerShown: false }} // Or customize header for dashboard
+            component={ChatListScreen} 
+            options={{ headerShown: false }} 
           />
           <Stack.Screen
             name="ChatScreen"
-            component={ChatScreen} // Use the separate dummy component
-            options={{ headerShown: false }} // Or customize header for dashboard
+            component={ChatScreen} 
+            options={{ headerShown: false }} 
           />
           {/* Add more Stack.Screen components here as you develop new pages */}
 
