@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -66,37 +66,40 @@ const AdopterProfileScreen: React.FC<{
   };
 
   const handleLogout = () => {
+  // Check if the platform is web
+  if (Platform.OS === 'web') {
+    // For web, use the browser's confirm dialog
+    const confirmed = window.confirm("Are you sure you want to log out?");
+    
+    // If the user clicks 'OK' (equivalent to 'Logout')
+    if (confirmed) {
+      console.log('Logging out...');
+      // Implement your logout logic here
+      // e.g., clear session, tokens, etc.
+      navigation.replace('Login'); // Navigate to the Login screen
+    }
+    // If the user clicks 'Cancel', do nothing.
+
+  } else {
+    // For mobile (iOS and Android), use the native Alert component
     Alert.alert(
       "Logout",
       "Are you sure you want to log out?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Logout", onPress: () => {
-            console.log('Logging out...');
-            try {
-              // Get the current authenticated Cognito user
-              const cognitoUser = userPool.getCurrentUser();
-
-              if (cognitoUser) {
-                // Sign out the Cognito user. This clears the local session.
-                cognitoUser.signOut();
-                console.log('Cognito user signed out successfully.');
-              } else {
-                console.log('No current Cognito user to sign out, proceeding with navigation.');
-              }
-            } catch (error) {
-              console.error('Error during Cognito sign out:', error);
-              // Even if sign-out fails on client-side, proceed to login to prevent stuck state
-              Alert.alert('Logout Error', 'Failed to fully sign out. Please try again or clear app data.');
-            } finally {
-              // Navigate to Login screen and replace the stack
-              navigation.replace('Login');
-            }
-          }
+        {
+        text: "Logout",
+        onPress: () => {
+          console.log('Logging out...');
+          // Implement your logout logic here
+          // e.g., clear session, tokens, etc.
+          navigation.replace('Login'); // Navigate to the Login screen
         }
-      ]
-    );
-  };
+      }
+    ]
+  );
+  }
+};
 
   // --- Footer Navigation Handlers ---
   const goToProfile = () => {

@@ -4,8 +4,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
 import { CognitoUser, AuthenticationDetails, userPool } from '../../services/CognitoService';
-
+import { handleAlert } from '../utils/AlertUtils'; 
 type LoginScreenProps = NavigationProp<RootStackParamList, 'Login'>;
+
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation<LoginScreenProps>();
@@ -17,7 +18,7 @@ const LoginScreen: React.FC = () => {
   // Handle Login button press
   const handleLogin = () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password.');
+      handleAlert('Error', 'Please enter both email and password.');
       return;
     }
 
@@ -37,26 +38,26 @@ const LoginScreen: React.FC = () => {
         const userRole = idToken.payload['custom:role']; // Access the custom:role attribute
 
         if (userRole === 'shelter') {
-          Alert.alert('Login Success', 'Welcome, Shelter User!');
+          handleAlert('Login Success', 'Welcome, Shelter User!');
           navigation.navigate('ShelterDashboard', {}); // Pass email to the ShelterDashboard
         } else {
           // Default to AdopterDashboard if role is not 'shelter' or is undefined
-          Alert.alert('Login Success', 'Welcome, Adopter!');
+          handleAlert('Login Success', 'Welcome, Adopter!');
           navigation.navigate('AdopterDashboard');
         }
       } else {
         // Fallback if idToken or its payload is unexpected
-        Alert.alert('Login Success', 'Authentication successful, but ID Token payload could not be determined.');
+        handleAlert('Login Success', 'Authentication successful, but ID Token payload could not be determined.');
         navigation.navigate('AdopterDashboard'); // Or a default dashboard
       }
     } else {
       // Fallback if session or getIdToken method is unexpected
-      Alert.alert('Login Success', 'Authentication successful, but session structure is unexpected.');
+      handleAlert('Login Success', 'Authentication successful, but session structure is unexpected.');
       navigation.navigate('AdopterDashboard'); // Or a default dashboard
     }
   },
       onFailure: (err) => {
-        Alert.alert('Login Failed', err.message || JSON.stringify(err));
+        handleAlert('Login Failed', err.message || JSON.stringify(err));
       },
     });
   };

@@ -21,6 +21,7 @@ import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
 import { RootStackParamList } from '../../App'; // Import your RootStackParamList type
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { handleAlert } from '../utils/AlertUtils';
 
 // Define AdopterProfile interface (ensure this matches your actual data structure)
 interface AdopterProfile {
@@ -92,7 +93,7 @@ const EditAdopterProfileScreen: React.FC<{
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission required', 'Please grant media library permissions to upload a profile picture.');
+      handleAlert('Permission required', 'Please grant media library permissions to upload a profile picture.');
       return;
     }
 
@@ -107,7 +108,7 @@ const EditAdopterProfileScreen: React.FC<{
       // In a real app, you would upload result.assets[0].uri to S3 here
       // and then update profileImageUri with the returned S3 URL.
       setProfileImageUri(result.assets[0].uri);
-      Alert.alert('Image Selected', 'Image selected successfully. It will be uploaded on save.');
+      handleAlert('Image Selected', 'Image selected successfully. It will be uploaded on save.');
     }
   };
 
@@ -343,7 +344,7 @@ const EditAdopterProfileScreen: React.FC<{
       !isNameValid || !isDobValid || !isGenderValid || !isAddressValid || !isPostcodeValid || !isPhoneNoValid ||
       !isPrefBreedsValid || !isMinAgeValid || !isMaxAgeValid || !isPrefGendersValid || !isPrefPostcodeValid || !isExperienceValid
     ) {
-      Alert.alert('Validation Error', 'Please correct the highlighted fields before saving.');
+      handleAlert('Validation Error', 'Please correct the highlighted fields before saving.');
       setIsSaving(false);
       return;
     }
@@ -374,12 +375,12 @@ const EditAdopterProfileScreen: React.FC<{
       console.log('Saving profile:', updatedProfile);
       await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network request
 
-      Alert.alert('Success', 'Profile updated successfully!');
+      handleAlert('Success', 'Profile updated successfully!');
       // Navigate back to AdopterProfileScreen, passing updated profile to refresh
       navigation.navigate('AdopterProfile', { refreshProfile: updatedProfile });
 
     } catch (error: any) {
-      Alert.alert('Save Error', error.message || 'Failed to update profile.');
+      handleAlert('Save Error', error.message || 'Failed to update profile.');
     } finally {
       setIsSaving(false);
     }

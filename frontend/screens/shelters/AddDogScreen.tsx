@@ -18,6 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList, Dog } from '../../App';
 import { Dropdown } from 'react-native-element-dropdown';
+import { handleAlert } from '../utils/AlertUtils';
 
 type AddDogRouteProp = RouteProp<RootStackParamList, 'AddDog'>;
 
@@ -41,11 +42,11 @@ const AddDogScreen: React.FC = () => {
 
     // Basic validation
     if (!name || !breed || !dob || !gender) {
-      Alert.alert('Missing Info', 'Please fill in all required dog details.');
+      handleAlert('Missing Info', 'Please fill in all required dog details.');
       return;
     }
     if (!/^\d{4}\/\d{2}$/.test(dob)) {
-      Alert.alert('Invalid Date of Birth', 'Please enter DOB in YYYY/MM format.');
+      handleAlert('Invalid Date of Birth', 'Please enter DOB in YYYY/MM format.');
       return;
     }
     setLoading(true);
@@ -72,7 +73,7 @@ const AddDogScreen: React.FC = () => {
   //     navigation.goBack(); // Go back to the dashboard
   //   } catch (error) {
   //     console.error('Error adding mock dog:', error);
-  //     Alert.alert('Error', 'An unexpected error occurred while adding the dog.');
+  //     handleAlert('Error', 'An unexpected error occurred while adding the dog.');
   //     setLoading(false);
   //   }
    };
@@ -106,11 +107,11 @@ const AddDogScreen: React.FC = () => {
   const handleNext = () => {
     // Validate required fields before navigating
     if (!name || !breed || !dob || !gender) {
-      Alert.alert('Missing Info', 'Please fill in all required dog details.');
+      handleAlert('Missing Info', 'Please fill in all required dog details.');
       return;
     }
     if (!/^\d{4}\/\d{2}$/.test(dob)) {
-      Alert.alert('Invalid Date of Birth', 'Please enter DOB in YYYY/MM format.');
+      handleAlert('Invalid Date of Birth', 'Please enter DOB in YYYY/MM format.');
       return;
     }
     navigation.navigate('AddDogPic', {
