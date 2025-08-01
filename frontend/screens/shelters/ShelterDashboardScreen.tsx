@@ -10,6 +10,10 @@ type AddDogScreenNavigationProp = NavigationProp<RootStackParamList, 'AddDog'>;
 import AppHeader from '../components/AppHeader';
 import AppFooter from '../components/AppFooter';
 
+import { DogsApi } from '../../generated/apis';
+import { DogPage, DogSummary } from '../../generated/models';
+import { Configuration } from '../../generated';
+
 // Mock data for initial display
 const initialMockDogs: Dog[] = [
   {
@@ -42,21 +46,42 @@ const ShelterDashboardScreen: React.FC = () => {
   const navigation = useNavigation<ShelterDashboardScreenNavigationProp>();
   const addDogNavigation = useNavigation<AddDogScreenNavigationProp>();
 
-  const [dogs, setDogs] = useState<Dog[]>([]);
+  // const [dogs, setDogs] = useState<Dog[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [shelterId, setShelterId] = useState<string>('mock-shelter-id-1'); // Mock shelter ID for now
   const [shelterPostcode, setShelterPostcode] = useState<string>('SW1A 0AA'); // Mock shelter postcode
 
+  // Config api
+  const apiConfig = new Configuration({
+    basePath: 'https://apirul',
+    accessToken: async () => 'token'
+  });
+
+  const dogsApi = new DogsApi(apiConfig);
+
   // Simulate fetching dogs (replace with actual API call later)
+  const [dogs, setDogs] = useState<DogSummary[]>([]);
   const fetchDogs = useCallback(async () => {
     setIsRefreshing(true);
     setLoading(true);
     // In a real app, you'd fetch dogs specific to 'shelterId' from your backend
     // For now, we'll filter the mock data
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-    const filteredMockDogs = initialMockDogs.filter(dog => dog.shelterId === shelterId);
-    setDogs(filteredMockDogs);
+    try {
+      const response: DogPage = await dogsApi.listDogs({
+        limit: 15,
+      });
+      
+      if (response.dogs) {
+        setDogs(response.dogs);
+      }
+    } catch (error) {
+      console.error('Failed to fetch dogs:', error);
+    }  
+
+    // await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    // const filteredMockDogs = initialMockDogs.filter(dog => dog.shelterId === shelterId);
+    // setDogs(filteredMockDogs);
     setLoading(false);
     setIsRefreshing(false);
   }, [shelterId]);

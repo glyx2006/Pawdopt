@@ -36,6 +36,8 @@ const LoginScreen: React.FC = () => {
       if (idToken && idToken.payload) {
         const userRole = idToken.payload['custom:role']; // Access the custom:role attribute
 
+        const tokenString = idToken.getJwtToken() // Raw string token for API calls
+
         if (userRole === 'shelter') {
           Alert.alert('Login Success', 'Welcome, Shelter User!');
           navigation.navigate('ShelterDashboard', {}); // Pass email to the ShelterDashboard
