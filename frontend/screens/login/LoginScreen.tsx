@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient'; // Make sure this is installed: npx expo install expo-linear-gradient
-import { NavigationProp } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient'; 
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
 import { CognitoUser, AuthenticationDetails, userPool } from '../../services/CognitoService';
 
 type LoginScreenProps = NavigationProp<RootStackParamList, 'Login'>;
 
-const LoginScreen: React.FC<{ navigation: LoginScreenProps }> = ({ navigation }) => {
+const LoginScreen: React.FC = () => {
+  const navigation = useNavigation<LoginScreenProps>();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false); // State to toggle password visibility
@@ -143,10 +144,10 @@ const LoginScreen: React.FC<{ navigation: LoginScreenProps }> = ({ navigation })
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff', // White background as per Figma
+    backgroundColor: '#fff', 
     alignItems: 'center',
-    paddingHorizontal: 30, // Padding on sides
-    paddingTop: 80, // Space from top
+    paddingHorizontal: 30, 
+    paddingTop: 80, 
   },
   greetingTitle: {
     fontSize: 28,
@@ -165,15 +166,15 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logo: {
-    width: 60, // Adjust size as needed
-    height: 60, // Adjust size as needed
+    width: 60, 
+    height: 60, 
     resizeMode: 'contain',
     marginRight: 10,
   },
   appName: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#F7B781', // Matching your Figma logo color
+    color: '#F7B781', 
   },
   inputLabel: {
     alignSelf: 'flex-start', // Align label to the left
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
     borderColor: '#ddd',
-    borderBottomWidth: 1, // Only bottom border as per Figma
+    borderBottomWidth: 1, // Only bottom border 
     paddingHorizontal: 0, // No horizontal padding for input text
     fontSize: 18,
     color: '#333',

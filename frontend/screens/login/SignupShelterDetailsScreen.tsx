@@ -7,6 +7,8 @@ import {
   userPool,
   CognitoUserAttribute,
 } from '../../services/CognitoService';
+import AppHeader from '../components/AppHeader';
+import BackButton from '../components/BackButton';
 
 // Define the type for the route parameters for this screen
 type SignupShelterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupShelterDetails'>;
@@ -45,8 +47,8 @@ const SignupShelterDetailsScreen: React.FC = () => {
       setNameError('Name must be at least 2 characters.');
       return false;
     }
-    //Optional: Add regex for only alphabetic characters if desired
-    if (!/^[a-zA-Z\s]+$/.test(nameString)) {
+    // Add regex for only numeric and alphabetic characters if desired
+    if (!/^[a-zA-Z0-9\s]+$/.test(nameString)) {
       setNameError('Name can only contain letters and spaces.');
       return false;
     }
@@ -85,22 +87,22 @@ const SignupShelterDetailsScreen: React.FC = () => {
 
   const handleNameChange = (text: string) => {
     setShelterName(text);
-    validateName(text); // Validate as user types
+    validateName(text); 
   };
 
   const handleAddressChange = (text: string) => {
     setAddress(text);
-    validateAddress(text); // Validate as user types
+    validateAddress(text); 
   };
 
   const handlePostcodeChange = (text: string) => {
     setPostcode(text);
-    validatePostcode(text); // Validate as user types
+    validatePostcode(text); 
   };
 
   const handlePhoneNoChange = (text: string) => {
     formatPhoneNo(text);
-    validatePhoneNo(text); // Validate as user types
+    validatePhoneNo(text); 
   };
 
   const handleNext = () => {
@@ -109,12 +111,12 @@ const SignupShelterDetailsScreen: React.FC = () => {
     const isPostcodeValid = validatePostcode(postcode);
     const isPhoneNoValid = validatePhoneNo(phoneNo);
     
-    // Basic client-side validation
+    
     if (!shelterName.trim || !address.trim || !postcode.trim || !phoneNo.trim) {
       Alert.alert('Error', 'All fields are required.');
       return;
     }
-    // Add more specific validation (e.g., phone number regex)
+    
     if (!isNameValid || !isAddressValid || !isPostcodeValid || !isPhoneNoValid) {
       Alert.alert('Validation Error', 'Please correct the highlighted fields before proceeding.');
       return;
@@ -148,13 +150,17 @@ const SignupShelterDetailsScreen: React.FC = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
-            <ScrollView contentContainerStyle={styles.scrollViewContent}>
-      <View style={styles.container}>
-        {/* Back Arrow */}
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>{'<'}</Text>
-        </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
 
+      <AppHeader
+        leftComponent={
+          <BackButton
+            onPress={() => navigation.goBack()}
+          />
+        }
+      />
+      <View style={styles.container}>
+  
         <Text style={styles.title}>Create Account</Text>
 
         {/* Shelter Name Input */}
@@ -230,24 +236,16 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     justifyContent: 'center',
+    backgroundColor: '#fff',
+    paddingTop: Platform.OS === 'ios' ? 60 : 0, // Adjust for iOS
   },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 30,
-    paddingTop: 60,
+    paddingTop: 15,
     paddingBottom: 40,
     alignItems: 'center',
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 30,
-    padding: 5,
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: '#F7B781',
-    fontWeight: 'bold',
   },
   title: {
     fontSize: 28,

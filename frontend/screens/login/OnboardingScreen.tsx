@@ -1,14 +1,14 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native"; 
 import { LinearGradient } from "expo-linear-gradient"; 
-import { NavigationProp } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../App'; 
 
 // Define the type for the navigation prop for this screen
-type OnboardingScreenProps = NavigationProp<RootStackParamList, 'Onboarding'>; // <-- Define specific type
+type OnboardingScreenProps = NavigationProp<RootStackParamList, 'Onboarding'>; 
 
-
-const OnboardingScreen: React.FC<{navigation: OnboardingScreenProps}> = ({ navigation }) => {
+const OnboardingScreen: React.FC = () => {
+  const navigation = useNavigation<OnboardingScreenProps>();
   return (
     <LinearGradient // Use LinearGradient for the background
       colors={["#F9E286", "#F48B7B"]} 

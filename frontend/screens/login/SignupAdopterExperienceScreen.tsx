@@ -7,24 +7,23 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-
 import {
   useNavigation,
   useRoute,
   RouteProp,
-  NavigationProp, // <--- Import NavigationProp as well
+  NavigationProp,
 } from "@react-navigation/native";
-
-import { RootStackParamList } from "../../App"; // Import your RootStackParamList type
-
+import { RootStackParamList } from "../../App";
 import {
   userPool,
-  CognitoUser,
-  AuthenticationDetails,
   CognitoUserAttribute,
 } from "../../services/CognitoService";
+import AppHeader from "../components/AppHeader";
+import BackButton from "../components/BackButton";
 
 // Define the type for the route parameters for this screen
 type SignupAdopterExperienceScreenRouteProp = RouteProp<
@@ -38,11 +37,10 @@ type SignupAdopterExperienceScreenNavigationProp = NavigationProp<
   "SignupAdopterExperience"
 >;
 
-const SignupAdopterExperienceScreen: React.FC<{
-  navigation: SignupAdopterExperienceScreenNavigationProp;
-  route: SignupAdopterExperienceScreenRouteProp;
-}> = ({ navigation, route }) => {
-  // Get all previously collected data - ENSURE THESE ARE DEFINED IN RootStackParamList IN App.tsx
+const SignupAdopterExperienceScreen: React.FC = () => {
+  const navigation = useNavigation<SignupAdopterExperienceScreenNavigationProp>();
+  const route = useRoute<SignupAdopterExperienceScreenRouteProp>();
+
   const { email, password, name, dob, gender, address, postcode, phoneNo } = route.params;
 
   const [experience, setExperience] = useState<string>("");
@@ -72,7 +70,7 @@ const SignupAdopterExperienceScreen: React.FC<{
         return;
       }
       Alert.alert(
-        "Adopter Account Created!", 
+        "Adopter Account Created!",
         "Please verify your email and login."
       );
       navigation.navigate("Login");
@@ -80,73 +78,75 @@ const SignupAdopterExperienceScreen: React.FC<{
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollViewContent}>
-      <View style={styles.container}>
-        {/* Back Arrow */}
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Text style={styles.backButtonText}>{"<"}</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.title}>Experience with pets</Text>
-
-        {/* Experience Input */}
-        <Text style={styles.inputLabel}>Experience</Text>
-        <TextInput
-          style={styles.textAreaInput} // Use a different style for multi-line text
-          placeholder="Enter your experience with pets
-        (e.g. Any current pets? Have you ever had a dog?)"
-          placeholderTextColor="#999"
-          multiline={true} // Enable multi-line input
-          numberOfLines={6} // Suggest initial height
-          textAlignVertical="top" // Align text to top for multi-line
-          value={experience}
-          onChangeText={setExperience}
+    <KeyboardAvoidingView
+      style={styles.keyboardAvoidingContainer}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <AppHeader
+          leftComponent={
+            <BackButton
+              onPress={() => navigation.goBack()}
+            />
+          }
         />
+        <View style={styles.container}>
+          <Text style={styles.title}>Experience with pets</Text>
 
-        {/* Continue Button */}
-        <TouchableOpacity
-          onPress={handleContinue}
-          style={styles.continueButtonWrapper}
-        >
-          <LinearGradient
-            colors={["#F48B7B", "#F9E286"]}
-            style={styles.continueButtonGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+          {/* Experience Input */}
+          <Text style={styles.inputLabel}>Experience</Text>
+          <TextInput
+            style={styles.textAreaInput}
+            placeholder="Enter your experience with pets&#10;(e.g. Any current pets? Have you ever had a dog?)"
+            placeholderTextColor="#999"
+            multiline={true}
+            numberOfLines={6}
+            textAlignVertical="top"
+            value={experience}
+            onChangeText={setExperience}
+          />
+
+          {/* Continue Button */}
+          <TouchableOpacity
+            onPress={handleContinue}
+            style={styles.continueButtonWrapper}
           >
-            <Text style={styles.continueButtonText}>CONTINUE</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+            <LinearGradient
+              colors={["#F48B7B", "#F9E286"]}
+              style={styles.continueButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={styles.continueButtonText}>CONTINUE</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  keyboardAvoidingContainer: {
+    flex: 1,
+  },
   scrollViewContent: {
     flexGrow: 1,
     justifyContent: "center",
+    backgroundColor: "#fff",
+    paddingBottom: 40, // Added padding to bottom to prevent cutoff
+    paddingTop: Platform.OS === "ios" ? 60 : 0, // Adjust for iOS
   },
   container: {
     flex: 1,
     backgroundColor: "#fff",
     paddingHorizontal: 30,
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingTop: 15,
     alignItems: "center",
-  },
-  backButton: {
-    alignSelf: "flex-start",
-    marginBottom: 30,
-    padding: 5,
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: "#F7B781",
-    fontWeight: "bold",
   },
   title: {
     fontSize: 28,
@@ -164,12 +164,12 @@ const styles = StyleSheet.create({
   },
   textAreaInput: {
     width: "100%",
-    height: 370, // Adjust height for multi-line input
+    height: 370,
     borderColor: "#ddd",
-    borderWidth: 1, // Solid border for text area
+    borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 15,
-    paddingVertical: 10, // Vertical padding for multi-line
+    paddingVertical: 10,
     fontSize: 18,
     color: "#333",
     marginBottom: 10,
@@ -190,23 +190,5 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
 });
-
-// // Optional: signIn helper function if you need it elsewhere
-// const signIn = (username, password) => {
-//   const user = new CognitoUser({ Username: username, Pool: userPool });
-//   const authDetails = new AuthenticationDetails({
-//     Username: username,
-//     Password: password,
-//   });
-
-//   user.authenticateUser(authDetails, {
-//     onSuccess: (session) => {
-//       console.log("Logged in:", session.getIdToken().getJwtToken());
-//     },
-//     onFailure: (err) => {
-//       console.error("Login failed:", err);
-//     },
-//   });
-// };
 
 export default SignupAdopterExperienceScreen;
