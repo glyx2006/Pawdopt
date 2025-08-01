@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient'; // Make sure this is installed: npx expo install expo-linear-gradient
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'; // Import hooks for navigation and route params
-import { RootStackParamList } from '../../App'; // Import your RootStackParamList type
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient'; 
+import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native'; // Import hooks for navigation and route params
+import { RootStackParamList } from '../../App'; // Import RootStackParamList type
 import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
-// Define the type for the route parameters for this screen
+
+// Define the type for the route and navigation parameters for this screen
+type UniversalCreateAccountScreenNavigationProp = NavigationProp<RootStackParamList, 'UniversalCreateAccount'>;
 type UniversalCreateAccountScreenRouteProp = RouteProp<RootStackParamList, 'UniversalCreateAccount'>;
 
 const UniversalCreateAccountScreen: React.FC = () => {
-  const navigation = useNavigation<import('@react-navigation/native').NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<UniversalCreateAccountScreenNavigationProp>();
   const route = useRoute<UniversalCreateAccountScreenRouteProp>();
   const { role } = route.params; // Get the 'role' parameter passed from OnboardingScreen
 
@@ -28,7 +30,7 @@ const UniversalCreateAccountScreen: React.FC = () => {
       Alert.alert('Error', 'Passwords do not match.');
       return;
     }
-    if (password.length < 6) { // Example: Minimum password length
+    if (password.length < 6) { // Minimum password length
       Alert.alert('Error', 'Password must be at least 6 characters long.');
       return;
     }
@@ -122,7 +124,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 0,
-    paddingTop: 60, // Adjust for top bar content
+    paddingTop: Platform.OS === 'ios' ? 60 : 0, // Adjust for top bar content
   },
   miniContainer: {
     paddingHorizontal: 30,

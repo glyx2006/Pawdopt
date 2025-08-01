@@ -12,19 +12,20 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
-import { userPool, CognitoUserAttribute } from '../../services/CognitoService'; 
-
 
 import { RootStackParamList } from '../../App';
+import { Dropdown } from 'react-native-element-dropdown';
+import AppHeader from '../components/AppHeader';
+import BackButton from '../components/BackButton';
 
 type SignupAdopterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupAdopterDetails'>;
 type SignupAdopterDetailsScreenNavigationProp = NavigationProp<RootStackParamList, 'SignupAdopterDetails'>;
 
-const SignupAdopterDetailsScreen: React.FC<{
-  navigation: SignupAdopterDetailsScreenNavigationProp;
-  route: SignupAdopterDetailsScreenRouteProp;
-}> = ({ navigation, route }) => {
-  const { email = '', password = '' } = route.params || {};
+const SignupAdopterDetailsScreen: React.FC = () => {
+  const navigation = useNavigation<SignupAdopterDetailsScreenNavigationProp>();
+  const route = useRoute<SignupAdopterDetailsScreenRouteProp>();
+
+  const { email, password } = route.params;
 
   const [name, setName] = useState<string>('');
   const [dob, setDob] = useState<string>('');
@@ -32,10 +33,8 @@ const SignupAdopterDetailsScreen: React.FC<{
   const [address, setAddress] = useState<string>('');
   const [postcode, setPostcode] = useState<string>('');
   const [phoneNo, setPhoneNo] = useState<string>('');
-
   const [nameError, setNameError] = useState<string>('');
   const [dobError, setDobError] = useState<string>('');
-  const [genderError, setGenderError] = useState<string>('');
   const [addressError, setAddressError] = useState<string>('');
   const [postcodeError, setPostcodeError] = useState<string>('');
   const [phoneNoError, setPhoneNoError] = useState<string>('');
@@ -76,7 +75,7 @@ const SignupAdopterDetailsScreen: React.FC<{
       setNameError('Name must be at least 2 characters.');
       return false;
     }
-    //Optional: Add regex for only alphabetic characters if desired
+    //Add regex for only alphabetic characters if desired
     if (!/^[a-zA-Z\s]+$/.test(nameString)) {
       setNameError('Name can only contain letters and spaces.');
       return false;
@@ -102,12 +101,6 @@ const SignupAdopterDetailsScreen: React.FC<{
     const year = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10);
     const day = parseInt(parts[2], 10);
-
-    // Check if parsed parts are valid numbers
-    if (isNaN(year) || isNaN(month) || isNaN(day)) {
-      setDobError('Invalid date components (not numbers).');
-      return false;
-    }
 
     // Basic range checks for year, month, day
     const currentYear = new Date().getFullYear();
@@ -144,16 +137,7 @@ const SignupAdopterDetailsScreen: React.FC<{
     return true; // Date is valid
   };
 
-   const validateGender = (genderString: string): boolean => {
-    setGenderError('');
-    // Optional: More specific gender validation if you have a predefined list
-    const validGenders = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
-    if (!validGenders.includes(genderString.trim())) {
-      setGenderError('Please enter a valid gender (Male, Female, Non-binary, Prefer not to say)');
-      return false;
-    }
-    return true;
-  };
+
 
   const validateAddress = (addressString: string): boolean => {
     setAddressError('');
@@ -188,38 +172,33 @@ const SignupAdopterDetailsScreen: React.FC<{
 
   const handleNameChange = (text: string) => {
     setName(text);
-    validateName(text); // Validate as user types
+    validateName(text);
   };
 
   const handleDobChange = (text: string) => {
     formatDob(text);
-    validateDob(text); // Validate as user types
+    validateDob(text); 
   };
 
-  const handleGenderChange = (text: string) => {
-    setGender(text);
-    validateGender(text); // Validate as user types
-  };
 
   const handleAddressChange = (text: string) => {
     setAddress(text);
-    validateAddress(text); // Validate as user types
+    validateAddress(text); 
   };
 
   const handlePostcodeChange = (text: string) => {
     setPostcode(text);
-    validatePostcode(text); // Validate as user types
+    validatePostcode(text); 
   };
 
   const handlePhoneNoChange = (text: string) => {
     formatPhoneNo(text);
-    validatePhoneNo(text); // Validate as user types
+    validatePhoneNo(text); 
   };
 
   const handleNext = () => {
     const isNameValid = validateName(name);
     const isDobValid = validateDob(dob);
-    const isGenderValid = validateGender(gender);
     const isAddressValid = validateAddress(address);
     const isPostcodeValid = validatePostcode(postcode);
     const isPhoneNoValid = validatePhoneNo(phoneNo);
@@ -231,7 +210,7 @@ const SignupAdopterDetailsScreen: React.FC<{
     }
 
     // Check if all individual validations passed
-    if (!isNameValid || !isDobValid || !isGenderValid || !isAddressValid || !isPostcodeValid || !isPhoneNoValid) {
+    if (!isNameValid || !isDobValid || !isAddressValid || !isPostcodeValid || !isPhoneNoValid) {
       Alert.alert('Validation Error', 'Please correct the highlighted fields before proceeding.');
       return;
     }
@@ -259,11 +238,14 @@ const SignupAdopterDetailsScreen: React.FC<{
         contentContainerStyle={styles.scrollViewContent}
         keyboardShouldPersistTaps="handled"
       >
+        <AppHeader
+        leftComponent={
+          <BackButton
+            onPress={() => navigation.goBack()}
+          />
+        }
+        />
         <View style={styles.container}>
-          {/* Back Arrow */}
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>{'<'}</Text>
-          </TouchableOpacity>
 
           <Text style={styles.title}>Create Account</Text>
 
@@ -293,16 +275,27 @@ const SignupAdopterDetailsScreen: React.FC<{
           {dobError ? <Text style={styles.errorText}>{dobError}</Text> : null} {/* <-- Used here to display the message */}
 
 
-          {/* Gender Input (as TextInput) */}
+          {/* Gender Input (Dropdown) */}
           <Text style={styles.inputLabel}>Gender</Text>
-          <TextInput
-            style={[styles.input, genderError ? styles.inputError : null]}
-            placeholder="Enter Your Gender"
-            placeholderTextColor="#999"
+          <Dropdown
+            style={styles.input}
+            data={[
+              { label: 'Male', value: 'Male' },
+              { label: 'Female', value: 'Female' },
+              { label: 'Non-binary', value: 'Non-binary' },
+              { label: 'Prefer not to say', value: 'Prefer not to say' },
+            ]}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Gender"
+            placeholderStyle={{ color: '#999', fontSize: 18}}
             value={gender}
-            onChangeText={handleGenderChange}
+            onChange={(item: { value: React.SetStateAction<string>; }) => setGender(item.value)}
+            selectedTextStyle={{ color: '#333', fontSize: 18 }}
+            itemTextStyle={{ color: '#333', fontSize: 18 }}
+            containerStyle={{ borderRadius: 8 }}
+            activeColor="#F7B781"
           />
-          {genderError ? <Text style={styles.errorText}>{genderError}</Text> : null}
 
           {/* Address Input */}
           <Text style={styles.inputLabel}>Address</Text>
@@ -361,26 +354,16 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
+    paddingTop: Platform.OS === 'ios' ? 60 : 0,
     paddingBottom: 100,
-    paddingTop: 0,
     backgroundColor: '#fff',
   },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 30,
-    paddingTop: 60,
+    paddingTop: 15,
     alignItems: 'center',
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 30,
-    padding: 5,
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: '#F7B781',
-    fontWeight: 'bold',
   },
   title: {
     fontSize: 28,
