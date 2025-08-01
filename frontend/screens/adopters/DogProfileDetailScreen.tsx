@@ -4,6 +4,7 @@ import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navig
 import { LinearGradient } from 'expo-linear-gradient'; // For the Apply button
 
 import { RootStackParamList } from '../../App'; // Import RootStackParamList
+import { handleAlert } from '../utils/AlertUtils';
 
 // Define the type for the route parameters for this screen
 type DogProfileDetailScreenRouteProp = RouteProp<RootStackParamList, 'DogProfileDetail'>;
@@ -77,14 +78,14 @@ const DogProfileDetailScreen: React.FC<{
     if (foundDog) {
       setDog(foundDog);
     } else {
-      Alert.alert('Error', 'Dog not found!');
+      handleAlert('Error', 'Dog not found!');
       navigation.goBack(); // Go back if dog not found
     }
   }, [dogId]); // Re-run effect if dogId changes
 
   const handleApplyForAdoption = () => {
     if (dog) {
-      Alert.alert('Apply for Adoption', `Applying for ${dog.name}! (TODO: Implement actual adoption application process)`);
+      handleAlert('Apply for Adoption', `Applying for ${dog.name}! (TODO: Implement actual adoption application process)`);
       // TODO: Implement actual adoption application logic (API call to backend)
       // This would likely navigate to an application form or confirmation screen
     }

@@ -26,6 +26,7 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view'; // <-- Import MaskedView
 import AdopterProfileScreen from './AdopterProfileScreen';
+import { handleAlert } from '../utils/AlertUtils';
 
 const { width } = Dimensions.get('window'); // Get screen width for responsive sizing
 
@@ -105,7 +106,7 @@ const DogSwipeScreen: React.FC = () => {
       translateY.value = 0;
     } else {
       setCurrentDog(null); // No more dogs available
-      Alert.alert('No More Dogs', 'You\'ve seen all available dogs for now!');
+      handleAlert('No More Dogs', 'You\'ve seen all available dogs for now!');
     }
   }, [currentDogIndex]);
 
