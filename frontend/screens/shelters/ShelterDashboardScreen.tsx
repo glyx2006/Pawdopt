@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert, TouchableOpacity, Image, RefreshControl, Platform } from 'react-native'; // Removed Pressable, added TouchableOpacity
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert, TouchableOpacity, Image, RefreshControl, Platform } from 'react-native'; // Removed Modal and ScrollView
 import { useNavigation, NavigationProp, useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList, Dog } from '../../App'; // Import Dog interface and RootStackParamList
 import { SafeAreaView } from 'react-native-safe-area-context'; // Import SafeAreaView
@@ -9,12 +9,15 @@ type AddDogScreenNavigationProp = NavigationProp<RootStackParamList, 'AddDog'>;
 
 import AppHeader from '../components/AppHeader';
 import AppFooter from '../components/AppFooter';
+import DogProfileModal from '../shelters/DogProfileModal';
 import { handleAlert } from '../utils/AlertUtils';
+import { deleteDog } from '../../src/api';
 
 import { DogsApi } from '../../generated/apis';
 import { DogPage } from '../../generated/models';
 import { Configuration } from '../../generated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAccessToken } from '../../src/cognito';
 
 // Mock data for initial display
 const initialMockDogs: Dog[] = [
@@ -53,6 +56,8 @@ const ShelterDashboardScreen: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [shelterId, setShelterId] = useState<string>('mock-shelter-id-1'); // Mock shelter ID for now
   const [shelterPostcode, setShelterPostcode] = useState<string>('SW1A 0AA'); // Mock shelter postcode
+  const [selectedDog, setSelectedDog] = useState<Dog | null>(null); // For modal
+  const [isModalVisible, setIsModalVisible] = useState(false); // For modal visibility
 
   // Config api
   const apiConfig = new Configuration({
@@ -118,7 +123,7 @@ const ShelterDashboardScreen: React.FC = () => {
   };
 
   const renderDogItem = ({ item }: { item: Dog }) => (
-    <TouchableOpacity style={styles.dogCard} onPress={() => { /* Navigate to edit dog screen */ }}>
+    <TouchableOpacity style={styles.dogCard} onPress={() => handleDogPress(item)}>
       {item.photoURLs && item.photoURLs.length > 0 && (
         <Image source={{ uri: item.photoURLs[0] }} style={styles.dogImage} />
       )}
@@ -132,6 +137,34 @@ const ShelterDashboardScreen: React.FC = () => {
       {/* Add Edit/Delete buttons here later */}
     </TouchableOpacity>
   );
+
+  const handleDogPress = (dog: Dog) => {
+    setSelectedDog(dog);
+    setIsModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setIsModalVisible(false);
+    setSelectedDog(null);
+  };
+
+  const userDeleteDog = async(dog:Dog) => {
+    try{
+      const token = await getAccessToken();
+      if (!token) return alert('Please sign in first');
+      const response = await deleteDog(dog.id, token);
+      if (response.ok) {
+        alert('Dog deleted!');
+        closeModal();
+      } else {
+        const text = await response.text();
+        alert('Deletion failed: ' + text);
+      }
+    } catch (error) {
+      alert('Error: ' + (error as Error).message);
+    }
+    
+  }
 
   // --- Footer Navigation Functions ---
   const goToHome = () => {
@@ -190,6 +223,20 @@ const ShelterDashboardScreen: React.FC = () => {
         onPressHome={goToHome}
         onPressChat={goToChat}
         activeScreen="home" // Highlight the home icon for Shelter Dashboard
+      />
+
+      {/* Dog Details Modal */}
+      <DogProfileModal
+        visible={isModalVisible}
+        dog={selectedDog}
+        onClose={closeModal}
+        onEdit={(dog) => {
+          // Add edit functionality here
+          Alert.alert('Edit Dog', 'Edit functionality coming soon!');
+        }}
+        onDelete={(dog) => {
+          userDeleteDog(dog);
+        }}
       />
     </SafeAreaView>
   );

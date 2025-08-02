@@ -1,4 +1,3 @@
-
 import * as FileSystem from 'expo-file-system';
 import { Buffer } from 'buffer';
 
@@ -52,14 +51,6 @@ export async function uploadImagesToS3(uris: string[], urls: string[]) {
   if (failed.length > 0) throw new Error("One or more uploads failed.");
 }
 
-
-
-
-
-
-
-
-
 export async function uploadDogProfile(data: any, token: string) {
   const response = await fetch('https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default/CreateDogEntryFunction', {
     method: 'POST',
@@ -70,6 +61,19 @@ export async function uploadDogProfile(data: any, token: string) {
     body: JSON.stringify(data),
   });
 
+  return response;
+}
+
+export async function deleteDog(dogId: string, token: string) {
+  const response = await fetch(`https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default/dog/${dogId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  // 204 No Content response doesn't have a body to parse
   return response;
 }
 
