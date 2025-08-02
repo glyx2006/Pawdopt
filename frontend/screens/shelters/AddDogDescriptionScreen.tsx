@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { RootStackParamList, Dog } from '../../App';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
+import { getAccessToken } from '../../src/cognito';
+import { uploadDogProfile } from '../../src/api';
 
 type AddDogDescriptionRouteProp = RouteProp<RootStackParamList, 'AddDogDescription'>;
 
@@ -17,40 +19,45 @@ const AddDogDescriptionScreen: React.FC = () => {
     breed,
     dob,
     gender,
-    photos
+    photos,
+    photoKeys
   } = route.params || {};
 
   const canContinue = bio.trim().length > 0;
 
   const handleContinue = async () => {
-    // const dogData = {
-    // shelterId,
-    // shelterPostcode,
-    // name,
-    // breed,
-    // dob,
-    // gender,
-    // bio,
-    // photos,
-    // };
-    // try {
-    //   const response = await fetch('https://YOUR_API_GATEWAY_URL/dogs', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify(dogData),
-    //   });
-    //   if (response.ok) {
-    //     // Success: navigate or show confirmation
-    //     alert('Dog uploaded!');
-    //     // navigation.navigate('SomeScreen');
-    //   } else {
-    //     alert('Upload failed');
-    //   }
-    // } catch (error) {
-    //   alert('Error: ' + (error instanceof Error ? error.message : 'Unknown'));
-    // }
-  navigation.navigate('AddDogSuccess')  
-};
+    try {
+      const token = await getAccessToken();
+      if (!token) return alert('Please sign in first');
+      const payload = {
+        name,
+        age: dob,
+        breed,
+        gender,
+        description: bio,
+        dog_status: 'AVAILABLE',
+        shelter_id: shelterId,
+        shelter_postcode: shelterPostcode,
+        photo_keys: photoKeys,
+      };
+
+      const response = await uploadDogProfile(payload, token);
+
+    
+  
+      if (response.ok) {
+        alert('Dog uploaded!');
+        navigation.navigate('AddDogSuccess');
+      } else {
+        const text = await response.text();
+        alert('Upload failed: ' + text);
+      }
+    } catch (error) {
+      alert('Error: ' + (error as Error).message);
+    }
+  };
+  
+  
 
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>

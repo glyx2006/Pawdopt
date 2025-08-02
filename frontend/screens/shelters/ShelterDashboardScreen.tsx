@@ -9,6 +9,7 @@ type AddDogScreenNavigationProp = NavigationProp<RootStackParamList, 'AddDog'>;
 
 import AppHeader from '../components/AppHeader';
 import AppFooter from '../components/AppFooter';
+import { handleAlert } from '../utils/AlertUtils';
 
 import { DogsApi } from '../../generated/apis';
 import { DogPage } from '../../generated/models';
@@ -104,7 +105,7 @@ const ShelterDashboardScreen: React.FC = () => {
 
   const handleAddDog = useCallback((newDog: Dog) => {
     setDogs(prevDogs => [...prevDogs, newDog]);
-    Alert.alert('Success', `${newDog.name} added to your list!`);
+    handleAlert('Success', `${newDog.name} added to your list!`);
   }, []);
 
   const navigateToAddDog = () => {
@@ -280,9 +281,6 @@ const styles = StyleSheet.create({
     color: '#555',
     lineHeight: 20,
   },
-  // --- Footer Styles (these should ideally be inside AppFooter.tsx now) ---
-  // Removed these from here, as AppFooter now manages its own styles and touch feedback.
-  // Keeping them here for reference if you haven't fully moved them.
 });
 
 export default ShelterDashboardScreen;

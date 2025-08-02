@@ -13,6 +13,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList, Dog } from '../../App';
+import { getAccessToken } from '../../src/cognito';
+import { getPresignedUrls,uploadImagesToS3 } from '../../src/api';
 
 const MAX_PHOTOS = 6;
 const windowWidth = Dimensions.get('window').width;
@@ -40,18 +42,32 @@ const AddDogPicScreen: React.FC = () => {
     gender = 'Male',
   } = route.params || {};
 
-	const handleNext = () => {
-		navigation.navigate('AddDogDescription', {
-      onAddDog,
-      shelterId,
-      shelterPostcode,
-      name,
-      breed,
-      dob,
-      gender,
-      photos,
-    });
-	}
+	const handleContinue = async () => {
+    try {
+      const token = await getAccessToken();
+      if (!token) return alert('Please sign in first');
+  
+      const { uploadUrls, keys } = await getPresignedUrls(photos.length, token);
+      await uploadImagesToS3(photos, uploadUrls);
+  
+      navigation.navigate('AddDogDescription', {
+        onAddDog,
+        shelterId,
+        shelterPostcode,
+        name,
+        breed,
+        dob,
+        gender,
+        photos, // S3 object keys
+        photoKeys: keys, // Use keys for the next screen
+      });
+    } catch (error) {
+      
+      console.error('Image upload failed:', error);
+      alert('Failed to upload images. Please try again.');
+    }
+  };
+  
 // Save image to the correct slot (1-6)
   const saveImage = async (image: string) => {
   try {
@@ -151,6 +167,8 @@ const AddDogPicScreen: React.FC = () => {
     }
   };
 
+  
+
   // Grid: always 6 cells
   const photoGrid = Array.from({ length: MAX_PHOTOS }, (_, i) => renderPhotoCell(i));
 
@@ -168,7 +186,7 @@ const AddDogPicScreen: React.FC = () => {
           <Text style={styles.continueButtonText}>CONTINUE</Text>
         </View>
       ) : (
-        <TouchableOpacity style={styles.nextButtonWrapper} activeOpacity={0.8} onPress={handleNext}>
+        <TouchableOpacity style={styles.nextButtonWrapper} activeOpacity={0.8} onPress={handleContinue}>
           <LinearGradient
             colors={["#F7B781", "#F7C98B"]}
             start={{ x: 0, y: 0 }}

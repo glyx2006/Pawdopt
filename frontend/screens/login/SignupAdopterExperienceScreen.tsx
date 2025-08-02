@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
   ScrollView,
   Platform,
   KeyboardAvoidingView,
@@ -24,6 +23,7 @@ import {
 } from "../../services/CognitoService";
 import AppHeader from "../components/AppHeader";
 import BackButton from "../components/BackButton";
+import { handleAlert } from "../utils/AlertUtils";
 
 // Define the type for the route parameters for this screen
 type SignupAdopterExperienceScreenRouteProp = RouteProp<
@@ -47,7 +47,7 @@ const SignupAdopterExperienceScreen: React.FC = () => {
 
   const handleContinue = () => {
     if (!experience) {
-      Alert.alert("Error", "Please describe your experience with pets.");
+      handleAlert("Error", "Please describe your experience with pets.");
       return;
     }
 
@@ -66,10 +66,10 @@ const SignupAdopterExperienceScreen: React.FC = () => {
 
     userPool.signUp(email, password, attributeList, [], (err, result) => {
       if (err) {
-        Alert.alert("Sign Up Error", err.message || JSON.stringify(err));
+        handleAlert("Sign Up Error", err.message || JSON.stringify(err));
         return;
       }
-      Alert.alert(
+      handleAlert(
         "Adopter Account Created!",
         "Please verify your email and login."
       );

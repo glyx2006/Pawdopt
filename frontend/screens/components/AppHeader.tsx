@@ -86,7 +86,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 30,
     fontWeight: 'bold',
-    fontFamily: 'Roboto', // Keep if you have this font, otherwise remove
   },
   headerTitleGradientBackground: {
     flex: 1,
