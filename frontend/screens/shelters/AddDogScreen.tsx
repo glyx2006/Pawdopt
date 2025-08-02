@@ -32,6 +32,7 @@ const AddDogScreen: React.FC = () => {
   const [breed, setBreed] = useState('');
   const [dob, setDob] = useState('');
   const [gender, setGender] = useState('');
+  const [calculatedAge, setCalculatedAge] = useState<number | null>(null);
   // const [description, setDescription] = useState('');
   // const [photoUrl, setPhotoUrl] = useState('');
   // const [status, setStatus] = useState('Available');
@@ -102,6 +103,55 @@ const AddDogScreen: React.FC = () => {
 
   const handleDobChange = (text: string) => {
     formatDob(text);
+    
+    // Calculate age in real-time if DOB is complete
+    if (/^\d{4}\/\d{2}$/.test(text)) {
+      const dobValidation = validateDob(text);
+      if (dobValidation.isValid && dobValidation.age !== undefined) {
+        setCalculatedAge(dobValidation.age);
+      } else {
+        setCalculatedAge(null);
+      }
+    } else {
+      setCalculatedAge(null);
+    }
+  };
+
+  const validateDob = (dobString: string) => {
+    if (!/^\d{4}\/\d{2}$/.test(dobString)) {
+      return { isValid: false, message: 'Please enter DOB in YYYY/MM format.' };
+    }
+
+    const [yearStr, monthStr] = dobString.split('/');
+    const year = parseInt(yearStr);
+    const month = parseInt(monthStr);
+
+    // Check if month is valid (1-12)
+    if (month < 1 || month > 12) {
+      return { isValid: false, message: 'Please enter a valid month (01-12).' };
+    }
+
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1; // getMonth() returns 0-11
+
+    // Calculate age in years
+    let age = currentYear - year;
+    if (currentMonth < month) {
+      age--; // Haven't had birthday this year yet
+    }
+
+    // Check if DOB is in the future
+    if (age < 0) {
+      return { isValid: false, message: 'Date of birth cannot be in the future.' };
+    }
+
+    // Check if age is over 30
+    if (age > 30) {
+      return { isValid: false, message: 'Dog age cannot be over 30 years.' };
+    }
+
+    return { isValid: true, message: '', age };
   };
 
   const handleNext = () => {
@@ -110,10 +160,13 @@ const AddDogScreen: React.FC = () => {
       handleAlert('Missing Info', 'Please fill in all required dog details.');
       return;
     }
-    if (!/^\d{4}\/\d{2}$/.test(dob)) {
-      handleAlert('Invalid Date of Birth', 'Please enter DOB in YYYY/MM format.');
+    
+    const dobValidation = validateDob(dob);
+    if (!dobValidation.isValid) {
+      handleAlert('Invalid Date of Birth', dobValidation.message);
       return;
     }
+
     navigation.navigate('AddDogPic', {
       onAddDog,
       shelterId,
