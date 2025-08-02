@@ -11,6 +11,11 @@ import AppHeader from '../components/AppHeader';
 import AppFooter from '../components/AppFooter';
 import { handleAlert } from '../utils/AlertUtils';
 
+import { DogsApi } from '../../generated/apis';
+import { DogPage } from '../../generated/models';
+import { Configuration } from '../../generated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 // Mock data for initial display
 const initialMockDogs: Dog[] = [
   {
@@ -49,15 +54,40 @@ const ShelterDashboardScreen: React.FC = () => {
   const [shelterId, setShelterId] = useState<string>('mock-shelter-id-1'); // Mock shelter ID for now
   const [shelterPostcode, setShelterPostcode] = useState<string>('SW1A 0AA'); // Mock shelter postcode
 
+  // Config api
+  const apiConfig = new Configuration({
+    basePath: 'https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default',
+    accessToken: async () => {
+        const token = await AsyncStorage.getItem('idToken');
+        return token || '';
+    }
+  });
+
+  const dogsApi = new DogsApi(apiConfig);
+
   // Simulate fetching dogs (replace with actual API call later)
   const fetchDogs = useCallback(async () => {
     setIsRefreshing(true);
     setLoading(true);
     // In a real app, you'd fetch dogs specific to 'shelterId' from your backend
     // For now, we'll filter the mock data
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-    const filteredMockDogs = initialMockDogs.filter(dog => dog.shelterId === shelterId);
-    setDogs(filteredMockDogs);
+    try {
+      const response: DogPage = await dogsApi.listDogs();
+      if (response.dogs) {
+        setDogs(response.dogs);
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch dogs:', error);
+
+      if (error.response) {
+        const text = await error.response.text();
+        console.error('Backend error response: ', text);
+      }
+    }  
+
+    // await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    // const filteredMockDogs = initialMockDogs.filter(dog => dog.shelterId === shelterId);
+    // setDogs(filteredMockDogs);
     setLoading(false);
     setIsRefreshing(false);
   }, [shelterId]);
