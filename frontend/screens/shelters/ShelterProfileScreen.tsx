@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -41,20 +41,41 @@ const ShelterProfileScreen: React.FC<ShelterProfileScreenProps> = ({ navigation 
     navigation.navigate('ShelterRequests'); // Make sure this route exists
   };
 
-  const handleLogout = () => {
+ const handleLogout = () => {
+  // Check if the platform is web
+  if (Platform.OS === 'web') {
+    // For web, use the browser's confirm dialog
+    const confirmed = window.confirm("Are you sure you want to log out?");
+    
+    // If the user clicks 'OK' (equivalent to 'Logout')
+    if (confirmed) {
+      console.log('Logging out...');
+      // Implement your logout logic here
+      // e.g., clear session, tokens, etc.
+      navigation.replace('Login'); // Navigate to the Login screen
+    }
+    // If the user clicks 'Cancel', do nothing.
+
+  } else {
+    // For mobile (iOS and Android), use the native Alert component
     Alert.alert(
       "Logout",
       "Are you sure you want to log out?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Logout", onPress: () => {
-            console.log('Logging out...');
-            navigation.replace('Login');
-          }
+        {
+        text: "Logout",
+        onPress: () => {
+          console.log('Logging out...');
+          // Implement your logout logic here
+          // e.g., clear session, tokens, etc.
+          navigation.replace('Login'); // Navigate to the Login screen
         }
-      ]
-    );
-  };
+      }
+    ]
+  );
+  }
+};
 
   // --- Footer Navigation Handlers ---
   const goToProfile = () => {

@@ -86,6 +86,7 @@ export type RootStackParamList = {
     dob: string;
     gender: string;
     photos: string[]; // Array of photo URLs
+    photoKeys: string[]; // Array of S3 object keys for uploaded photos
   }
   AddDogSuccess: undefined; // No parameters expected for success screen
   ShelterProfile: undefined; 

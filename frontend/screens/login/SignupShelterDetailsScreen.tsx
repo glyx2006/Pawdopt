@@ -9,6 +9,7 @@ import {
 } from '../../services/CognitoService';
 import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
+import { handleAlert } from '../utils/AlertUtils';
 
 // Define the type for the route parameters for this screen
 type SignupShelterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupShelterDetails'>;
@@ -113,12 +114,12 @@ const SignupShelterDetailsScreen: React.FC = () => {
     
     
     if (!shelterName.trim || !address.trim || !postcode.trim || !phoneNo.trim) {
-      Alert.alert('Error', 'All fields are required.');
+      handleAlert('Error', 'All fields are required.');
       return;
     }
     
     if (!isNameValid || !isAddressValid || !isPostcodeValid || !isPhoneNoValid) {
-      Alert.alert('Validation Error', 'Please correct the highlighted fields before proceeding.');
+      handleAlert('Validation Error', 'Please correct the highlighted fields before proceeding.');
       return;
     }
     // Prepare Cognito attributes
@@ -133,10 +134,10 @@ const SignupShelterDetailsScreen: React.FC = () => {
 
     userPool.signUp(email, password, attributeList, [], (err, result) => {
       if (err) {
-        Alert.alert('Sign Up Error', err.message || JSON.stringify(err));
+        handleAlert('Sign Up Error', err.message || JSON.stringify(err));
         return;
       }
-      Alert.alert(
+      handleAlert(
         "Shelter Account Created!", 
         "Please verify your email and login."
       );      

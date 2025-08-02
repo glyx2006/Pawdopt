@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
   ScrollView,
   Platform,
   KeyboardAvoidingView
@@ -17,6 +16,7 @@ import { RootStackParamList } from '../../App';
 import { Dropdown } from 'react-native-element-dropdown';
 import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
+import { handleAlert } from '../utils/AlertUtils';
 
 type SignupAdopterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupAdopterDetails'>;
 type SignupAdopterDetailsScreenNavigationProp = NavigationProp<RootStackParamList, 'SignupAdopterDetails'>;
@@ -205,13 +205,13 @@ const SignupAdopterDetailsScreen: React.FC = () => {
 
     // Check if any field is empty (required check)
     if (!name.trim() || !dob.trim() || !gender.trim() || !address.trim() || !postcode.trim() || !phoneNo.trim()) {
-      Alert.alert('Error', 'All fields are required.');
+      handleAlert('Error', 'All fields are required.');
       return;
     }
 
     // Check if all individual validations passed
     if (!isNameValid || !isDobValid || !isAddressValid || !isPostcodeValid || !isPhoneNoValid) {
-      Alert.alert('Validation Error', 'Please correct the highlighted fields before proceeding.');
+      handleAlert('Validation Error', 'Please correct the highlighted fields before proceeding.');
       return;
     }
 

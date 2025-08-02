@@ -1,4 +1,4 @@
-// frontend/screens/AdoptionRequestsScreen.tsx
+//TODO: alerts on web
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';

@@ -5,6 +5,7 @@ import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navig
 import { RootStackParamList } from '../../App'; // Import RootStackParamList type
 import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
+import { handleAlert } from '../utils/AlertUtils';
 
 // Define the type for the route and navigation parameters for this screen
 type UniversalCreateAccountScreenNavigationProp = NavigationProp<RootStackParamList, 'UniversalCreateAccount'>;
@@ -23,15 +24,15 @@ const UniversalCreateAccountScreen: React.FC = () => {
   const handleNext = () => {
     // Basic client-side validation
     if (!email || !password || !rePassword) {
-      Alert.alert('Error', 'All fields are required.');
+      handleAlert('Error', 'All fields are required.');
       return;
     }
     if (password !== rePassword) {
-      Alert.alert('Error', 'Passwords do not match.');
+      handleAlert('Error', 'Passwords do not match.');
       return;
     }
     if (password.length < 6) { // Minimum password length
-      Alert.alert('Error', 'Password must be at least 6 characters long.');
+      handleAlert('Error', 'Password must be at least 6 characters long.');
       return;
     }
     // Add more complex regex for email/password strength if needed
@@ -44,7 +45,7 @@ const UniversalCreateAccountScreen: React.FC = () => {
     } else if (role === 'shelter') {
       navigation.navigate('SignupShelterDetails', { email, password }); // Pass credentials to next screen
     } else {
-      Alert.alert('Error', 'Invalid role specified for signup.');
+      handleAlert('Error', 'Invalid role specified for signup.');
     }
   };
 
