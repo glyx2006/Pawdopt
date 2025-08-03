@@ -18,6 +18,7 @@ import AddDogPicScreen from './screens/shelters/AddDogPicScreen';
 import AddDogDescriptionScreen from './screens/shelters/AddDogDescriptionScreen';
 import AddDogSuccessScreen from './screens/shelters/AddDogSuccessScreen';
 import ShelterProfileScreen from './screens/shelters/ShelterProfileScreen';
+import EditShelterProfileScreen from './screens/shelters/EditShelterProfileScreen';
 import AdopterProfileScreen from './screens/adopters/AdopterProfileScreen';
 import ChatListScreen from './screens/chat/ChatListScreen';
 import ChatScreen from './screens/chat/ChatScreen';
@@ -37,7 +38,15 @@ export interface Dog {
   createdAt: string; // Using string for simplicity with mock data
 }
 
-
+export interface ShelterProfile {
+  shelterId: string;
+  shelterName: string;
+  email: string;
+  contact: string;
+  address: string;
+  postcode: string;
+  iconUrl: string;
+}
 // --- Define the type for your navigation stack parameters ---
 export type RootStackParamList = {
   Onboarding: undefined; // No parameters expected for the Onboarding screen
@@ -90,6 +99,7 @@ export type RootStackParamList = {
   }
   AddDogSuccess: undefined; // No parameters expected for success screen
   ShelterProfile: undefined; 
+  EditShelterProfile: {profile: ShelterProfile };
   AdopterProfile: { refreshProfile?: AdopterProfile }; 
   AdoptionRequests: undefined;
   EditAdopterProfile: { profile: AdopterProfile };
@@ -206,6 +216,11 @@ export default function App() {
           <Stack.Screen
             name="ShelterProfile"
             component={ShelterProfileScreen} 
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen
+            name="EditShelterProfile"
+            component={EditShelterProfileScreen} 
             options={{ headerShown: false }} 
           />
           <Stack.Screen
