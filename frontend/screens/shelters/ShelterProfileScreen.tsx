@@ -6,9 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
 import AppHeader from '../components/AppHeader';
 import AppFooter from '../components/AppFooter';
-import { signOut, getCurrentUserAttributes } from '../../src/cognito';
+import { signOut, getCurrentUserAttributes, getAccessToken } from '../../src/cognito';
 
-// Define the shape of the shelter profile
 export interface ShelterProfile {
   shelterId: string;
   shelterName: string;
@@ -26,8 +25,9 @@ const initialProfileState: ShelterProfile = {
   contact: '',
   address: '',
   postcode: '',
-  iconUrl: 'https://placehold.co/200x150/C1FFDD/000000?text=HP',
+  iconUrl: 'default-avatar-icon.jpg',
 };
+const PUBLIC_DEFAULT_IMAGE = 'https://icon-images-uploads.s3.eu-west-2.amazonaws.com/default-avatar-icon.jpg';
 
 type ShelterProfileScreenNavigationProp = NavigationProp<RootStackParamList, 'ShelterProfile'>;
 
@@ -35,53 +35,93 @@ const ShelterProfileScreen: React.FC = () => {
   const navigation = useNavigation<ShelterProfileScreenNavigationProp>();
   const [profile, setProfile] = useState<ShelterProfile>(initialProfileState);
   const [isLoading, setIsLoading] = useState(true);
+  const [signedIconUrl, setSignedIconUrl] = useState(PUBLIC_DEFAULT_IMAGE);
 
-  const fetchProfile = async () => {
+  const fetchSignedUrl = async (s3key: string) => {
+    if (!s3key || s3key === 'default-avatar-icon.jpg') {
+      setSignedIconUrl(PUBLIC_DEFAULT_IMAGE);
+      return PUBLIC_DEFAULT_IMAGE;
+    }
+
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error('No access token found');
+
+      console.log("Fetching signed URL for S3 key:", s3key);
+      const response = await fetch('https://pfx036gaw1.execute-api.eu-west-2.amazonaws.com/default/getSignedImageUrl', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ key: s3key, bucket: 'icon-images-uploads' }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch signed URL: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Successfully fetched signed URL.");
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error fetching signed URL:', error);
+      Alert.alert('Error', 'Failed to load profile image. Using default image.');
+      return PUBLIC_DEFAULT_IMAGE;
+    }
+  };
+
+  const fetchAllData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const attributes = await getCurrentUserAttributes();
-      
-      if (attributes) {
-        const fetchedProfile: ShelterProfile = {
-          shelterId: attributes['sub'] || '',
-          shelterName: attributes['name'] || '',
-          email: attributes['email'] || '',
-          contact: attributes['phone_number'] || '',
-          address: attributes['address'] || '',
-          postcode: attributes['custom:postcode'] || '',
-          iconUrl: attributes['custom:iconURL'] || 'https://placehold.co/200x150/C1FFDD/000000?text=HP',
-        };
-        setProfile(fetchedProfile);
-      } else {
-        // If attributes is null, it means no user is authenticated.
-        // We will just let isLoading become false and show a message to the user.
-        console.log("No authenticated user found after initial fetch.");
+      // Fetch user attributes and icon URL concurrently
+      const [attributes, accessToken] = await Promise.all([
+        getCurrentUserAttributes(),
+        getAccessToken()
+      ]);
+  
+      if (!attributes) {
+        console.log("No authenticated user found.");
+        setIsLoading(false);
+        return;
       }
+  
+      const fetchedProfile: ShelterProfile = {
+        shelterId: attributes['sub'],
+        shelterName: attributes['name'],
+        email: attributes['email'],
+        contact: attributes['phone_number'],
+        address: attributes['address'],
+        postcode: attributes['custom:postcode'],
+        iconUrl: attributes['custom:iconURL'] || 'default-avatar-icon.jpg',
+      };
+      setProfile(fetchedProfile);
+  
+      // Fetch the signed URL for the icon after getting the profile
+      const iconUrlToFetch = fetchedProfile.iconUrl;
+      const url = await fetchSignedUrl(iconUrlToFetch);
+      setSignedIconUrl(url);
+  
     } catch (error) {
-      // This catch block is for network or other unexpected errors, not unauthenticated users.
-      console.error('Error fetching user attributes:', error);
+      console.error('Error fetching data:', error);
       Alert.alert('Error', 'Failed to load profile data. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []); // Empty dependency array means this function is created once
 
   useFocusEffect(
     useCallback(() => {
-      fetchProfile();
-    }, [])
+      fetchAllData();
+    }, [fetchAllData]) // Re-run effect when fetchAllData changes
   );
 
   const handleEditProfile = () => {
     navigation.navigate('EditShelterProfile', { profile: profile });
   };
 
-  const handleMyDogs = () => {
-    navigation.navigate('ShelterDashboard', {});
-  };
-
   const handleIncomingRequests = () => {
-    // Navigate to the requests screen
+    Alert.alert("Feature", "This feature is coming soon!");
   };
 
   const handleLogout = () => {
@@ -111,7 +151,6 @@ const ShelterProfileScreen: React.FC = () => {
     }
   };
 
-  // --- Render Logic with Loading and Auth Check ---
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -124,16 +163,14 @@ const ShelterProfileScreen: React.FC = () => {
     );
   }
 
-  // After loading is complete, check if we have a valid shelterId.
-  // If not, it means the user is not authenticated.
   if (!profile.shelterId) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <AppHeader />
         <View style={styles.loadingContainer}>
           <Text style={styles.noAuthText}>You are not logged in.</Text>
-          <TouchableOpacity 
-            style={styles.loginButton} 
+          <TouchableOpacity
+            style={styles.loginButton}
             onPress={() => navigation.navigate('Login')}
           >
             <Text style={styles.loginButtonText}>Go to Login</Text>
@@ -154,10 +191,15 @@ const ShelterProfileScreen: React.FC = () => {
       />
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.profilePicContainer}>
-          <Image 
-            source={{ uri: profile.iconUrl }}
-            style={styles.profilePic} 
-          />
+          <View style={styles.profilePicWrapper}>
+            <Image
+              key={signedIconUrl}
+              source={{ uri: signedIconUrl }}
+              style={styles.profilePic}
+              resizeMode='cover'
+              onError={(e) => console.error("Image load failed:", e.nativeEvent.error)}
+            />
+          </View>
           <Text style={styles.name}>{profile.shelterName}</Text>
         </View>
 
@@ -168,11 +210,6 @@ const ShelterProfileScreen: React.FC = () => {
           <Text style={styles.infoText}><Text style={styles.infoLabel}>Address:</Text> {profile.address}</Text>
           <Text style={styles.infoText}><Text style={styles.infoLabel}>Postcode:</Text> {profile.postcode}</Text>
         </View>
-
-        <TouchableOpacity style={styles.actionButton} onPress={handleMyDogs}>
-          <Ionicons name="paw-outline" size={20} color="#333" />
-          <Text style={styles.actionButtonText}>My Listed Dogs</Text>
-        </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleIncomingRequests}>
           <Ionicons name="mail-outline" size={20} color="#333" />
@@ -204,8 +241,10 @@ const styles = StyleSheet.create({
   loginButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   editButton: { padding: 5 },
   profilePicContainer: { alignItems: 'center', marginBottom: 30, marginTop: 20 },
-  profilePic: { width: 150, height: 100, borderRadius: 10, borderWidth: 3, borderColor: '#FF6F61', marginBottom: 10 },
-  name: { fontSize: 28, fontWeight: 'bold', color: '#333', textAlign: 'center' },
+  profilePicWrapper: { width: 150, height: 150, borderRadius: 100, borderWidth: 3, borderColor: '#FF6F61', justifyContent: 'center', alignItems: 'center', backgroundColor: '#eee' },
+  profilePic: { width: '100%', height: '100%', borderRadius: 100 },
+  imageLoader: { position: 'absolute' },
+  name: { fontSize: 28, fontWeight: 'bold', color: '#333', textAlign: 'center', marginTop: 10 },
   infoSection: { width: '100%', backgroundColor: '#fff', borderRadius: 10, padding: 15, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 3.84, elevation: 5 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#FF6F61', marginBottom: 10, borderBottomWidth: 1, borderBottomColor: '#eee', paddingBottom: 5 },
   infoText: { fontSize: 16, color: '#555', marginBottom: 5 },
