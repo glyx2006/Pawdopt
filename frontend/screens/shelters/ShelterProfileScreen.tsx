@@ -47,8 +47,8 @@ const ShelterProfileScreen: React.FC = () => {
       const token = await getAccessToken();
       if (!token) throw new Error('No access token found');
 
-      console.log("Fetching signed URL for S3 key:", s3key);
-      const response = await fetch('https://pfx036gaw1.execute-api.eu-west-2.amazonaws.com/default/getSignedImageUrl', {
+      console.log("Fetching signed URL for S3 key:", s3key); 
+      const response = await fetch('https://n1854t96wc.execute-api.eu-west-2.amazonaws.com/default/getSignedImageUrl', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
