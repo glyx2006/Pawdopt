@@ -33,10 +33,41 @@ const AddDogScreen: React.FC = () => {
   const [dob, setDob] = useState('');
   const [gender, setGender] = useState('');
   const [calculatedAge, setCalculatedAge] = useState<number | null>(null);
+  // State for custom breed input
+  const [showCustomBreed, setShowCustomBreed] = useState(false);
+  const [customBreed, setCustomBreed] = useState('');
   // const [description, setDescription] = useState('');
   // const [photoUrl, setPhotoUrl] = useState('');
   // const [status, setStatus] = useState('Available');
   const [loading, setLoading] = useState(false);
+
+  const breedOptions = [
+    { label: 'Australian Shepherd', value: 'Australian Shepherd' },
+    { label: 'Beagle', value: 'Beagle' },
+    { label: 'Bernese Mountain Dog', value: 'Bernese Mountain Dog' },
+    { label: 'Border Collie', value: 'Border Collie' },
+    { label: 'Boxer', value: 'Boxer' },
+    { label: 'Bulldog (English and French)', value: 'Bulldog (English and French)' },
+    { label: 'Chihuahua', value: 'Chihuahua' },
+    { label: 'Cocker Spaniel', value: 'Cocker Spaniel' },
+    { label: 'Dachshund (Miniature)', value: 'Dachshund (Miniature)' },
+    { label: 'Doberman Pinscher', value: 'Doberman Pinscher' },
+    { label: 'French Bulldog', value: 'French Bulldog' },
+    { label: 'German Shepherd', value: 'German Shepherd' },
+    { label: 'Golden Retriever', value: 'Golden Retriever' },
+    { label: 'Great Dane', value: 'Great Dane' },
+    { label: 'Labrador Retriever', value: 'Labrador Retriever' },
+    { label: 'Mastiff (English, Neapolitan, etc.)', value: 'Mastiff (English, Neapolitan, etc.)' },
+    { label: 'Newfoundland', value: 'Newfoundland' },
+    { label: 'Pomeranian', value: 'Pomeranian' },
+    { label: 'Rottweiler', value: 'Rottweiler' },
+    { label: 'Saint Bernard', value: 'Saint Bernard' },
+    { label: 'Shih Tzu', value: 'Shih Tzu' },
+    { label: 'Siberian Husky', value: 'Siberian Husky' },
+    { label: 'Toy Poodle', value: 'Toy Poodle' },
+    { label: 'Yorkshire Terrier', value: 'Yorkshire Terrier' },
+    { label: 'Other', value: 'Other' },
+  ];
 
   const handleAddDog = () => {
   // Remove destructuring of name, breed, dob, gender from route.params
@@ -155,8 +186,10 @@ const AddDogScreen: React.FC = () => {
   };
 
   const handleNext = () => {
+    // Determine the breed value to use
+    const breedValue = showCustomBreed ? customBreed.trim() : breed;
     // Validate required fields before navigating
-    if (!name || !breed || !dob || !gender) {
+    if (!name || !breedValue || !dob || !gender) {
       handleAlert('Missing Info', 'Please fill in all required dog details.');
       return;
     }
@@ -172,7 +205,7 @@ const AddDogScreen: React.FC = () => {
       shelterId,
       shelterPostcode,
       name,
-      breed,
+      breed: breedValue,
       dob,
       gender,
     });
@@ -215,15 +248,40 @@ const AddDogScreen: React.FC = () => {
             maxLength={7}
           />
 
-          {/* Dog Breed Input */}
+          {/* Dog Breed Dropdown */}
           <Text style={styles.inputLabel}>Breed</Text>
-          <TextInput
+          <Dropdown
             style={styles.input}
-            placeholder="Enter Dog Breed"
-            placeholderTextColor="#999"
+            data={breedOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Breed"
+            placeholderStyle={{ color: '#999' }}
             value={breed}
-            onChangeText={setBreed}
+            onChange={item => {
+              setBreed(item.value);
+              if (item.value === 'Other') {
+                setShowCustomBreed(true);
+              } else {
+                setShowCustomBreed(false);
+                setCustomBreed('');
+              }
+            }}
+            selectedTextStyle={{ color: '#333', fontSize: 18 }}
+            itemTextStyle={{ color: '#333', fontSize: 18 }}
+            containerStyle={{ borderRadius: 8 }}
+            activeColor="#F7B781"
+            renderLeftIcon={() => null}
           />
+          {showCustomBreed && (
+            <TextInput
+              style={styles.input}
+              placeholder="Enter Dog Breed"
+              placeholderTextColor="#999"
+              value={customBreed}
+              onChangeText={setCustomBreed}
+            />
+          )}
 
           {/* Dog Gender Dropdown */}
           <Text style={styles.inputLabel}>Gender</Text>
