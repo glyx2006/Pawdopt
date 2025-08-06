@@ -43,7 +43,7 @@ export interface ShelterProfile {
   shelterName: string;
   email: string;
   contact: string;
-  address: string;
+  address: { formatted: string }; 
   postcode: string;
   iconUrl: string;
 }

@@ -3,10 +3,13 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } fro
 import { LinearGradient } from 'expo-linear-gradient'; 
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
-import { CognitoUser, AuthenticationDetails, userPool } from '../../services/CognitoService';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { handleAlert } from '../utils/AlertUtils'; 
+import { jwtDecode, JwtPayload } from 'jwt-decode'; // Make sure to install this package for decoding JWT tokens
 type LoginScreenProps = NavigationProp<RootStackParamList, 'Login'>;
+interface CustomJwtPayload extends JwtPayload {
+  'custom:role': 'shelter' | 'adopter';
+}
 
 
 const LoginScreen: React.FC = () => {
@@ -17,58 +20,48 @@ const LoginScreen: React.FC = () => {
 
 
   // Handle Login button press
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       handleAlert('Error', 'Please enter both email and password.');
       return;
     }
 
-    const user = new CognitoUser({ Username: email, Pool: userPool });
-    const authDetails = new AuthenticationDetails({
-      Username: email,
-      Password: password,
-    });
+    try {
+      const apiGatewayUrl = 'https://55kq17gfi7.execute-api.eu-west-2.amazonaws.com/default/CognitoLoginFunction'; // Paste your URL here
 
-    user.authenticateUser(authDetails, {
-      onSuccess: async (session) => {
-      if (session && typeof session.getIdToken === 'function') {
-      const idToken = session.getIdToken()
+      const response = await fetch(apiGatewayUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      // Ensure idToken and its payload exist
-      if (idToken && idToken.payload) {
-        const userRole = idToken.payload['custom:role']; // Access the custom:role attribute
+      const data = await response.json();
 
-        // Store token for use in other screens
-        const idTokStr = idToken.getJwtToken();
-        await AsyncStorage.setItem('idToken', idTokStr);
+      if (response.ok) {
+        const { idToken, accessToken } = data; 
+        await AsyncStorage.setItem('idToken', idToken);
+        await AsyncStorage.setItem('accessToken', accessToken);
 
-        const accessTokStr = session.getAccessToken().getJwtToken();
-        await AsyncStorage.setItem('accessToken', accessTokStr);
+        // Decode the token locally to get the user role
+        // You'll need a library like `jwt-decode` for this.
+        const decodedToken = jwtDecode<CustomJwtPayload>(idToken);
+        const userRole = decodedToken['custom:role']; 
 
-        // Navigate to dashboard
         if (userRole === 'shelter') {
           handleAlert('Login Success', 'Welcome, Shelter User!');
-          navigation.navigate('ShelterDashboard', {}); // Pass email to the ShelterDashboard
+          navigation.navigate('ShelterDashboard', {});
         } else {
-          // Default to AdopterDashboard if role is not 'shelter' or is undefined
           handleAlert('Login Success', 'Welcome, Adopter!');
           navigation.navigate('AdopterDashboard');
         }
       } else {
-        // Fallback if idToken or its payload is unexpected
-        handleAlert('Login Success', 'Authentication successful, but ID Token payload could not be determined.');
-        navigation.navigate('AdopterDashboard'); // Or a default dashboard
+        handleAlert('Login Failed', data.error || 'Something went wrong.');
       }
-    } else {
-      // Fallback if session or getIdToken method is unexpected
-      handleAlert('Login Success', 'Authentication successful, but session structure is unexpected.');
-      navigation.navigate('AdopterDashboard'); // Or a default dashboard
+    } catch (err) {
+      handleAlert('Network Error', 'Could not connect to the server.');
     }
-  },
-      onFailure: (err) => {
-        handleAlert('Login Failed', err.message || JSON.stringify(err));
-      },
-    });
   };
 
   // Navigate to the Onboarding/Signup page
