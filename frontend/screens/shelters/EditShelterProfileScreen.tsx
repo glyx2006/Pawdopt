@@ -7,11 +7,13 @@ import { updateUserAttributes, getAccessToken } from '../../src/cognito';
 import BackButton from '../components/BackButton';
 import AppHeader from '../components/AppHeader';
 import UploadModal from './UploadModal';
+import { RootStackParamList } from '../../App';
+import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 
 // Utility functions for S3 interaction
 const getPresignedUrlForIcon = async (token: string) => {
   try {
-    const response = await fetch('https://nwmkpbnrrh.execute-api.eu-west-2.amazonaws.com/default/PresignImageUrls', {
+    const response = await fetch('https://teg3n5fne0.execute-api.eu-west-2.amazonaws.com/default/PreSignIconUrl', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -55,12 +57,13 @@ const uploadImageToS3 = async (uri: string, signedUrl: string) => {
   }
 };
 
-type EditShelterProfileScreenProps = {
-  navigation: any;
-  route: any;
-};
 
-const EditShelterProfileScreen: React.FC<EditShelterProfileScreenProps> = ({ navigation, route }) => {
+type EditShelterProfileScreenNavigationProp = NavigationProp<RootStackParamList, 'EditShelterProfile'>;
+type EditShelterProfileScreenRouteProp = RouteProp<RootStackParamList, 'EditShelterProfile'>;
+
+const EditShelterProfileScreen: React.FC = () => {
+  const navigation = useNavigation<EditShelterProfileScreenNavigationProp>();
+  const route = useRoute<EditShelterProfileScreenRouteProp>();
   const { profile } = route.params;
 
   const [shelterName, setShelterName] = useState('');
@@ -77,11 +80,11 @@ const EditShelterProfileScreen: React.FC<EditShelterProfileScreenProps> = ({ nav
 
   // Set initial state from the profile object on component mount
   useEffect(() => {
-    setShelterName(profile.shelterName || '');
-    setContact(profile.contact || '');
-    setAddress(profile.address || '');
-    setPostcode(profile.postcode || '');
-    setIconUrl(profile.iconUrl || 'default-avatar-icon.jpg');
+    setShelterName(profile.shelterName);
+    setContact(profile.contact);
+    setAddress(profile.address);
+    setPostcode(profile.postcode);
+    setIconUrl(profile.iconUrl);
     setIsLoading(false);
   }, [profile]);
 
