@@ -82,7 +82,7 @@ const EditShelterProfileScreen: React.FC = () => {
   useEffect(() => {
     setShelterName(profile.shelterName);
     setContact(profile.contact);
-    setAddress(profile.address);
+    setAddress(profile.address.formatted);
     setPostcode(profile.postcode);
     setIconUrl(profile.iconUrl);
     setIsLoading(false);
@@ -110,7 +110,7 @@ const EditShelterProfileScreen: React.FC = () => {
       const attributesToUpdate = {
         name: shelterName,
         phone_number: contact,
-        address: address,
+        address: JSON.stringify({ formatted: address }), 
         'custom:postcode': postcode,
         'custom:iconURL': newIconUrl,
       };

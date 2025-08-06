@@ -6,14 +6,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
 import AppHeader from '../components/AppHeader';
 import AppFooter from '../components/AppFooter';
-import { signOut, getCurrentUserAttributes, getAccessToken } from '../../src/cognito';
+import { signOut, getCurrentUserAttributes, getAccessToken } from '../../services/CognitoService';
 
 export interface ShelterProfile {
   shelterId: string;
   shelterName: string;
   email: string;
   contact: string;
-  address: string;
+  address: { formatted: string }; 
   postcode: string;
   iconUrl: string;
 }
@@ -23,14 +23,22 @@ const initialProfileState: ShelterProfile = {
   shelterName: '',
   email: '',
   contact: '',
-  address: '',
+  address: { formatted: ''},
   postcode: '',
   iconUrl: 'default-avatar-icon.jpg',
 };
 const PUBLIC_DEFAULT_IMAGE = 'https://icon-images-uploads.s3.eu-west-2.amazonaws.com/default-avatar-icon.jpg';
 
 type ShelterProfileScreenNavigationProp = NavigationProp<RootStackParamList, 'ShelterProfile'>;
-
+export interface CognitoUserAttributes {
+  sub: string;
+  name: string;
+  email: string;
+  phone_number: string;
+  address: { formatted: string }; 
+  'custom:postcode': string;
+  'custom:iconURL': string;
+}
 const ShelterProfileScreen: React.FC = () => {
   const navigation = useNavigation<ShelterProfileScreenNavigationProp>();
   const [profile, setProfile] = useState<ShelterProfile>(initialProfileState);
@@ -74,41 +82,42 @@ const ShelterProfileScreen: React.FC = () => {
   const fetchAllData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch user attributes and icon URL concurrently
       const [attributes, accessToken] = await Promise.all([
         getCurrentUserAttributes(),
         getAccessToken()
       ]);
-  
+
       if (!attributes) {
         console.log("No authenticated user found.");
         setIsLoading(false);
         return;
       }
-  
+
+      // Use the new interface to tell TypeScript the shape of the object
+      const typedAttributes = attributes as CognitoUserAttributes;
+
       const fetchedProfile: ShelterProfile = {
-        shelterId: attributes['sub'],
-        shelterName: attributes['name'],
-        email: attributes['email'],
-        contact: attributes['phone_number'],
-        address: attributes['address'],
-        postcode: attributes['custom:postcode'],
-        iconUrl: attributes['custom:iconURL'] || 'default-avatar-icon.jpg',
+        shelterId: typedAttributes.sub,
+        shelterName: typedAttributes.name,
+        email: typedAttributes.email,
+        contact: typedAttributes.phone_number,
+        address: { formatted: typedAttributes.address.formatted },
+        postcode: typedAttributes['custom:postcode'], // No more error here!
+        iconUrl: typedAttributes['custom:iconURL'] || 'default-avatar-icon.jpg',
       };
       setProfile(fetchedProfile);
-  
-      // Fetch the signed URL for the icon after getting the profile
+
       const iconUrlToFetch = fetchedProfile.iconUrl;
       const url = await fetchSignedUrl(iconUrlToFetch);
       setSignedIconUrl(url);
-  
+
     } catch (error) {
       console.error('Error fetching data:', error);
       Alert.alert('Error', 'Failed to load profile data. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  }, []); // Empty dependency array means this function is created once
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -180,6 +189,8 @@ const ShelterProfileScreen: React.FC = () => {
     );
   }
 
+  console.log("Profile Data:", profile);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <AppHeader
@@ -207,7 +218,7 @@ const ShelterProfileScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Contact Information</Text>
           <Text style={styles.infoText}><Text style={styles.infoLabel}>Email:</Text> {profile.email}</Text>
           <Text style={styles.infoText}><Text style={styles.infoLabel}>Contact:</Text> {profile.contact}</Text>
-          <Text style={styles.infoText}><Text style={styles.infoLabel}>Address:</Text> {profile.address}</Text>
+          <Text style={styles.infoText}><Text style={styles.infoLabel}>Address:</Text> {profile.address.formatted}</Text>
           <Text style={styles.infoText}><Text style={styles.infoLabel}>Postcode:</Text> {profile.postcode}</Text>
         </View>
 
