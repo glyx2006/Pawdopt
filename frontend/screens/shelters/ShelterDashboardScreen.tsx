@@ -17,7 +17,7 @@ import { DogsApi } from '../../generated/apis';
 import { DogPage } from '../../generated/models';
 import { Configuration } from '../../generated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getAccessToken } from '../../src/cognito';
+import { getAccessToken } from '../../services/CognitoService';
 
 // Mock data for initial display
 const initialMockDogs: Dog[] = [

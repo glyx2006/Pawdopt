@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { RootStackParamList, Dog } from '../../App';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
-import { getAccessToken } from '../../src/cognito';
+import { getAccessToken } from '../../services/CognitoService';
 import { uploadDogProfile } from '../../src/api';
 
 type AddDogDescriptionRouteProp = RouteProp<RootStackParamList, 'AddDogDescription'>;
