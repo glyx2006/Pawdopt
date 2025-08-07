@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList, Dog } from '../../App';
-import { getAccessToken } from '../../src/cognito';
+import { getAccessToken } from '../../services/CognitoService';
 import { getPresignedUrls,uploadImagesToS3 } from '../../src/api';
 
 const MAX_PHOTOS = 6;
