@@ -33,13 +33,15 @@ const AddDogPicScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const route = useRoute<AddDogPicRouteProp>();
   const {
-    onAddDog = () => {},
-    shelterId = 'test-shelter',
-    shelterPostcode = '00000',
-    name = 'Test Dog',
-    breed = 'Labrador',
-    dob = '2022/01',
-    gender = 'Male',
+    onAddDog,
+    shelterId,
+    shelterPostcode,
+    name,
+    breed,
+    dob,
+    gender,
+    color,
+    size,
   } = route.params || {};
 
 	const handleContinue = async () => {
@@ -58,6 +60,8 @@ const AddDogPicScreen: React.FC = () => {
         breed,
         dob,
         gender,
+        color,
+        size,
         photos, // S3 object keys
         photoKeys: keys, // Use keys for the next screen
       });

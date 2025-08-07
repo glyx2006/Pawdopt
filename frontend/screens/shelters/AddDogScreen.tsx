@@ -32,6 +32,8 @@ const AddDogScreen: React.FC = () => {
   const [breed, setBreed] = useState('');
   const [dob, setDob] = useState('');
   const [gender, setGender] = useState('');
+  const [color, setColor] = useState('');
+  const [size, setSize] = useState('');
   const [calculatedAge, setCalculatedAge] = useState<number | null>(null);
   // State for custom breed input
   const [showCustomBreed, setShowCustomBreed] = useState(false);
@@ -67,6 +69,28 @@ const AddDogScreen: React.FC = () => {
     { label: 'Toy Poodle', value: 'Toy Poodle' },
     { label: 'Yorkshire Terrier', value: 'Yorkshire Terrier' },
     { label: 'Other', value: 'Other' },
+  ];
+
+  const colorOptions = [
+    { label: 'Black', value: 'Black' },
+    { label: 'White', value: 'White' },
+    { label: 'Brown', value: 'Brown' },
+    { label: 'Golden', value: 'Golden' },
+    { label: 'Gray', value: 'Gray' },
+    { label: 'Tan', value: 'Tan' },
+    { label: 'Cream', value: 'Cream' },
+    { label: 'Red', value: 'Red' },
+    { label: 'Brindle', value: 'Brindle' },
+    { label: 'Merle', value: 'Merle' },
+    { label: 'Mixed', value: 'Mixed' },
+  ];
+
+  const sizeOptions = [
+    { label: 'Extra Small (Under 10 lbs)', value: 'Extra Small' },
+    { label: 'Small (10-25 lbs)', value: 'Small' },
+    { label: 'Medium (25-60 lbs)', value: 'Medium' },
+    { label: 'Large (60-100 lbs)', value: 'Large' },
+    { label: 'Extra Large (Over 100 lbs)', value: 'Extra Large' },
   ];
 
   const handleAddDog = () => {
@@ -189,7 +213,7 @@ const AddDogScreen: React.FC = () => {
     // Determine the breed value to use
     const breedValue = showCustomBreed ? customBreed.trim() : breed;
     // Validate required fields before navigating
-    if (!name || !breedValue || !dob || !gender) {
+    if (!name || !breedValue || !dob || !gender || !color || !size) {
       handleAlert('Missing Info', 'Please fill in all required dog details.');
       return;
     }
@@ -208,6 +232,8 @@ const AddDogScreen: React.FC = () => {
       breed: breedValue,
       dob,
       gender,
+      color,
+      size,
     });
   };
 
@@ -297,6 +323,42 @@ const AddDogScreen: React.FC = () => {
             placeholderStyle={{ color: '#999' }}
             value={gender}
             onChange={item => setGender(item.value)}
+            selectedTextStyle={{ color: '#333', fontSize: 18 }}
+            itemTextStyle={{ color: '#333', fontSize: 18 }}
+            containerStyle={{ borderRadius: 8 }}
+            activeColor="#F7B781"
+            renderLeftIcon={() => null}
+          />
+
+          {/* Dog Color Dropdown */}
+          <Text style={styles.inputLabel}>Color</Text>
+          <Dropdown
+            style={styles.input}
+            data={colorOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Color"
+            placeholderStyle={{ color: '#999' }}
+            value={color}
+            onChange={item => setColor(item.value)}
+            selectedTextStyle={{ color: '#333', fontSize: 18 }}
+            itemTextStyle={{ color: '#333', fontSize: 18 }}
+            containerStyle={{ borderRadius: 8 }}
+            activeColor="#F7B781"
+            renderLeftIcon={() => null}
+          />
+
+          {/* Dog Size Dropdown */}
+          <Text style={styles.inputLabel}>Size</Text>
+          <Dropdown
+            style={styles.input}
+            data={sizeOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Size"
+            placeholderStyle={{ color: '#999' }}
+            value={size}
+            onChange={item => setSize(item.value)}
             selectedTextStyle={{ color: '#333', fontSize: 18 }}
             itemTextStyle={{ color: '#333', fontSize: 18 }}
             containerStyle={{ borderRadius: 8 }}

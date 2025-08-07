@@ -19,6 +19,8 @@ const AddDogDescriptionScreen: React.FC = () => {
     breed,
     dob,
     gender,
+    color,
+    size,
     photos,
     photoKeys
   } = route.params || {};
@@ -34,6 +36,8 @@ const AddDogDescriptionScreen: React.FC = () => {
         age: dob,
         breed,
         gender,
+        color,
+        size,
         description: bio,
         dog_status: 'AVAILABLE',
         shelter_id: shelterId,
