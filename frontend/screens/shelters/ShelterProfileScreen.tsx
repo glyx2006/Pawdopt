@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
 import AppHeader from '../components/AppHeader';
 import AppFooter from '../components/AppFooter';
-import { signOut, getCurrentUserAttributes, getAccessToken } from '../../services/CognitoService';
+import { signOut, getCurrentUserAttributes, getAccessToken, UserAttributes } from '../../services/CognitoService';
 
 export interface ShelterProfile {
   shelterId: string;
@@ -30,15 +30,7 @@ const initialProfileState: ShelterProfile = {
 const PUBLIC_DEFAULT_IMAGE = 'https://icon-images-uploads.s3.eu-west-2.amazonaws.com/default-avatar-icon.jpg';
 
 type ShelterProfileScreenNavigationProp = NavigationProp<RootStackParamList, 'ShelterProfile'>;
-export interface CognitoUserAttributes {
-  sub: string;
-  name: string;
-  email: string;
-  phone_number: string;
-  address: { formatted: string }; 
-  'custom:postcode': string;
-  'custom:iconURL': string;
-}
+
 const ShelterProfileScreen: React.FC = () => {
   const navigation = useNavigation<ShelterProfileScreenNavigationProp>();
   const [profile, setProfile] = useState<ShelterProfile>(initialProfileState);
@@ -82,10 +74,7 @@ const ShelterProfileScreen: React.FC = () => {
   const fetchAllData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [attributes, accessToken] = await Promise.all([
-        getCurrentUserAttributes(),
-        getAccessToken()
-      ]);
+      const attributes = await getCurrentUserAttributes();
 
       if (!attributes) {
         console.log("No authenticated user found.");
@@ -93,17 +82,15 @@ const ShelterProfileScreen: React.FC = () => {
         return;
       }
 
-      // Use the new interface to tell TypeScript the shape of the object
-      const typedAttributes = attributes as CognitoUserAttributes;
 
       const fetchedProfile: ShelterProfile = {
-        shelterId: typedAttributes.sub,
-        shelterName: typedAttributes.name,
-        email: typedAttributes.email,
-        contact: typedAttributes.phone_number,
-        address: { formatted: typedAttributes.address.formatted },
-        postcode: typedAttributes['custom:postcode'], // No more error here!
-        iconUrl: typedAttributes['custom:iconURL'] || 'default-avatar-icon.jpg',
+        shelterId: attributes.sub,
+        shelterName: attributes.name,
+        email: attributes.email,
+        contact: attributes.phone_number,
+        address: attributes.address, // Correctly assigned as an object
+        postcode: attributes['custom:postcode'],
+        iconUrl: attributes['custom:iconURL'] || 'default-avatar-icon.jpg',
       };
       setProfile(fetchedProfile);
 
