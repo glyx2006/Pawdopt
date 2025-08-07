@@ -47,6 +47,17 @@ export interface ShelterProfile {
   postcode: string;
   iconUrl: string;
 }
+
+export interface AdopterProfile {
+  adopterId: string;
+  adopterName: string;
+  email: string;
+  contact: string;
+  address: { formatted: string }; 
+  postcode: string;
+  iconUrl: string;
+  // Preferences
+}
 // --- Define the type for your navigation stack parameters ---
 export type RootStackParamList = {
   Onboarding: undefined; // No parameters expected for the Onboarding screen
@@ -100,7 +111,7 @@ export type RootStackParamList = {
   AddDogSuccess: undefined; // No parameters expected for success screen
   ShelterProfile: undefined; 
   EditShelterProfile: {profile: ShelterProfile };
-  AdopterProfile: { refreshProfile?: AdopterProfile }; 
+  AdopterProfile: undefined; 
   AdoptionRequests: undefined;
   EditAdopterProfile: { profile: AdopterProfile };
   ChatListScreen: {
@@ -119,27 +130,6 @@ export type RootStackParamList = {
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-interface AdopterProfile {
-    adopterId: string;
-    name: string;
-    email: string;
-    contact: string;
-    address: string;
-    postcode: string;
-    dob: string;
-    gender: string;
-    iconUrl: string;
-    preferences: {
-        preferredBreeds: string[];
-        minAge: number;
-        maxAge: number;
-        preferredGenders: string[];
-        preferredPostcode: string;
-        experience?: string;
-    };
-}
-
-
 
 export default function App() {
   return (

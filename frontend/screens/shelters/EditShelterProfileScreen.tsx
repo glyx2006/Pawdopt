@@ -112,7 +112,7 @@ const EditShelterProfileScreen: React.FC = () => {
         email: profile.email, // Keep the original email
         name: shelterName,
         phone_number: contact,
-        address: JSON.stringify( address ), 
+        address: JSON.stringify( { formatted: address } ), 
         'custom:postcode': postcode,
         'custom:iconURL': newIconUrl,
       };
@@ -187,7 +187,7 @@ const EditShelterProfileScreen: React.FC = () => {
   const handleCamera = () => handleImagePicker('camera');
   const handleGallery = () => handleImagePicker('gallery');
 
-  const PUBLIC_DEFAULT_IMAGE = 'https://icon-images-uploads.s3.eu-west-2.amazonaws.com/default-avatar-icon.jpg';
+  const PUBLIC_DEFAULT_IMAGE = 'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
   const displayImageUrl = iconUrl === 'default-avatar-icon.jpg'
     ? PUBLIC_DEFAULT_IMAGE
     : (imageFileUri || `https://icon-images-uploads.s3.eu-west-2.amazonaws.com/${iconUrl}`);
