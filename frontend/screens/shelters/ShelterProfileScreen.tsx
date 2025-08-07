@@ -27,7 +27,7 @@ const initialProfileState: ShelterProfile = {
   postcode: '',
   iconUrl: 'default-avatar-icon.jpg',
 };
-const PUBLIC_DEFAULT_IMAGE = 'https://icon-images-uploads.s3.eu-west-2.amazonaws.com/default-avatar-icon.jpg';
+const PUBLIC_DEFAULT_IMAGE = 'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
 
 type ShelterProfileScreenNavigationProp = NavigationProp<RootStackParamList, 'ShelterProfile'>;
 
