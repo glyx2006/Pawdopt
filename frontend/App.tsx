@@ -31,6 +31,8 @@ export interface Dog {
   breed: string;
   age: number;
   gender: string;
+  color: string;
+  size: string;
   description: string;
   photoURLs: string[];
   shelterId: string;
@@ -96,6 +98,8 @@ export type RootStackParamList = {
     breed: string;
     dob: string;
     gender: string;
+    color: string;
+    size: string;
   }
   AddDogDescription:{
     onAddDog: (newDog: Dog) => void;
@@ -105,6 +109,8 @@ export type RootStackParamList = {
     breed: string;
     dob: string;
     gender: string;
+    color: string;
+    size: string;
     photos: string[]; // Array of photo URLs
     photoKeys: string[]; // Array of S3 object keys for uploaded photos
   }
