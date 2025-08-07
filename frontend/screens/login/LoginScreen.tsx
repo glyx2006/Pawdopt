@@ -3,14 +3,11 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } fro
 import { LinearGradient } from 'expo-linear-gradient'; 
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { handleAlert } from '../utils/AlertUtils'; 
-import { jwtDecode, JwtPayload } from 'jwt-decode'; // Make sure to install this package for decoding JWT tokens
-type LoginScreenProps = NavigationProp<RootStackParamList, 'Login'>;
-interface CustomJwtPayload extends JwtPayload {
-  'custom:role': 'shelter' | 'adopter';
-}
+import { signIn } from '../../services/CognitoService';
+import { jwtDecode } from 'jwt-decode';
 
+type LoginScreenProps = NavigationProp<RootStackParamList, 'Login'>;
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation<LoginScreenProps>();
@@ -27,40 +24,27 @@ const LoginScreen: React.FC = () => {
     }
 
     try {
-      const apiGatewayUrl = 'https://55kq17gfi7.execute-api.eu-west-2.amazonaws.com/default/CognitoLoginFunction'; // Paste your URL here
+      // IMPORTANT CHANGE: Call the signIn function from CognitoService
+      // This function handles the API call, token storage (including refreshToken),
+      // and returns the tokens or throws an error.
+      const { idToken } = await signIn(email, password); 
 
-      const response = await fetch(apiGatewayUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      // Now, decode the token to get the user role.
+      // You still need jwtDecode here if you want to determine role immediately after login.
+      // If you prefer, you can modify the signIn function in CognitoService to also return the userRole.
+      const decodedToken: { 'custom:role': 'shelter' | 'adopter' } = jwtDecode(idToken);
+      const userRole = decodedToken['custom:role']; 
 
-      const data = await response.json();
-
-      if (response.ok) {
-        const { idToken, accessToken } = data; 
-        await AsyncStorage.setItem('idToken', idToken);
-        await AsyncStorage.setItem('accessToken', accessToken);
-
-        // Decode the token locally to get the user role
-        // You'll need a library like `jwt-decode` for this.
-        const decodedToken = jwtDecode<CustomJwtPayload>(idToken);
-        const userRole = decodedToken['custom:role']; 
-
-        if (userRole === 'shelter') {
-          handleAlert('Login Success', 'Welcome, Shelter User!');
-          navigation.navigate('ShelterDashboard', {});
-        } else {
-          handleAlert('Login Success', 'Welcome, Adopter!');
-          navigation.navigate('AdopterDashboard');
-        }
+      if (userRole === 'shelter') {
+        handleAlert('Login Success', 'Welcome, Shelter User!');
+        navigation.navigate('ShelterDashboard', {});
       } else {
-        handleAlert('Login Failed', data.error || 'Something went wrong.');
+        handleAlert('Login Success', 'Welcome, Adopter!');
+        navigation.navigate('AdopterDashboard');
       }
-    } catch (err) {
-      handleAlert('Network Error', 'Could not connect to the server.');
+    } catch (err: any) {
+      // The error message comes from the signIn function now
+      handleAlert('Login Failed', err.message || 'Something went wrong.');
     }
   };
 

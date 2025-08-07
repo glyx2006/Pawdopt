@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Image, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { updateUserAttributes, getAccessToken } from '../../src/cognito';
+import { updateUserAttributes, getAccessToken } from '../../services/CognitoService';
 import BackButton from '../components/BackButton';
 import AppHeader from '../components/AppHeader';
 import UploadModal from './UploadModal';
 import { RootStackParamList } from '../../App';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { ShelterProfile } from './ShelterProfileScreen';
 
 // Utility functions for S3 interaction
 const getPresignedUrlForIcon = async (token: string) => {
@@ -108,9 +109,10 @@ const EditShelterProfileScreen: React.FC = () => {
       }
 
       const attributesToUpdate = {
+        email: profile.email, // Keep the original email
         name: shelterName,
         phone_number: contact,
-        address: JSON.stringify({ formatted: address }), 
+        address: JSON.stringify( address ), 
         'custom:postcode': postcode,
         'custom:iconURL': newIconUrl,
       };
@@ -118,6 +120,7 @@ const EditShelterProfileScreen: React.FC = () => {
       await updateUserAttributes(attributesToUpdate);
       setImageFileUri(null); // Reset the temporary URI
       Alert.alert('Success', 'Profile updated successfully!');
+      console.log('Profile updated:', attributesToUpdate);
       navigation.goBack();
     } catch (error) {
       console.error('Error updating attributes:', error);
@@ -205,6 +208,11 @@ const EditShelterProfileScreen: React.FC = () => {
           <BackButton onPress={() => navigation.goBack()} />
         }
       />
+      <KeyboardAvoidingView
+            style={styles.keyboardAvoidingContainer}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+          >
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.sectionTitle}>Edit Shelter Information</Text>
 
@@ -270,6 +278,7 @@ const EditShelterProfileScreen: React.FC = () => {
           )}
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       <UploadModal
         visible={modalVisible}
@@ -285,6 +294,9 @@ const EditShelterProfileScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  keyboardAvoidingContainer: {
+    flex: 1,
+  },
   safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8f8f8' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#555' },
