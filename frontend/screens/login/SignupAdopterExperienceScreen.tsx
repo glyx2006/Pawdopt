@@ -17,10 +17,7 @@ import {
   NavigationProp,
 } from "@react-navigation/native";
 import { RootStackParamList } from "../../App";
-import {
-  userPool,
-  CognitoUserAttribute,
-} from "../../services/CognitoService";
+import { signUp } from "../../services/CognitoService";
 import AppHeader from "../components/AppHeader";
 import BackButton from "../components/BackButton";
 import { handleAlert } from "../utils/AlertUtils";
@@ -45,36 +42,31 @@ const SignupAdopterExperienceScreen: React.FC = () => {
 
   const [experience, setExperience] = useState<string>("");
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!experience) {
       handleAlert("Error", "Please describe your experience with pets.");
       return;
     }
 
-    // Prepare Cognito attributes (required and custom)
-    const attributeList = [
-      new CognitoUserAttribute({ Name: "email", Value: email }),
-      new CognitoUserAttribute({ Name: "name", Value: name }),
-      new CognitoUserAttribute({ Name: "address", Value: address }),
-      new CognitoUserAttribute({ Name: "birthdate", Value: dob }),
-      new CognitoUserAttribute({ Name: "gender", Value: gender }),
-      new CognitoUserAttribute({ Name: "phone_number", Value: phoneNo }),
-      new CognitoUserAttribute({ Name: "custom:postcode", Value: postcode }),
-      new CognitoUserAttribute({ Name: "custom:role", Value: "adopter" }),
-      new CognitoUserAttribute({ Name: "custom:experience", Value: experience }),
-    ];
-
-    userPool.signUp(email, password, attributeList, [], (err, result) => {
-      if (err) {
-        handleAlert("Sign Up Error", err.message || JSON.stringify(err));
-        return;
-      }
-      handleAlert(
-        "Adopter Account Created!",
-        "Please verify your email and login."
-      );
+    // Sign up the user with Cognito (Lambda backend)
+    try {
+      await signUp({
+        email,
+        password,
+        name,
+        dob,
+        gender,
+        address,
+        postcode,
+        phoneNo,
+        role: "adopter",
+        experience,
+      });
+      handleAlert("Adopter Account Created!", "Please verify your email and login.");
       navigation.navigate("Login");
-    });
+    } catch (err: any) {
+      handleAlert("Sign Up Error", err.message || "Something went wrong.");
+    }
   };
 
   return (

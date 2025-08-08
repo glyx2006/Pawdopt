@@ -20,32 +20,32 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAccessToken } from '../../services/CognitoService';
 
 // Mock data for initial display
-const initialMockDogs: Dog[] = [
-  {
-    id: 'mock-dog-1',
-    name: 'Bella',
-    breed: 'Labrador',
-    age: 2,
-    gender: 'Female',
-    description: 'A playful and friendly Labrador, loves fetching!',
-    photoURLs: ['https://placehold.co/120x120/FFD700/FFFFFF?text=Bella'],
-    shelterId: 'mock-shelter-id-1', // This will be replaced by actual shelter ID
-    status: 'Available',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'mock-dog-2',
-    name: 'Charlie',
-    breed: 'German Shepherd',
-    age: 4,
-    gender: 'Male',
-    description: 'Loyal and intelligent, needs an active family.',
-    photoURLs: ['https://placehold.co/120x120/87CEEB/FFFFFF?text=Charlie'],
-    shelterId: 'mock-shelter-id-1',
-    status: 'Available',
-    createdAt: new Date().toISOString(),
-  },
-];
+// const initialMockDogs: Dog[] = [
+//   {
+//     id: 'mock-dog-1',
+//     name: 'Bella',
+//     breed: 'Labrador',
+//     age: 2,
+//     gender: 'Female',
+//     description: 'A playful and friendly Labrador, loves fetching!',
+//     photoURLs: ['https://placehold.co/120x120/FFD700/FFFFFF?text=Bella'],
+//     shelterId: 'mock-shelter-id-1', // This will be replaced by actual shelter ID
+//     status: 'Available',
+//     createdAt: new Date().toISOString(),
+//   },
+//   {
+//     id: 'mock-dog-2',
+//     name: 'Charlie',
+//     breed: 'German Shepherd',
+//     age: 4,
+//     gender: 'Male',
+//     description: 'Loyal and intelligent, needs an active family.',
+//     photoURLs: ['https://placehold.co/120x120/87CEEB/FFFFFF?text=Charlie'],
+//     shelterId: 'mock-shelter-id-1',
+//     status: 'Available',
+//     createdAt: new Date().toISOString(),
+//   },
+// ];
 
 const ShelterDashboardScreen: React.FC = () => {
   const navigation = useNavigation<ShelterDashboardScreenNavigationProp>();
