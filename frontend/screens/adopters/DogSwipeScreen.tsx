@@ -28,59 +28,76 @@ import MaskedView from '@react-native-masked-view/masked-view'; // <-- Import Ma
 import AdopterProfileScreen from './AdopterProfileScreen';
 import { handleAlert } from '../utils/AlertUtils';
 
+import { getAccessToken } from '../../services/CognitoService';
+import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest } from '../../generated';
+import { apiConfig } from '../../src/api';
+import { Dog } from '../types';
+
 const { width } = Dimensions.get('window'); // Get screen width for responsive sizing
 
 // Define the type for the navigation prop for this screen
 type DogSwipeScreenNavigationProp = NavigationProp<RootStackParamList, 'AdopterDashboard'>; // <-- Use the correct screen name
 
 // Define a simple interface for a Dog object
-interface Dog {
-  id: string;
-  name: string;
-  breed: string;
-  age: number;
-  gender: string;
-  description: string;
-  photoUrl: string; // URL to the dog's image
-}
+// interface Dog {
+//   id: string;
+//   name: string;
+//   breed: string;
+//   age: number;
+//   gender: string;
+//   description: string;
+//   photoUrl: string; // URL to the dog's image
+// }
 
 // Mock Data for Dogs (replace with actual API calls later)
 const mockDogs: Dog[] = [
   {
-    id: 'dog1',
+    dogId: 'dog1',
     name: 'Cooper',
     breed: 'Samoyed',
     age: 2,
     gender: 'Male',
     description: 'A fluffy, friendly, and playful Samoyed looking for a loving home. Loves belly rubs and long walks!',
-    photoUrl: 'https://placehold.co/600x400/FFD194/FFF?text=Cooper', // Placeholder image
+    photoURLs: ['https://placehold.co/600x400/FFD194/FFF?text=Cooper'], // Placeholder image
+    shelterId: 'shelter1',
+    status: 'Available',
+    createdAt: 'today'
   },
   {
-    id: 'dog2',
+    dogId: 'dog2',
     name: 'Luna',
     breed: 'Labradoodle',
     age: 1,
     gender: 'Female',
     description: 'Energetic and loves playing fetch. Great with kids and other pets.',
-    photoUrl: 'https://placehold.co/600x400/FFACAC/FFF?text=Luna', // Placeholder image
+    photoURLs: ['https://placehold.co/600x400/FFACAC/FFF?text=Luna'], // Placeholder image
+    shelterId: 'shelter1',
+    status: 'Available',
+    createdAt: 'today'
   },
   {
-    id: 'dog3',
+    dogId: 'dog3',
     name: 'Max',
     breed: 'German Shepherd',
     age: 3,
     gender: 'Male',
     description: 'Loyal and intelligent, Max is looking for an active family.',
-    photoUrl: 'https://placehold.co/600x400/94D1FF/FFF?text=Max',
+    photoURLs: 'https://placehold.co/600x400/94D1FF/FFF?text=Max',
+    shelterId: 'shelter1',
+    status: 'Available',
+    createdAt: 'today'
   },
   {
-    id: 'dog4',
+    dogId: 'dog4',
     name: 'Daisy',
     breed: 'Beagle',
     age: 4,
     gender: 'Female',
     description: 'Sweet and curious, Daisy loves to explore and cuddle.',
-    photoUrl: 'https://placehold.co/600x400/94FFD1/FFF?text=Daisy',
+    photoURLs: 'https://placehold.co/600x400/94FFD1/FFF?text=Daisy',
+    shelterId: 'shelter1',
+    status: 'Available',
+    createdAt: 'today'
   },
 ];
 
@@ -97,6 +114,9 @@ const DogSwipeScreen: React.FC = () => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
+  // Fetch dogs
+  // TODO()
+
   // Load the first dog when the component mounts or index changes
   useEffect(() => {
     if (mockDogs.length > currentDogIndex) {
@@ -111,12 +131,23 @@ const DogSwipeScreen: React.FC = () => {
   }, [currentDogIndex]);
 
   // Function to handle swipe completion (runs on JS thread)
-  const onSwipeCompleteJS = (direction: 'left' | 'right') => {
+  const onSwipeCompleteJS = (direction: 'Left' | 'Right') => {
     if (!currentDog) return;
 
     console.log(`Swiped ${direction} on ${currentDog.name}`);
-    // TODO: Send swipe data to backend (Swipes table)
-    // You'd typically make an API call here: POST /api/swipes { adopterId, dogId, direction }
+    const swipesApi = new SwipesApi(apiConfig);
+
+    const swipeData: SwipeCreate = {
+      dogId: currentDog.dogId,
+      direction: direction,
+      shelterId: currentDog.shelterId
+    }
+
+    const swipeReq: CreateSwipeRequest = {
+      swipeCreate: swipeData
+    }
+
+    swipesApi.createSwipe(swipeReq);
 
     setCurrentDogIndex(prevIndex => prevIndex + 1); // Move to the next dog
   };
@@ -138,13 +169,13 @@ const DogSwipeScreen: React.FC = () => {
       if (event.translationX > SWIPE_THRESHOLD) {
         // Swiped right (like)
         translateX.value = withTiming(width * 1.5, { duration: SWIPE_OUT_DURATION }, () => {
-          runOnJS(onSwipeCompleteJS)('right');
+          runOnJS(onSwipeCompleteJS)('Right');
         });
         translateY.value = withTiming(event.translationY, { duration: SWIPE_OUT_DURATION });
       } else if (event.translationX < -SWIPE_THRESHOLD) {
         // Swiped left (dislike)
         translateX.value = withTiming(-width * 1.5, { duration: SWIPE_OUT_DURATION }, () => {
-          runOnJS(onSwipeCompleteJS)('left');
+          runOnJS(onSwipeCompleteJS)('Left');
         });
         translateY.value = withTiming(event.translationY, { duration: SWIPE_OUT_DURATION });
       } else {

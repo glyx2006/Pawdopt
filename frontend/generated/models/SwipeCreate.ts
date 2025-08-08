@@ -30,6 +30,12 @@ export interface SwipeCreate {
      * @type {string}
      * @memberof SwipeCreate
      */
+    shelterId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SwipeCreate
+     */
     direction: SwipeCreateDirectionEnum;
 }
 
