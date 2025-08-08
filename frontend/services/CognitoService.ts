@@ -119,8 +119,8 @@ export const getCurrentUserAttributes = async (): Promise<UserAttributes | null>
  * Retrieves the stored ID token.
  * @returns {Promise<string | null>} The ID token string, or null if not found.
  */
-export const getIdToken = async (): Promise<string | null> => {
-  return await AsyncStorage.getItem('idToken');
+export const getIdToken = async (): Promise<string> => {
+  return await AsyncStorage.getItem('idToken') ?? '';
 };
 
 /**

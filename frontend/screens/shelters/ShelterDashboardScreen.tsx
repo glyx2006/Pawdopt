@@ -16,8 +16,8 @@ import { deleteDog } from '../../src/api';
 import { DogsApi } from '../../generated/apis';
 import { DogPage } from '../../generated/models';
 import { Configuration } from '../../generated';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getAccessToken } from '../../services/CognitoService';
+import { getAccessToken, getIdToken } from '../../services/CognitoService';
+import { apiConfig } from '../../src/api';
 
 // Mock data for initial display
 const initialMockDogs: Dog[] = [
@@ -58,15 +58,6 @@ const ShelterDashboardScreen: React.FC = () => {
   const [shelterPostcode, setShelterPostcode] = useState<string>('SW1A 0AA'); // Mock shelter postcode
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null); // For modal
   const [isModalVisible, setIsModalVisible] = useState(false); // For modal visibility
-
-  // Config api
-  const apiConfig = new Configuration({
-    basePath: 'https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default',
-    accessToken: async () => {
-        const token = await AsyncStorage.getItem('idToken');
-        return token || '';
-    }
-  });
 
   const dogsApi = new DogsApi(apiConfig);
 
@@ -150,7 +141,7 @@ const ShelterDashboardScreen: React.FC = () => {
 
   const userDeleteDog = async(dog:Dog) => {
     try{
-      const token = await AsyncStorage.getItem('idToken') || '';
+      const token = await getAccessToken();
       const response = await deleteDog(dog.id, dog.createdAt, token);
       if (response.ok) {
         alert('Dog deleted!');

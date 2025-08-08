@@ -1,5 +1,8 @@
 import * as FileSystem from 'expo-file-system';
 import { Buffer } from 'buffer';
+import { getAccessToken } from './cognito';
+import { Configuration } from '../generated';
+import { getIdToken } from '../services/CognitoService';
 
 global.Buffer = Buffer;
 
@@ -78,4 +81,7 @@ export async function deleteDog(dogId: string, dogCreatedAt: string, token: stri
   return response;
 }
 
-
+export const apiConfig = new Configuration ({
+  basePath: `https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default`,
+  accessToken: getIdToken()
+});
