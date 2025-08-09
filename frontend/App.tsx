@@ -76,6 +76,8 @@ export type RootStackParamList = {
     address: string;
     postcode: string;
     phoneNo: string;
+    latitude: string;
+    longitude: string;
   };
   DogProfileDetail: {dogId: string};
   AdopterDashboard: undefined; // No parameters expected for the dashboard (for now)
