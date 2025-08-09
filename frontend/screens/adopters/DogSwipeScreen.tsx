@@ -8,6 +8,7 @@ import {
   Dimensions,
   Alert,
   Platform,
+  InteractionManagerStatic,
 } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App'; // Import RootStackParamList
@@ -31,7 +32,8 @@ import { handleAlert } from '../utils/AlertUtils';
 import { getAccessToken } from '../../services/CognitoService';
 import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest } from '../../generated';
 import { apiConfig } from '../../src/api';
-import { Dog } from '../types';
+import { Dog } from '../../App';
+import { DogsApi, DogPage } from '../../generated';
 
 const { width } = Dimensions.get('window'); // Get screen width for responsive sizing
 
@@ -50,56 +52,56 @@ type DogSwipeScreenNavigationProp = NavigationProp<RootStackParamList, 'AdopterD
 // }
 
 // Mock Data for Dogs (replace with actual API calls later)
-const mockDogs: Dog[] = [
-  {
-    dogId: 'dog1',
-    name: 'Cooper',
-    breed: 'Samoyed',
-    age: 2,
-    gender: 'Male',
-    description: 'A fluffy, friendly, and playful Samoyed looking for a loving home. Loves belly rubs and long walks!',
-    photoURLs: ['https://placehold.co/600x400/FFD194/FFF?text=Cooper'], // Placeholder image
-    shelterId: 'shelter1',
-    status: 'Available',
-    createdAt: 'today'
-  },
-  {
-    dogId: 'dog2',
-    name: 'Luna',
-    breed: 'Labradoodle',
-    age: 1,
-    gender: 'Female',
-    description: 'Energetic and loves playing fetch. Great with kids and other pets.',
-    photoURLs: ['https://placehold.co/600x400/FFACAC/FFF?text=Luna'], // Placeholder image
-    shelterId: 'shelter1',
-    status: 'Available',
-    createdAt: 'today'
-  },
-  {
-    dogId: 'dog3',
-    name: 'Max',
-    breed: 'German Shepherd',
-    age: 3,
-    gender: 'Male',
-    description: 'Loyal and intelligent, Max is looking for an active family.',
-    photoURLs: 'https://placehold.co/600x400/94D1FF/FFF?text=Max',
-    shelterId: 'shelter1',
-    status: 'Available',
-    createdAt: 'today'
-  },
-  {
-    dogId: 'dog4',
-    name: 'Daisy',
-    breed: 'Beagle',
-    age: 4,
-    gender: 'Female',
-    description: 'Sweet and curious, Daisy loves to explore and cuddle.',
-    photoURLs: 'https://placehold.co/600x400/94FFD1/FFF?text=Daisy',
-    shelterId: 'shelter1',
-    status: 'Available',
-    createdAt: 'today'
-  },
-];
+// const mockDogs: Dog[] = [
+//   {
+//     dogId: 'dog1',
+//     name: 'Cooper',
+//     breed: 'Samoyed',
+//     age: 2,
+//     gender: 'Male',
+//     description: 'A fluffy, friendly, and playful Samoyed looking for a loving home. Loves belly rubs and long walks!',
+//     photoURLs: ['https://placehold.co/600x400/FFD194/FFF?text=Cooper'], // Placeholder image
+//     shelterId: 'shelter1',
+//     status: 'Available',
+//     createdAt: 'today'
+//   },
+//   {
+//     dogId: 'dog2',
+//     name: 'Luna',
+//     breed: 'Labradoodle',
+//     age: 1,
+//     gender: 'Female',
+//     description: 'Energetic and loves playing fetch. Great with kids and other pets.',
+//     photoURLs: ['https://placehold.co/600x400/FFACAC/FFF?text=Luna'], // Placeholder image
+//     shelterId: 'shelter1',
+//     status: 'Available',
+//     createdAt: 'today'
+//   },
+//   {
+//     dogId: 'dog3',
+//     name: 'Max',
+//     breed: 'German Shepherd',
+//     age: 3,
+//     gender: 'Male',
+//     description: 'Loyal and intelligent, Max is looking for an active family.',
+//     photoURLs: 'https://placehold.co/600x400/94D1FF/FFF?text=Max',
+//     shelterId: 'shelter1',
+//     status: 'Available',
+//     createdAt: 'today'
+//   },
+//   {
+//     dogId: 'dog4',
+//     name: 'Daisy',
+//     breed: 'Beagle',
+//     age: 4,
+//     gender: 'Female',
+//     description: 'Sweet and curious, Daisy loves to explore and cuddle.',
+//     photoURLs: 'https://placehold.co/600x400/94FFD1/FFF?text=Daisy',
+//     shelterId: 'shelter1',
+//     status: 'Available',
+//     createdAt: 'today'
+//   },
+// ];
 
 // Threshold for a successful swipe (e.g., move 1/4 of screen width)
 const SWIPE_THRESHOLD = width * 0.25;
@@ -113,22 +115,38 @@ const DogSwipeScreen: React.FC = () => {
   // Reanimated shared values for card position
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
-
+  
   // Fetch dogs
-  // TODO()
-
+  let page = 1
+  let prevIndex = 0
+  const LIMIT = 5
+  const dogsApi = new DogsApi(apiConfig)
+  const [dogs, setDogs] = useState<Dog[]>([])
+  const loadDogs = async (pageNo: number) => {
+    const response: DogPage = await dogsApi.listDogs({limit: LIMIT, page: pageNo});
+    setDogs(response.dogs ?? [])
+  }
+  loadDogs(page)
   // Load the first dog when the component mounts or index changes
   useEffect(() => {
-    if (mockDogs.length > currentDogIndex) {
-      setCurrentDog(mockDogs[currentDogIndex]);
-      // Reset animated values for the new card
-      translateX.value = 0;
-      translateY.value = 0;
-    } else {
-      setCurrentDog(null); // No more dogs available
-      handleAlert('No More Dogs', 'You\'ve seen all available dogs for now!');
-    }
-  }, [currentDogIndex]);
+      try {
+        if (dogs.length > currentDogIndex) {
+          setCurrentDog(dogs[currentDogIndex]);
+          // Reset animated values for the new card
+          translateX.value = 0;
+          translateY.value = 0;
+      } else {
+          setCurrentDog(null); // No more dogs available
+          handleAlert('No More Dogs', 'You\'ve seen all available dogs for now!');
+      }
+      } catch (error: any) {
+        console.error('Failed to fetch dogs:', error);
+        if (error.response) {
+          const text = error.response.text();
+          console.error('Backend error response: ', text);
+        }
+      }  
+    }, [currentDogIndex]);
 
   // Function to handle swipe completion (runs on JS thread)
   const onSwipeCompleteJS = (direction: 'Left' | 'Right') => {
@@ -138,7 +156,7 @@ const DogSwipeScreen: React.FC = () => {
     const swipesApi = new SwipesApi(apiConfig);
 
     const swipeData: SwipeCreate = {
-      dogId: currentDog.dogId,
+      dogId: currentDog.id,
       direction: direction,
       shelterId: currentDog.shelterId
     }
@@ -150,6 +168,10 @@ const DogSwipeScreen: React.FC = () => {
     swipesApi.createSwipe(swipeReq);
 
     setCurrentDogIndex(prevIndex => prevIndex + 1); // Move to the next dog
+    if (prevIndex == dogs.length - 2) {
+      page = page + 1;
+      loadDogs(page)
+    }
   };
 
   // Navigate to DogProfileDetailScreen (runs on JS thread)
@@ -231,7 +253,7 @@ const DogSwipeScreen: React.FC = () => {
 
   // Navigate to user profile (placeholder for now)
   const goToProfile = () => {
-    navigation.navigate('AdopterProfile', {}); // You'll create this screen later
+    navigation.navigate('AdopterProfile'); // You'll create this screen later
   };
 
   // Navigate to chat list (placeholder for now)
@@ -268,7 +290,7 @@ const DogSwipeScreen: React.FC = () => {
                 <Animated.Text style={[styles.likeLabel, likeLabelStyle]}>LIKE</Animated.Text>
                 <Animated.Text style={[styles.nopeLabel, nopeLabelStyle]}>NOPE</Animated.Text>
 
-                <Image source={{ uri: currentDog.photoUrl }} style={styles.dogImage} />
+                <Image source={{ uri: currentDog.photoURLs[0] }} style={styles.dogImage} />
                 <View style={styles.dogInfo}>
                     <View style={styles.dogNameAge}>
                         <Text style={styles.dogName}>{currentDog.name}</Text>
