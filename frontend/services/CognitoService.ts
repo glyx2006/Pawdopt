@@ -189,13 +189,10 @@ export async function signUp(params: {
   latitude?: string;
   longitude?: string;
 }): Promise<{ idToken?: string; accessToken?: string; refreshToken?: string }> {
-  // ...existing code...
   
   const url = `https://sd9to5sjo8.execute-api.eu-west-2.amazonaws.com/default/CognitoSignUpFunction`;
-  // ...existing code...
   
   try {
-    // ...existing code...
     const response = await fetch(url, {
       method: 'POST',
       headers: { 
@@ -205,15 +202,14 @@ export async function signUp(params: {
       body: JSON.stringify(params),
     });
 
-    // ...existing code...
 
     // Try to get response text first
     let responseText = '';
     try {
       responseText = await response.text();
-      // ...existing code...
+    
     } catch (textError) {
-      // ...existing code...
+
       throw new Error('Failed to read server response');
     }
 
@@ -221,14 +217,13 @@ export async function signUp(params: {
     let data;
     try {
       data = JSON.parse(responseText);
-      // ...existing code...
+   
     } catch (jsonError) {
-      // ...existing code...
+     
       throw new Error(`Server returned invalid JSON: ${responseText}`);
     }
 
     if (!response.ok) {
-      // ...existing code...
       throw new Error(data.error || data.message || `HTTP ${response.status}: ${response.statusText}`);
     }
 
@@ -237,10 +232,9 @@ export async function signUp(params: {
     if (accessToken) await AsyncStorage.setItem('accessToken', accessToken);
     if (refreshToken) await AsyncStorage.setItem('refreshToken', refreshToken);
 
-    // ...existing code...
     return { idToken, accessToken, refreshToken };
   } catch (error) {
-    // ...existing code...
+ 
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Network error: Unable to connect to signup service. Please check your internet connection and try again.');
     }
