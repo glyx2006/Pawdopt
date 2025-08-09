@@ -38,9 +38,11 @@ const SignupAdopterExperienceScreen: React.FC = () => {
   const navigation = useNavigation<SignupAdopterExperienceScreenNavigationProp>();
   const route = useRoute<SignupAdopterExperienceScreenRouteProp>();
 
-  const { email, password, name, dob, gender, address, postcode, phoneNo } = route.params;
-
-  const [experience, setExperience] = useState<string>("");
+  const { email, password, name, dob, gender, address, postcode, phoneNo, latitude, longitude } = route.params;
+  
+  console.log('Received coordinates in experience screen:', { latitude, longitude });
+  
+  const [experience, setExperience] = useState<string>('');
 
   const handleContinue = async () => {
     if (!experience) {
@@ -48,9 +50,12 @@ const SignupAdopterExperienceScreen: React.FC = () => {
       return;
     }
 
-    // Sign up the user with Cognito (Lambda backend)
+    // Use coordinates already fetched from previous screen
     try {
-      await signUp({
+      console.log('About to call signUp with coordinates:', { latitude, longitude });
+      console.log('Coordinates are empty?', { latEmpty: !latitude, lngEmpty: !longitude });
+      
+      const signUpData = {
         email,
         password,
         name,
@@ -61,7 +66,13 @@ const SignupAdopterExperienceScreen: React.FC = () => {
         phoneNo,
         role: "adopter",
         experience,
-      });
+        latitude: latitude || "",
+        longitude: longitude || "",
+      };
+      
+      console.log('Complete signUp data:', JSON.stringify(signUpData, null, 2));
+      
+      await signUp(signUpData);
       handleAlert("Adopter Account Created!", "Please verify your email and login.");
       navigation.navigate("Login");
     } catch (err: any) {
