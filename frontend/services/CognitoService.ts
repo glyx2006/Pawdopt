@@ -55,27 +55,24 @@ const safeJsonParse = (value: string): any => {
  * or null if no user is authenticated.
  */
 export const getCurrentUserAttributes = async (): Promise<UserAttributes | null> => {
-  console.log("--> getCurrentUserAttributes called.");
   try {
     let idToken = await AsyncStorage.getItem('idToken');
     let accessToken = await AsyncStorage.getItem('accessToken');
     
     if (!idToken || !accessToken) {
-      console.warn("No ID token or access token found. Attempting to refresh session.");
       const refreshedTokens = await refreshSession();
       if (refreshedTokens) {
         idToken = refreshedTokens.idToken;
         accessToken = refreshedTokens.accessToken;
-        console.log("Successfully refreshed session and got new tokens.");
+        // ...existing code...
       } else {
-        console.error("Failed to refresh session, no user is currently logged in.");
+        // ...existing code...
         return null;
       }
     }
     
-    console.log("Decoding ID token:", idToken);
     const decodedToken = jwtDecode<CustomJwtPayload>(idToken);
-    console.log("Decoded Token Data:", decodedToken);
+    // ...existing code...
 
     let parsedAddress: StructuredAddress = { formatted: '' };
 
@@ -106,11 +103,10 @@ export const getCurrentUserAttributes = async (): Promise<UserAttributes | null>
       'custom:iconURL': decodedToken['custom:iconURL'] || '',
       'custom:role': decodedToken['custom:role'] || '',
     };
-    console.log("User attributes to be returned:", attributes);
-    console.log("<-- getCurrentUserAttributes finished.");
+    // ...existing code...
     return attributes;
   } catch (e) {
-    console.error("Error decoding token or fetching attributes:", e);
+    // ...existing code...
     return null;
   }
 };
@@ -128,15 +124,14 @@ export const getIdToken = async (): Promise<string> => {
  * @returns {Promise<string | null>} The Access Token string, or null if not found.
  */
 export const getAccessToken = async (): Promise<string | null> => {
-  console.log("--> getAccessToken called.");
   const token = await AsyncStorage.getItem('accessToken');
   if (!token || isTokenExpired(token)) {
-    console.warn("Access token expired or not found, refreshing session...");
+    // ...existing code...
     const refreshedTokens = await refreshSession();
-    console.log("<-- getAccessToken returning refreshed token.");
+    // ...existing code...
     return refreshedTokens ? refreshedTokens.accessToken : null;
   }
-  console.log("<-- getAccessToken returning stored token.");
+  // ...existing code...
   return token;
 };
 
@@ -150,14 +145,10 @@ const isTokenExpired = (token: string): boolean => {
     const decoded = jwtDecode(token);
     const now = Date.now() / 1000; // current time in seconds
     const isExpired = decoded.exp !== undefined && decoded.exp < now;
-    if (isExpired) {
-      console.log("Token is expired.");
-    } else {
-      console.log("Token is not expired.");
-    }
+    // ...existing code...
     return isExpired;
   } catch (e) {
-    console.error("Error decoding token for expiration check:", e);
+    // ...existing code...
     return true; // Assume expired on error
   }
 };
@@ -169,15 +160,93 @@ const isTokenExpired = (token: string): boolean => {
  */
 export const signOut = async (): Promise<void> => {
   try {
-    console.log("--> signOut called, clearing tokens.");
     await AsyncStorage.removeItem('idToken');
     await AsyncStorage.removeItem('accessToken');
     await AsyncStorage.removeItem('refreshToken');
-    console.log("<-- User logged out successfully.");
+    // ...existing code...
   } catch (e) {
-    console.error("Error signing out:", e);
+    // ...existing code...
   }
 };
+
+/**
+ * Handles user sign-up by calling the Lambda signup function.
+ * @param params The user's signup details.
+ * @returns A promise that resolves with the ID token and access token on success.
+ */
+export async function signUp(params: {
+  email: string;
+  password: string;
+  name: string;
+  dob: string;
+  gender: string;
+  address: string;
+  postcode: string;
+  phoneNo: string;
+  role: string;
+  experience?: string;
+  shelterName?: string;
+  latitude?: string;
+  longitude?: string;
+}): Promise<{ idToken?: string; accessToken?: string; refreshToken?: string }> {
+  // ...existing code...
+  
+  const url = `https://sd9to5sjo8.execute-api.eu-west-2.amazonaws.com/default/CognitoSignUpFunction`;
+  // ...existing code...
+  
+  try {
+    // ...existing code...
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(params),
+    });
+
+    // ...existing code...
+
+    // Try to get response text first
+    let responseText = '';
+    try {
+      responseText = await response.text();
+      // ...existing code...
+    } catch (textError) {
+      // ...existing code...
+      throw new Error('Failed to read server response');
+    }
+
+    // Parse JSON from text
+    let data;
+    try {
+      data = JSON.parse(responseText);
+      // ...existing code...
+    } catch (jsonError) {
+      // ...existing code...
+      throw new Error(`Server returned invalid JSON: ${responseText}`);
+    }
+
+    if (!response.ok) {
+      // ...existing code...
+      throw new Error(data.error || data.message || `HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const { idToken, accessToken, refreshToken } = data;
+    if (idToken) await AsyncStorage.setItem('idToken', idToken);
+    if (accessToken) await AsyncStorage.setItem('accessToken', accessToken);
+    if (refreshToken) await AsyncStorage.setItem('refreshToken', refreshToken);
+
+    // ...existing code...
+    return { idToken, accessToken, refreshToken };
+  } catch (error) {
+    // ...existing code...
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      throw new Error('Network error: Unable to connect to signup service. Please check your internet connection and try again.');
+    }
+    throw error;
+  }
+}
 
 /**
  * Handles user sign-in by calling the Lambda login function.
@@ -186,7 +255,7 @@ export const signOut = async (): Promise<void> => {
  * @returns A promise that resolves with the ID token and access token on success.
  */
 export async function signIn(email: string, password: string): Promise<{ idToken: string; accessToken: string; refreshToken?: string }> {
-  console.log("--> signIn called.");
+  // ...existing code...
   try {
     const response = await fetch(`https://55kq17gfi7.execute-api.eu-west-2.amazonaws.com/default/CognitoLoginFunction`, {
       method: 'POST',
@@ -206,15 +275,15 @@ export async function signIn(email: string, password: string): Promise<{ idToken
     // FIX: Ensure refreshToken is always stored if it exists in the response
     if (refreshToken) {
       await AsyncStorage.setItem('refreshToken', refreshToken);
-      console.log("Refresh token successfully stored.");
+      // ...existing code...
     } else {
-      console.warn("No refresh token received during sign-in.");
+      // ...existing code...
     }
     
-    console.log("<-- Sign-in successful, tokens stored.");
+    // ...existing code...
     return { idToken, accessToken, refreshToken };
   } catch (error) {
-    console.error("Sign-in failed:", error);
+    // ...existing code...
     throw error;
   }
 }
@@ -225,13 +294,12 @@ export async function signIn(email: string, password: string): Promise<{ idToken
  * @returns {Promise<{idToken: string; accessToken: string} | null>} New ID and Access tokens, or null if refresh fails.
  */
 export async function refreshSession(): Promise<{ idToken: string; accessToken: string } | null> {
-  console.log("--> refreshSession called.");
   const refreshToken = await AsyncStorage.getItem('refreshToken');
   if (!refreshToken) {
-    console.log("No refresh token found. Cannot refresh session.");
+    // ...existing code...
     return null;
   }
-  console.log("Using refresh token to get new session.");
+  // ...existing code...
 
   try {
     const response = await fetch(`https://ptyql0y64k.execute-api.eu-west-2.amazonaws.com/default/RefreshSessionFunction`, { // New Lambda endpoint
@@ -243,7 +311,7 @@ export async function refreshSession(): Promise<{ idToken: string; accessToken: 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Session refresh failed:", data.error || 'Unknown error');
+      // ...existing code...
       await signOut(); // Clear tokens if refresh fails
       return null;
     }
@@ -251,11 +319,10 @@ export async function refreshSession(): Promise<{ idToken: string; accessToken: 
     const { idToken, accessToken } = data;
     await AsyncStorage.setItem('idToken', idToken);
     await AsyncStorage.setItem('accessToken', accessToken);
-    
-    console.log("<-- Session refreshed successfully. New tokens stored.");
+    // ...existing code...
     return { idToken, accessToken };
   } catch (error) {
-    console.error("Error during session refresh:", error);
+    // ...existing code...
     await signOut(); // Clear tokens on network/unexpected error
     return null;
   }
@@ -268,15 +335,13 @@ export async function refreshSession(): Promise<{ idToken: string; accessToken: 
  * @returns {Promise<void>} A promise that resolves on successful update.
  */
 export async function updateUserAttributes(attributes: Record<string, string>): Promise<void> {
-  console.log("--> updateUserAttributes called.");
   const token = await getAccessToken();
   if (!token) {
-    console.error("No access token available. Please log in.");
+    // ...existing code...
     throw new Error('No access token available. Please log in.');
   }
 
   try {
-    console.log("Calling backend to update attributes with payload:", attributes);
     const response = await fetch(`https://trb1e74wd2.execute-api.eu-west-2.amazonaws.com/default/UpdateUserAttributesFunction`, { 
       method: 'POST',
       headers: {
@@ -286,20 +351,19 @@ export async function updateUserAttributes(attributes: Record<string, string>): 
       body: JSON.stringify(attributes),
     });
 
-    console.log(`Backend response status: ${response.status} ${response.statusText}`);
+    // ...existing code...
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Backend error updating attributes:", errorText);
+      // ...existing code...
       throw new Error(`Failed to update user attributes: ${errorText}`);
     }
     
-    console.log("User attributes updated successfully via backend. Now refreshing session to get new tokens.");
     // CRITICAL FIX: Refresh the session after a successful update
     await refreshSession();
-    console.log("<-- Session refreshed after attribute update.");
+    // ...existing code...
   } catch (error) {
-    console.error("Error updating user attributes:", error);
+    // ...existing code...
     throw error;
   }
 }

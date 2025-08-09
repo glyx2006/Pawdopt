@@ -3,16 +3,30 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView,
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
-import {
-  userPool,
-  CognitoUserAttribute,
-} from '../../services/CognitoService';
+import { signUp } from '../../services/CognitoService';
 import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
 import { handleAlert } from '../utils/AlertUtils';
 
 // Define the type for the route parameters for this screen
 type SignupShelterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupShelterDetails'>;
+
+const axios = require('axios');
+
+async function getCoordinatesFromPostcode(postcode: any) {
+    try {
+        const response = await axios.get(`https://api.postcodes.io/postcodes/${postcode}`);
+        const { latitude, longitude } = response.data.result;
+        return { latitude, longitude };
+    } catch (err) {
+        if (err instanceof Error) {
+            console.error('Postcode lookup failed:', err.message);
+        } else {
+            console.error('Postcode lookup failed:', err);
+        }
+        throw new Error('Invalid postcode or failed to fetch coordinates.');
+    }
+}
 
 const SignupShelterDetailsScreen: React.FC = () => {
   const navigation = useNavigation<import('@react-navigation/native').NavigationProp<RootStackParamList>>();
@@ -106,14 +120,13 @@ const SignupShelterDetailsScreen: React.FC = () => {
     validatePhoneNo(text); 
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const isNameValid = validateName(shelterName);
     const isAddressValid = validateAddress(address);
     const isPostcodeValid = validatePostcode(postcode);
     const isPhoneNoValid = validatePhoneNo(phoneNo);
     
-    
-    if (!shelterName.trim || !address.trim || !postcode.trim || !phoneNo.trim) {
+    if (!shelterName.trim() || !address.trim() || !postcode.trim() || !phoneNo.trim()) {
       handleAlert('Error', 'All fields are required.');
       return;
     }
@@ -122,27 +135,35 @@ const SignupShelterDetailsScreen: React.FC = () => {
       handleAlert('Validation Error', 'Please correct the highlighted fields before proceeding.');
       return;
     }
-    // Prepare Cognito attributes
-    const attributeList = [
-      new CognitoUserAttribute({ Name: 'email', Value: email }),
-      new CognitoUserAttribute({ Name: 'name', Value: shelterName }),
-      new CognitoUserAttribute({ Name: 'address', Value: address }),
-      new CognitoUserAttribute({ Name: 'phone_number', Value: phoneNo }),
-      new CognitoUserAttribute({ Name: 'custom:postcode', Value: postcode }),
-      new CognitoUserAttribute({ Name: 'custom:role', Value: 'shelter' }),
-    ];
-
-    userPool.signUp(email, password, attributeList, [], (err, result) => {
-      if (err) {
-        handleAlert('Sign Up Error', err.message || JSON.stringify(err));
-        return;
+    
+    try {
+      // Get coordinates from postcode
+      const { latitude, longitude } = await getCoordinatesFromPostcode(postcode);
+      
+      // Sign up the user with Cognito (Lambda backend)
+      await signUp({
+        email,
+        password,
+        name: shelterName,
+        dob: "",           // Not used for shelter, pass empty string
+        gender: "",        // Not used for shelter, pass empty string
+        address,
+        postcode,
+        phoneNo,
+        role: "shelter",
+        shelterName,
+        latitude: latitude.toString(),
+        longitude: longitude.toString(),
+      });
+      handleAlert("Shelter Account Created!", "Please verify your email and login.");
+      navigation.navigate("Login");
+    } catch (err: any) {
+      if (err.message && err.message.includes('coordinates')) {
+        handleAlert('Location Error', 'Failed to get coordinates from postcode. Please check the postcode and try again.');
+      } else {
+        handleAlert("Sign Up Error", err.message || "Something went wrong.");
       }
-      handleAlert(
-        "Shelter Account Created!", 
-        "Please verify your email and login."
-      );      
-      navigation.navigate('Login'); 
-    });
+    }
   };
 
   return (
