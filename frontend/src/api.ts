@@ -1,6 +1,5 @@
 import * as FileSystem from 'expo-file-system';
 import { Buffer } from 'buffer';
-import { getAccessToken } from './cognito';
 import { Configuration } from '../generated';
 import { getIdToken } from '../services/CognitoService';
 
