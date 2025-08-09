@@ -87,6 +87,8 @@ export interface Dog {
      * @memberof Dog
      */
     status: DogStatusEnum;
+    color: string;
+    size: string;
 }
 
 
@@ -138,6 +140,8 @@ export function DogFromJSONTyped(json: any, ignoreDiscriminator: boolean): Dog {
         'shelterId': json['shelter_id'],
         'createdAt': json['created_at'],
         'status': json['dog_status'],
+        'color': json['color'] || '',
+        'size': json['size'] || ''
     };
 }
 
