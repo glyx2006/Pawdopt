@@ -192,6 +192,10 @@ export async function signUp(params: {
   
   const url = `https://sd9to5sjo8.execute-api.eu-west-2.amazonaws.com/default/CognitoSignUpFunction`;
   
+  console.log('SignUp Request - Role:', params.role);
+  console.log('SignUp Request - Coordinates:', { latitude: params.latitude, longitude: params.longitude });
+  console.log('SignUp Request - Full payload:', JSON.stringify(params, null, 2));
+  
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -201,15 +205,19 @@ export async function signUp(params: {
       },
       body: JSON.stringify(params),
     });
+    
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
 
 
     // Try to get response text first
     let responseText = '';
     try {
       responseText = await response.text();
+      console.log('Response text:', responseText);
     
     } catch (textError) {
-
+      console.log('Error reading response text:', textError);
       throw new Error('Failed to read server response');
     }
 
@@ -217,9 +225,10 @@ export async function signUp(params: {
     let data;
     try {
       data = JSON.parse(responseText);
+      console.log('Parsed response data:', data);
    
     } catch (jsonError) {
-     
+      console.log('JSON parse error:', jsonError);
       throw new Error(`Server returned invalid JSON: ${responseText}`);
     }
 
@@ -234,7 +243,7 @@ export async function signUp(params: {
 
     return { idToken, accessToken, refreshToken };
   } catch (error) {
- 
+    console.log('SignUp error:', error);
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Network error: Unable to connect to signup service. Please check your internet connection and try again.');
     }

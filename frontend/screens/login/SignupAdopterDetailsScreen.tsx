@@ -33,6 +33,8 @@ const SignupAdopterDetailsScreen: React.FC = () => {
   const [address, setAddress] = useState<string>('');
   const [postcode, setPostcode] = useState<string>('');
   const [phoneNo, setPhoneNo] = useState<string>('');
+  const [latitude, setLatitude] = useState<string>('');
+  const [longitude, setLongitude] = useState<string>('');
   const [nameError, setNameError] = useState<string>('');
   const [dobError, setDobError] = useState<string>('');
   const [addressError, setAddressError] = useState<string>('');
@@ -186,9 +188,25 @@ const SignupAdopterDetailsScreen: React.FC = () => {
     validateAddress(text); 
   };
 
-  const handlePostcodeChange = (text: string) => {
+  const handlePostcodeChange = async (text: string) => {
     setPostcode(text);
-    validatePostcode(text); 
+    const isValid = validatePostcode(text);
+    
+    // If postcode is valid, fetch coordinates
+    if (isValid && text.trim().length > 0) {
+      try {
+        const response = await fetch(`https://api.postcodes.io/postcodes/${text.trim()}`);
+        const data = await response.json();
+        if (data.result && data.result.latitude && data.result.longitude) {
+          console.log('Fetched coordinates for adopter:', data.result.latitude, data.result.longitude);
+          setLatitude(data.result.latitude.toString());
+          setLongitude(data.result.longitude.toString());
+        }
+      } catch (error) {
+        // Silently fail if coordinates can't be fetched
+        console.error('Failed to fetch coordinates:', error);
+      }
+    }
   };
 
   const handlePhoneNoChange = (text: string) => {
@@ -216,6 +234,7 @@ const SignupAdopterDetailsScreen: React.FC = () => {
     }
 
     // Pass all collected info to experience screen for final sign-up
+    console.log('Passing coordinates to experience screen:', { latitude, longitude });
     navigation.navigate('SignupAdopterExperience', {
       email,
       password,
@@ -225,6 +244,8 @@ const SignupAdopterDetailsScreen: React.FC = () => {
       address,
       postcode,
       phoneNo,
+      latitude,
+      longitude,
     });
   };
 
