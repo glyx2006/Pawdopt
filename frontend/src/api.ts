@@ -28,27 +28,28 @@ export async function getPresignedUrls(fileCount: number, token: string): Promis
   return { uploadUrls, keys };
 }
 
-
-
-
 export async function uploadImagesToS3(uris: string[], urls: string[]) {
-  const uploads = uris.map((uri, i) => {
-    return fetch(uri)
-      .then(res => res.blob())
-      .then(blob =>
-        fetch(urls[i], {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'image/jpeg',
-          },
-          body: blob,
-        })
-      );
+  const uploads = uris.map(async (uri, i) => {
+    const res = await fetch(uri);
+    const blob = await res.blob();
+
+    const uploadRes = await fetch(urls[i], {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'image/jpeg',
+      },
+      body: blob,
+    });
+
+    return uploadRes;
   });
 
   const results = await Promise.all(uploads);
+
   const failed = results.filter(r => !r.ok);
-  if (failed.length > 0) throw new Error("One or more uploads failed.");
+  if (failed.length > 0) {
+    throw new Error("One or more uploads failed.");
+  }
 }
 
 export async function uploadDogProfile(data: any, token: string) {
