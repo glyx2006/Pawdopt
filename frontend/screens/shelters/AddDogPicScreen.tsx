@@ -29,8 +29,6 @@ type AddDogPicRouteProp = RouteProp<RootStackParamList, 'AddDogPic'>;
 
 const AddDogPicScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const [photos, setPhotos] = useState<string[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
   const route = useRoute<AddDogPicRouteProp>();
   const {
     onAddDog,
@@ -42,15 +40,75 @@ const AddDogPicScreen: React.FC = () => {
     gender,
     color,
     size,
+    editMode,
+    existingDog,   
   } = route.params || {};
+
+  // Initialize photos with existing dog's photos if in edit mode
+  const [photos, setPhotos] = useState<string[]>(() => {
+    if (editMode && existingDog && existingDog.photoURLs) {
+      // Pre-populate with existing photos, but limit to MAX_PHOTOS
+      return existingDog.photoURLs.slice(0, MAX_PHOTOS);
+    }
+    return [];
+  });
+  const [modalVisible, setModalVisible] = useState(false);
 
 	const handleContinue = async () => {
     try {
       const token = await getAccessToken();
       if (!token) return alert('Please sign in first');
-  
-      const { uploadUrls, keys } = await getPresignedUrls(photos.length, token);
-      await uploadImagesToS3(photos, uploadUrls);
+
+      let allPhotoKeys: string[] = [];
+
+      // Only upload new photos if there are any
+      if (photos.length > 0) {
+        // Filter out existing photos (URLs vs local URIs) for upload
+        const newPhotos = photos.filter(photo => !photo.startsWith('http'));
+        const existingPhotos = photos.filter(photo => photo.startsWith('http'));
+
+        // Upload new photos and get their S3 keys
+        let newPhotoKeys: string[] = [];
+        if (newPhotos.length > 0) {
+          const uploadResponse = await getPresignedUrls(newPhotos.length, token);
+          const uploadUrls = uploadResponse.uploadUrls;
+          newPhotoKeys = uploadResponse.keys;
+          await uploadImagesToS3(newPhotos, uploadUrls);
+        }
+
+        // For existing photos, extract the S3 keys from their URLs
+        let existingPhotoKeys: string[] = [];
+        if (editMode && existingDog && existingPhotos.length > 0) {
+          existingPhotoKeys = existingPhotos.map(photoUrl => {
+            // Extract S3 key from URL (assuming URL format: https://bucket.s3.region.amazonaws.com/key)
+            try {
+              const url = new URL(photoUrl);
+              return url.pathname.substring(1); // Remove leading slash
+            } catch (error) {
+              console.error('Error parsing photo URL:', photoUrl, error);
+              return ''; // Return empty string for invalid URLs
+            }
+          }).filter(key => key !== ''); // Filter out empty strings
+        }
+
+        // Combine existing and new photo keys in the order they appear in the photos array
+        allPhotoKeys = photos.map(photo => {
+          if (photo.startsWith('http')) {
+            // Existing photo - extract S3 key from URL
+            try {
+              const url = new URL(photo);
+              return url.pathname.substring(1);
+            } catch (error) {
+              console.error('Error parsing photo URL:', photo, error);
+              return '';
+            }
+          } else {
+            // New photo - find corresponding S3 key
+            const newPhotoIndex = newPhotos.indexOf(photo);
+            return newPhotoIndex !== -1 ? newPhotoKeys[newPhotoIndex] : '';
+          }
+        }).filter(key => key !== ''); // Filter out empty keys
+      }
   
       navigation.navigate('AddDogDescription', {
         onAddDog,
@@ -62,8 +120,11 @@ const AddDogPicScreen: React.FC = () => {
         gender,
         color,
         size,
-        photos, // S3 object keys
-        photoKeys: keys, // Use keys for the next screen
+        photos, // Current photos (mix of existing URLs and new local URIs)
+        photoKeys: allPhotoKeys, // All S3 keys (both existing and new)
+        // Pass edit mode parameters
+        editMode,
+        existingDog,
       });
     } catch (error) {
       
@@ -145,9 +206,16 @@ const AddDogPicScreen: React.FC = () => {
   const renderPhotoCell = (index: number) => {
     const photo = photos[index];
     if (photo) {
+      const isExistingPhoto = photo.startsWith('http'); // Existing photos are URLs, new ones are local URIs
       return (
         <View style={[styles.photoCell, { width: cellWidth, height: cellHeight }]} key={index}>
           <Image source={{ uri: photo }} style={styles.photoImage} />
+          {/* Show indicator for existing photos */}
+          {editMode && isExistingPhoto && (
+            <View style={styles.existingPhotoIndicator}>
+              <Text style={styles.existingPhotoText}>Original</Text>
+            </View>
+          )}
           <TouchableOpacity
             style={styles.removeButton}
             onPress={() => handleRemovePhoto(index)}
@@ -182,8 +250,19 @@ const AddDogPicScreen: React.FC = () => {
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <Text style={styles.backButtonText}>{'<'}</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>Add photos</Text>
-      <Text style={styles.subtitle}>Add at least 2 photos to continue</Text>
+      <Text style={styles.title}>
+        {editMode ? 'Update photos' : 'Add photos'}
+      </Text>
+      <Text style={styles.subtitle}>
+        {editMode ? 'Modify existing photos or add new ones' : 'Add at least 2 photos to continue'}
+      </Text>
+      {editMode && (
+        <Text style={styles.editHelpText}>
+          • Tap ✕ to remove photos
+          • Tap + to add new photos
+          • "Original" photos are from the current profile
+        </Text>
+      )}
   <View style={[styles.gridContainer, { width: windowWidth - gridPadding }]}> {photoGrid} </View>
       {photos.length < 2 ? (
         <View style={[styles.continueButton, styles.continueButtonDisabled]}>
@@ -292,6 +371,14 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     textAlign: 'center',
   },
+  editHelpText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    lineHeight: 18,
+  },
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -347,6 +434,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     letterSpacing: 1,
+  },
+  // Style for existing photo indicator
+  existingPhotoIndicator: {
+    position: 'absolute',
+    bottom: 2,
+    left: 2,
+    backgroundColor: 'rgba(71, 85, 105, 0.8)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    zIndex: 1,
+  },
+  existingPhotoText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '600',
   },
 });
 
