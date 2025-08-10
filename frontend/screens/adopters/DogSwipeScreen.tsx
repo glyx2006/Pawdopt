@@ -43,7 +43,7 @@ interface Dog {
   age: number;
   gender: string;
   description: string;
-  photoUrl: string; // URL to the dog's image
+  photoURLs: string[]; // URL to the dog's image
 }
 
 async function fetchDogs(): Promise<Dog[]> {
@@ -267,7 +267,7 @@ const mockDogs: Dog[] = [
     age: 2,
     gender: 'Male',
     description: 'A fluffy, friendly, and playful Samoyed looking for a loving home. Loves belly rubs and long walks!',
-    photoUrl: 'https://placehold.co/600x400/FFD194/FFF?text=Cooper', // Placeholder image
+    photoURLs: ['https://placehold.co/600x400/FFD194/FFF?text=Cooper'], // Placeholder image
   },
   {
     id: 'dog2',
@@ -276,7 +276,7 @@ const mockDogs: Dog[] = [
     age: 1,
     gender: 'Female',
     description: 'Energetic and loves playing fetch. Great with kids and other pets.',
-    photoUrl: 'https://placehold.co/600x400/FFACAC/FFF?text=Luna', // Placeholder image
+    photoURLs: ['https://placehold.co/600x400/FFACAC/FFF?text=Luna'], // Placeholder image
   },
   {
     id: 'dog3',
@@ -285,7 +285,7 @@ const mockDogs: Dog[] = [
     age: 3,
     gender: 'Male',
     description: 'Loyal and intelligent, Max is looking for an active family.',
-    photoUrl: 'https://placehold.co/600x400/94D1FF/FFF?text=Max',
+    photoURLs: ['https://placehold.co/600x400/94D1FF/FFF?text=Max'],
   },
   {
     id: 'dog4',
@@ -294,7 +294,7 @@ const mockDogs: Dog[] = [
     age: 4,
     gender: 'Female',
     description: 'Sweet and curious, Daisy loves to explore and cuddle.',
-    photoUrl: 'https://placehold.co/600x400/94FFD1/FFF?text=Daisy',
+    photoURLs: ['https://placehold.co/600x400/94FFD1/FFF?text=Daisy'],
   },
 ];
 
@@ -506,7 +506,7 @@ const DogSwipeScreen: React.FC = () => {
                 <Animated.Text style={[styles.likeLabel, likeLabelStyle]}>LIKE</Animated.Text>
                 <Animated.Text style={[styles.nopeLabel, nopeLabelStyle]}>NOPE</Animated.Text>
 
-                <Image source={{ uri: currentDog.photoUrl }} style={styles.dogImage} />
+                <Image source={{ uri: currentDog.photoURLs[0] }} style={styles.dogImage} />
                 <View style={styles.dogInfo}>
                     <View style={styles.dogNameAge}>
                         <Text style={styles.dogName}>{currentDog.name}</Text>
