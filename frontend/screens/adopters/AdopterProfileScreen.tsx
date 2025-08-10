@@ -113,7 +113,24 @@ const AdopterProfileScreen: React.FC = () => {
   );
 
   const handleEditProfile = () => {
-    navigation.navigate('EditAdopterProfile', { profile: profile });
+    Alert.alert(
+      "Edit Profile",
+      "What would you like to edit?",
+      [
+        {
+          text: "Edit Contact Info",
+          onPress: () => navigation.navigate('EditAdopterProfile', { profile: profile }),
+        },
+        {
+          text: "Edit Preferences",
+          onPress: () => navigation.navigate('EditAdopterPreference'),
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ]
+    );
   };
 
   const handleMyRequests = () => {

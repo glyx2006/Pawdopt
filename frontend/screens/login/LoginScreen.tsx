@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient'; 
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../../App';
 import { handleAlert } from '../utils/AlertUtils'; 
 import { signIn } from '../../services/CognitoService';
@@ -28,6 +29,9 @@ const LoginScreen: React.FC = () => {
       // This function handles the API call, token storage (including refreshToken),
       // and returns the tokens or throws an error.
       const { idToken } = await signIn(email, password); 
+
+      // Additional explicit storage of idToken (redundant but for confirmation)
+      await AsyncStorage.setItem("idToken", idToken);
 
       // Now, decode the token to get the user role.
       // You still need jwtDecode here if you want to determine role immediately after login.

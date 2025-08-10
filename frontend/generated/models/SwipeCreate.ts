@@ -45,8 +45,8 @@ export interface SwipeCreate {
  * @export
  */
 export const SwipeCreateDirectionEnum = {
-    Left: 'Left',
-    Right: 'Right'
+    Left: 'left',
+    Right: 'right'
 } as const;
 export type SwipeCreateDirectionEnum = typeof SwipeCreateDirectionEnum[keyof typeof SwipeCreateDirectionEnum];
 
