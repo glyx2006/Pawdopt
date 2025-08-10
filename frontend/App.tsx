@@ -19,6 +19,7 @@ import AddDogDescriptionScreen from './screens/shelters/AddDogDescriptionScreen'
 import AddDogSuccessScreen from './screens/shelters/AddDogSuccessScreen';
 import ShelterProfileScreen from './screens/shelters/ShelterProfileScreen';
 import EditShelterProfileScreen from './screens/shelters/EditShelterProfileScreen';
+import EditAdopterPreferencesScreen from './screens/adopters/EditAdopterPreferencesScreen';
 import AdopterProfileScreen from './screens/adopters/AdopterProfileScreen';
 import ChatListScreen from './screens/chat/ChatListScreen';
 import ChatScreen from './screens/chat/ChatScreen';
@@ -127,6 +128,7 @@ export type RootStackParamList = {
   AddDogSuccess: undefined; // No parameters expected for success screen
   ShelterProfile: undefined; 
   EditShelterProfile: {profile: ShelterProfile };
+  EditAdopterPreference: undefined;
   AdopterProfile: undefined; 
   AdoptionRequests: undefined;
   EditAdopterProfile: { profile: AdopterProfile };
@@ -238,6 +240,11 @@ export default function App() {
             name="EditAdopterProfile"
             component={EditAdopterProfileScreen} 
             options={{ headerShown: false }} 
+          />
+          <Stack.Screen
+            name="EditAdopterPreference"
+            component={EditAdopterPreferencesScreen}
+            options={{ headerShown: false}}
           />
           <Stack.Screen
             name="AdoptionRequests"

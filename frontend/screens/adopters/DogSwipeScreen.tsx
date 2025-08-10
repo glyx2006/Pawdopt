@@ -200,7 +200,7 @@ const DogSwipeScreen: React.FC = () => {
 
   // Navigate to user profile (placeholder for now)
   const goToProfile = () => {
-    navigation.navigate('AdopterProfile', {}); // You'll create this screen later
+    navigation.navigate('AdopterProfile'); // You'll create this screen later
   };
 
   // Navigate to chat list (placeholder for now)
