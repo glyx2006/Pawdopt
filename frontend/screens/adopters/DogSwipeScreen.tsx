@@ -30,10 +30,11 @@ import AdopterProfileScreen from './AdopterProfileScreen';
 import { handleAlert } from '../utils/AlertUtils';
 
 import { getAccessToken } from '../../services/CognitoService';
-import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest } from '../../generated';
+import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest, SwipeCreateDirectionEnum, SwipeCreateToJSON } from '../../generated';
 import { apiConfig } from '../../src/api';
 import { Dog } from '../../App';
 import { DogsApi, DogPage } from '../../generated';
+import { CookieStorage } from 'amazon-cognito-identity-js';
 
 const { width } = Dimensions.get('window'); // Get screen width for responsive sizing
 
@@ -116,22 +117,26 @@ const DogSwipeScreen: React.FC = () => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
-  let page = 0
+  const [page, setPage] = useState<number>(0)
   const LIMIT = 5
-  let total = 0
+  const [total, setTotal] = useState<number>(0)
   const dogsApi = new DogsApi(apiConfig)
   const [dogs, setDogs] = useState<Dog[]>([])
-  const loadDogs = async (pageNo: number) => {
-      const response: DogPage = await dogsApi.listDogs({limit: LIMIT, page: pageNo});
-      setDogs(prevDogs => [...prevDogs, ...response.dogs ?? []])
-      total = response.total ?? 0
-  }
+  const swipesApi = new SwipesApi(apiConfig);
 
   // Fetch dogs
   useEffect(() => {
-    loadDogs(page)
-  }, [page]);
+    const loadDogs = async () => {
+      const response: DogPage = await dogsApi.listDogs({limit: LIMIT, page: page});
+      console.log(response.dogs)
+      setDogs(prevDogs => [...prevDogs, ...(response.dogs ?? [])])
+      if (!total) {
+        setTotal(response.total ?? 0)
+      }      
+  }
 
+    loadDogs()
+  }, [page]);
 
   // Load the first dog when the component mounts or index changes
   useEffect(() => {
@@ -152,14 +157,13 @@ const DogSwipeScreen: React.FC = () => {
           console.error('Backend error response: ', text);
         }
       }  
-    }, [currentDogIndex]);
+    }, [currentDogIndex, dogs.length]);
 
   // Function to handle swipe completion (runs on JS thread)
   const onSwipeCompleteJS = (direction: 'Left' | 'Right') => {
     if (!currentDog) return;
 
     console.log(`Swiped ${direction} on ${currentDog.name}`);
-    const swipesApi = new SwipesApi(apiConfig);
 
     const swipeData: SwipeCreate = {
       dogId: currentDog.id,
@@ -172,11 +176,14 @@ const DogSwipeScreen: React.FC = () => {
       swipeCreate: swipeData
     }
 
+    console.log("swipedate:", swipeData)
+    console.log("swipecreatetojson output:", SwipeCreateToJSON(swipeData))
+
     swipesApi.createSwipe(swipeReq);
 
     setCurrentDogIndex(prevIndex => prevIndex + 1); // Move to the next dog
     if (currentDogIndex == dogs.length - 2 && currentDogIndex < total - LIMIT) {
-      page = page + 1;
+      setPage(prevPage => prevPage + 1)
     }
   };
 
