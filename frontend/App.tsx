@@ -91,6 +91,9 @@ export type RootStackParamList = {
     // You might also pass shelter details here if needed for pre-filling
     shelterId?: string;
     shelterPostcode?: string;
+    // Edit mode parameters
+    editMode?: boolean;
+    existingDog?: Dog;
   };
   AddDogPic:{
     onAddDog: (newDog: Dog) => void;
@@ -102,6 +105,9 @@ export type RootStackParamList = {
     gender: string;
     color: string;
     size: string;
+    // Edit mode parameters
+    editMode?: boolean;
+    existingDog?: Dog;
   }
   AddDogDescription:{
     onAddDog: (newDog: Dog) => void;
@@ -115,6 +121,8 @@ export type RootStackParamList = {
     size: string;
     photos: string[]; // Array of photo URLs
     photoKeys: string[]; // Array of S3 object keys for uploaded photos
+    editMode?: boolean;
+    existingDog?: Dog;
   }
   AddDogSuccess: undefined; // No parameters expected for success screen
   ShelterProfile: undefined; 

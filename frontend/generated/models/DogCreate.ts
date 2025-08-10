@@ -48,6 +48,18 @@ export interface DogCreate {
      * @type {Array<string>}
      * @memberof DogCreate
      */
+    color: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Dog
+     */
+    size: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Dog
+     */
     photoKeys: Array<string>;
     /**
      * 
@@ -65,6 +77,8 @@ export function instanceOfDogCreate(value: object): value is DogCreate {
     if (!('age' in value) || value['age'] === undefined) return false;
     if (!('breed' in value) || value['breed'] === undefined) return false;
     if (!('gender' in value) || value['gender'] === undefined) return false;
+    if (!('color' in value) || value['color'] === undefined) return false;
+    if (!('size' in value) || value['size'] === undefined) return false;
     if (!('photoKeys' in value) || value['photoKeys'] === undefined) return false;
     if (!('description' in value) || value['description'] === undefined) return false;
     return true;
@@ -84,6 +98,8 @@ export function DogCreateFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'age': json['age'],
         'breed': json['breed'],
         'gender': json['gender'],
+        'color': json['color'],
+        'size': json['size'],
         'photoKeys': json['photoKeys'],
         'description': json['description'],
     };
@@ -104,6 +120,8 @@ export function DogCreateToJSONTyped(value?: DogCreate | null, ignoreDiscriminat
         'age': value['age'],
         'breed': value['breed'],
         'gender': value['gender'],
+        'color': value['color'],
+        'size': value['size'],
         'photoKeys': value['photoKeys'],
         'description': value['description'],
     };

@@ -139,6 +139,26 @@ const ShelterDashboardScreen: React.FC = () => {
     setSelectedDog(null);
   };
 
+  const userEditDog = async(dog: Dog) => {
+    try {
+      // Close the modal first
+      closeModal();
+      
+      // Navigate to AddDog screen with edit mode enabled
+      addDogNavigation.navigate('AddDog', {
+        onAddDog: handleAddDog,
+        shelterId: shelterId,
+        shelterPostcode: shelterPostcode,
+        editMode: true,
+        existingDog: dog, // Pass the dog data to pre-fill the form
+      });
+      
+    } catch (error) {
+      console.error('Error navigating to edit dog:', error);
+      Alert.alert('Error', 'Failed to open edit screen');
+    }
+  }
+
   const userDeleteDog = async(dog:Dog) => {
     try{
       const token = await getIdToken();
@@ -220,10 +240,7 @@ const ShelterDashboardScreen: React.FC = () => {
         visible={isModalVisible}
         dog={selectedDog}
         onClose={closeModal}
-        onEdit={(dog) => {
-          // Add edit functionality here
-          Alert.alert('Edit Dog', 'Edit functionality coming soon!');
-        }}
+        onEdit={userEditDog}
         onDelete={(dog) => {
           userDeleteDog(dog);
         }}

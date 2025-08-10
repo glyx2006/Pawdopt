@@ -141,6 +141,7 @@ export class BaseAPI {
     }
 
     private async createFetchParams(context: RequestOpts, initOverrides?: RequestInit | InitOverrideFunction) {
+        console.log(`CONTEXT ${context['body']}`)
         let url = this.configuration.basePath + context.path;
         if (context.query !== undefined && Object.keys(context.query).length !== 0) {
             // only add the querystring to the URL if there are query parameters.
@@ -163,6 +164,7 @@ export class BaseAPI {
             body: context.body,
             credentials: this.configuration.credentials,
         };
+        console.log(`INITPARAMS: ${initParams['body']}`)
 
         const overriddenInit: RequestInit = {
             ...initParams,
@@ -171,6 +173,8 @@ export class BaseAPI {
                 context,
             }))
         };
+
+        console.log(`OVERRIDDENINIT ${overriddenInit['body']}`) // body undefined
 
         let body: any;
         if (isFormData(overriddenInit.body)
@@ -193,6 +197,7 @@ export class BaseAPI {
 
     private fetchApi = async (url: string, init: RequestInit) => {
         let fetchParams = { url, init };
+        console.log(init) // body undefined
         for (const middleware of this.middleware) {
             if (middleware.pre) {
                 fetchParams = await middleware.pre({
