@@ -244,9 +244,9 @@ export async function signUp(params: {
     return { idToken, accessToken, refreshToken };
   } catch (error) {
     console.log('SignUp error:', error);
-    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-      throw new Error('Network error: Unable to connect to signup service. Please check your internet connection and try again.');
-    }
+    // if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+    //   throw new Error('Network error: Unable to connect to signup service. Please check your internet connection and try again.');
+    // }
     throw error;
   }
 }
@@ -278,15 +278,13 @@ export async function signIn(email: string, password: string): Promise<{ idToken
     // FIX: Ensure refreshToken is always stored if it exists in the response
     if (refreshToken) {
       await AsyncStorage.setItem('refreshToken', refreshToken);
-      // ...existing code...
     } else {
-      // ...existing code...
+      console.warn('No refresh token provided in login response. This may affect session management.');
     }
     
-    // ...existing code...
     return { idToken, accessToken, refreshToken };
   } catch (error) {
-    // ...existing code...
+ 
     throw error;
   }
 }
