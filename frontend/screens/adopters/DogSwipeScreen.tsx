@@ -14,6 +14,8 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App'; // Import RootStackParamList
 import AppHeader from '../components/AppHeader';
 import AppFooter from '../components/AppFooter';
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import gesture-handler and reanimated components/hooks
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -32,7 +34,6 @@ import { handleAlert } from '../utils/AlertUtils';
 import { getAccessToken } from '../../services/CognitoService';
 import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest, SwipeCreateDirectionEnum, SwipeCreateToJSON } from '../../generated';
 import { apiConfig } from '../../src/api';
-import { Dog } from '../../App';
 import { DogsApi, DogPage } from '../../generated';
 import { CookieStorage } from 'amazon-cognito-identity-js';
 
@@ -42,67 +43,277 @@ const { width } = Dimensions.get('window'); // Get screen width for responsive s
 type DogSwipeScreenNavigationProp = NavigationProp<RootStackParamList, 'AdopterDashboard'>; // <-- Use the correct screen name
 
 // Define a simple interface for a Dog object
-// interface Dog {
-//   id: string;
-//   name: string;
-//   breed: string;
-//   age: number;
-//   gender: string;
-//   description: string;
-//   photoUrl: string; // URL to the dog's image
-// }
+interface Dog {
+  id: string;
+  name: string;
+  breed: string;
+  age: number;
+  gender: string;
+  description: string;
+  createdAt: string;
+  shelterId: string;
+  photoURLs: string[]; // URL to the dog's image
+}
+
+async function fetchDogs(): Promise<Dog[]> {
+  try {
+    // Debug: Check all stored tokens
+    const idToken = await AsyncStorage.getItem("idToken");
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    const refreshToken = await AsyncStorage.getItem("refreshToken");
+    
+    console.log('=== TOKEN DEBUG ===');
+    console.log('ID Token:', idToken ? `${idToken.substring(0, 20)}...` : 'null');
+    console.log('Access Token:', accessToken ? `${accessToken.substring(0, 20)}...` : 'null');
+    console.log('Refresh Token:', refreshToken ? `${refreshToken.substring(0, 20)}...` : 'null');
+    
+    // Helper function to decode base64url (JWT uses base64url encoding, not regular base64)
+    const base64UrlDecode = (str: string) => {
+      // Convert base64url to base64
+      str = str.replace(/-/g, '+').replace(/_/g, '/');
+      // Add padding if needed
+      while (str.length % 4) {
+        str += '=';
+      }
+      
+      // For React Native, we need to handle base64 decoding differently
+      try {
+        // Try browser atob first
+        if (typeof atob !== 'undefined') {
+          return atob(str);
+        }
+        // Fallback for React Native - simple manual base64 decode
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+        let result = '';
+        let i = 0;
+        
+        while (i < str.length) {
+          const a = chars.indexOf(str.charAt(i++));
+          const b = chars.indexOf(str.charAt(i++));
+          const c = chars.indexOf(str.charAt(i++));
+          const d = chars.indexOf(str.charAt(i++));
+          
+          const bitmap = (a << 18) | (b << 12) | (c << 6) | d;
+          
+          result += String.fromCharCode((bitmap >> 16) & 255);
+          if (c !== 64) result += String.fromCharCode((bitmap >> 8) & 255);
+          if (d !== 64) result += String.fromCharCode(bitmap & 255);
+        }
+        
+        return result;
+      } catch (e) {
+        console.log('Base64 decode error:', e);
+        return null;
+      }
+    };
+
+    // Let's decode the JWT to see what's inside
+    if (idToken) {
+      console.log('🔍 Attempting to decode ID Token...');
+      try {
+        const tokenParts = idToken.split('.');
+        console.log('ID Token parts:', tokenParts.length);
+        
+        if (tokenParts.length !== 3) {
+          console.log('❌ Invalid ID Token format - should have 3 parts separated by dots');
+        } else {
+          const payloadB64 = tokenParts[1];
+          console.log('ID Token payload (base64):', payloadB64.substring(0, 50) + '...');
+          
+          const decodedPayload = base64UrlDecode(payloadB64);
+          if (decodedPayload) {
+            const payload = JSON.parse(decodedPayload);
+            console.log('🔍 ID Token payload decoded successfully:');
+            console.log('  - Full payload:', JSON.stringify(payload, null, 2));
+            console.log('  - sub:', payload.sub);
+            console.log('  - aud:', payload.aud);
+            console.log('  - iss:', payload.iss);
+            console.log('  - token_use:', payload.token_use);
+            console.log('  - exp:', payload.exp);
+            console.log('  - iat:', payload.iat);
+            
+            // Check if audience matches API Gateway expectation
+            if (payload.aud === '6gif7noadq6h4pcrg4aesumjqm') {
+              console.log('✅ ID Token audience MATCHES API Gateway!');
+            } else {
+              console.log('❌ ID Token audience MISMATCH!');
+              console.log('   Expected: 6gif7noadq6h4pcrg4aesumjqm');
+              console.log('   Actual:', payload.aud);
+            }
+          } else {
+            console.log('❌ Failed to decode ID token payload');
+          }
+        }
+      } catch (e) {
+        console.log('❌ Failed to decode ID token:', e);
+      }
+    }
+    
+    if (accessToken) {
+      console.log('🔍 Attempting to decode Access Token...');
+      try {
+        const tokenParts = accessToken.split('.');
+        console.log('Access Token parts:', tokenParts.length);
+        
+        if (tokenParts.length !== 3) {
+          console.log('❌ Invalid Access Token format - should have 3 parts separated by dots');
+        } else {
+          const payloadB64 = tokenParts[1];
+          console.log('Access Token payload (base64):', payloadB64.substring(0, 50) + '...');
+          
+          const decodedPayload = base64UrlDecode(payloadB64);
+          if (decodedPayload) {
+            const payload = JSON.parse(decodedPayload);
+            console.log('🔍 Access Token payload decoded successfully:');
+            console.log('  - Full payload:', JSON.stringify(payload, null, 2));
+            console.log('  - sub:', payload.sub);
+            console.log('  - aud:', payload.aud);
+            console.log('  - iss:', payload.iss);
+            console.log('  - token_use:', payload.token_use);
+            console.log('  - client_id:', payload.client_id);
+            console.log('  - exp:', payload.exp);
+            console.log('  - iat:', payload.iat);
+            
+            // Check if client_id matches API Gateway expectation
+            if (payload.client_id === '6gif7noadq6h4pcrg4aesumjqm') {
+              console.log('✅ Access Token client_id MATCHES API Gateway!');
+            } else {
+              console.log('❌ Access Token client_id MISMATCH!');
+              console.log('   Expected: 6gif7noadq6h4pcrg4aesumjqm');
+              console.log('   Actual:', payload.client_id);
+            }
+          } else {
+            console.log('❌ Failed to decode access token payload');
+          }
+        }
+      } catch (e) {
+        console.log('❌ Failed to decode access token:', e);
+      }
+    }
+    
+    console.log('=================');
+    
+    if (!idToken && !accessToken) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    // Try different token formats in order of preference
+    // Based on our analysis: ID Token has correct audience, Access Token has aud=undefined
+    // So prioritize ID Token since it matches API Gateway expectation (aud: 6gif7noadq6h4pcrg4aesumjqm)
+    const tokenAttempts = [
+      { name: 'Bearer ID Token', token: idToken, format: (t: string) => `Bearer ${t}` },
+      { name: 'Direct ID Token', token: idToken, format: (t: string) => t },
+      { name: 'Bearer Access Token', token: accessToken, format: (t: string) => `Bearer ${t}` },
+      { name: 'Direct Access Token', token: accessToken, format: (t: string) => t },
+    ].filter(attempt => attempt.token); // Only include attempts where token exists
+
+    for (const attempt of tokenAttempts) {
+      try {
+        console.log(`\n🔄 Trying ${attempt.name}...`);
+        console.log(`Token preview: ${attempt.token!.substring(0, 30)}...`);
+        
+        const res = await axios.get("https://52p1yd0ot6.execute-api.eu-west-2.amazonaws.com/default/NearestDogs", {
+          headers: {
+            Authorization: attempt.format(attempt.token!),
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log(`✅ SUCCESS with ${attempt.name}!`);
+        console.log('Response status:', res.status);
+        console.log('Response data:', res.data);
+        console.log('Dogs array:', res.data.dogs);
+        console.log('Dogs array length:', res.data.dogs ? res.data.dogs.length : 'undefined');
+        
+        // Assuming your API returns an array of dogs or an object with a dogs array
+        const dogsArray = res.data.dogs || res.data || [];
+        console.log('Final dogs array to return:', dogsArray);
+        console.log('Final dogs array length:', dogsArray.length);
+        
+        return dogsArray;
+        
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.log(`❌ Failed with ${attempt.name}`);
+          console.log('   Status:', error.response?.status);
+          console.log('   Message:', error.response?.statusText);
+          console.log('   Data:', JSON.stringify(error.response?.data, null, 2));
+          console.log('   Headers:', JSON.stringify(error.response?.headers, null, 2));
+        } else {
+          console.log(`❌ Failed with ${attempt.name}:`, error);
+        }
+        
+        // If this is not a 401 error, or if this is the last attempt, throw the error
+        if (!axios.isAxiosError(error) || error.response?.status !== 401 || attempt === tokenAttempts[tokenAttempts.length - 1]) {
+          if (attempt === tokenAttempts[tokenAttempts.length - 1]) {
+            console.error('\n🚨 All token attempts failed');
+            throw new Error('Authentication failed with all token formats. Please log in again.');
+          } else if (axios.isAxiosError(error) && error.response?.status !== 401) {
+            throw error; // Re-throw non-401 errors immediately
+          }
+        }
+        // Continue to next attempt for 401 errors
+        console.log('   Continuing to next token format...\n');
+      }
+    }
+    
+    // This should never be reached, but TypeScript needs a return statement
+    throw new Error('Unexpected error: no token attempts were made');
+    
+  } catch (error) {
+    console.error('Error fetching dogs:', error);
+    throw error;
+  }
+}
+
 
 // Mock Data for Dogs (replace with actual API calls later)
-// const mockDogs: Dog[] = [
-//   {
-//     dogId: 'dog1',
-//     name: 'Cooper',
-//     breed: 'Samoyed',
-//     age: 2,
-//     gender: 'Male',
-//     description: 'A fluffy, friendly, and playful Samoyed looking for a loving home. Loves belly rubs and long walks!',
-//     photoURLs: ['https://placehold.co/600x400/FFD194/FFF?text=Cooper'], // Placeholder image
-//     shelterId: 'shelter1',
-//     status: 'Available',
-//     createdAt: 'today'
-//   },
-//   {
-//     dogId: 'dog2',
-//     name: 'Luna',
-//     breed: 'Labradoodle',
-//     age: 1,
-//     gender: 'Female',
-//     description: 'Energetic and loves playing fetch. Great with kids and other pets.',
-//     photoURLs: ['https://placehold.co/600x400/FFACAC/FFF?text=Luna'], // Placeholder image
-//     shelterId: 'shelter1',
-//     status: 'Available',
-//     createdAt: 'today'
-//   },
-//   {
-//     dogId: 'dog3',
-//     name: 'Max',
-//     breed: 'German Shepherd',
-//     age: 3,
-//     gender: 'Male',
-//     description: 'Loyal and intelligent, Max is looking for an active family.',
-//     photoURLs: 'https://placehold.co/600x400/94D1FF/FFF?text=Max',
-//     shelterId: 'shelter1',
-//     status: 'Available',
-//     createdAt: 'today'
-//   },
-//   {
-//     dogId: 'dog4',
-//     name: 'Daisy',
-//     breed: 'Beagle',
-//     age: 4,
-//     gender: 'Female',
-//     description: 'Sweet and curious, Daisy loves to explore and cuddle.',
-//     photoURLs: 'https://placehold.co/600x400/94FFD1/FFF?text=Daisy',
-//     shelterId: 'shelter1',
-//     status: 'Available',
-//     createdAt: 'today'
-//   },
-// ];
+const mockDogs: Dog[] = [
+  {
+    id: 'dog1',
+    name: 'Cooper',
+    breed: 'Samoyed',
+    age: 2,
+    gender: 'Male',
+    description: 'A fluffy, friendly, and playful Samoyed looking for a loving home. Loves belly rubs and long walks!',
+    createdAt: 'today',
+    shelterId: 'shelterId',
+    photoURLs: ['https://placehold.co/600x400/FFD194/FFF?text=Cooper'], // Placeholder image
+  },
+  {
+    id: 'dog2',
+    name: 'Luna',
+    breed: 'Labradoodle',
+    age: 1,
+    gender: 'Female',
+    description: 'Energetic and loves playing fetch. Great with kids and other pets.',
+    createdAt: 'today',
+    shelterId: 'shelterId',
+    photoURLs: ['https://placehold.co/600x400/FFACAC/FFF?text=Luna'], // Placeholder image
+  },
+  {
+    id: 'dog3',
+    name: 'Max',
+    breed: 'German Shepherd',
+    age: 3,
+    gender: 'Male',
+    description: 'Loyal and intelligent, Max is looking for an active family.',
+    createdAt: 'today',
+    shelterId: 'shelterId',
+    photoURLs: ['https://placehold.co/600x400/94D1FF/FFF?text=Max'],
+  },
+  {
+    id: 'dog4',
+    name: 'Daisy',
+    breed: 'Beagle',
+    age: 4,
+    gender: 'Female',
+    description: 'Sweet and curious, Daisy loves to explore and cuddle.',
+    createdAt: 'today',
+    shelterId: 'shelterId',
+    photoURLs: ['https://placehold.co/600x400/94FFD1/FFF?text=Daisy'],
+  },
+];
 
 // Threshold for a successful swipe (e.g., move 1/4 of screen width)
 const SWIPE_THRESHOLD = width * 0.25;
@@ -112,58 +323,70 @@ const DogSwipeScreen: React.FC = () => {
   const navigation = useNavigation<DogSwipeScreenNavigationProp>();
   const [currentDogIndex, setCurrentDogIndex] = useState(0);
   const [currentDog, setCurrentDog] = useState<Dog | null>(null);
+  const [dogs, setDogs] = useState<Dog[]>([]); // State to store fetched dogs
+  const [isLoading, setIsLoading] = useState(true); // Loading state
 
   // Reanimated shared values for card position
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
-  const [page, setPage] = useState<number>(0)
-  const LIMIT = 5
-  const [total, setTotal] = useState<number>(0)
-  const dogsApi = new DogsApi(apiConfig)
-  const [dogs, setDogs] = useState<Dog[]>([])
-  const swipesApi = new SwipesApi(apiConfig);
-
-  // Fetch dogs
+  // Fetch dogs when component mounts
   useEffect(() => {
     const loadDogs = async () => {
-      const response: DogPage = await dogsApi.listDogs({limit: LIMIT, page: page});
-      console.log(response.dogs)
-      setDogs(prevDogs => [...prevDogs, ...(response.dogs ?? [])])
-      if (!total) {
-        setTotal(response.total ?? 0)
-      }      
-  }
+      try {
+        console.log('🐕 Starting to load dogs...');
+        setIsLoading(true);
+        const fetchedDogs = await fetchDogs();
+        console.log('🐕 Fetched dogs result:', fetchedDogs);
+        console.log('🐕 Fetched dogs length:', fetchedDogs ? fetchedDogs.length : 'null/undefined');
+        
+        const finalDogs = fetchedDogs || mockDogs;
+        console.log('🐕 Final dogs to set:', finalDogs);
+        console.log('🐕 Final dogs length:', finalDogs.length);
+        
+        setDogs(finalDogs); // Fallback to mock data if API fails
+      } catch (error) {
+        console.error('❌ Failed to fetch dogs:', error);
+        console.log('🐕 Using mock data due to error. Mock dogs length:', mockDogs.length);
+        setDogs(mockDogs); // Use mock data as fallback
+        handleAlert('Error', 'Failed to load dogs. Using sample data.');
+      } finally {
+        setIsLoading(false);
+        console.log('🐕 Loading completed');
+      }
+    };
 
-    loadDogs()
-  }, [page]);
+    loadDogs();
+  }, []);
 
   // Load the first dog when the component mounts or index changes
   useEffect(() => {
-      try {
-        if (dogs.length > currentDogIndex) {
-          setCurrentDog(dogs[currentDogIndex]);
-          // Reset animated values for the new card
-          translateX.value = 0;
-          translateY.value = 0;
-      } else {
-          setCurrentDog(null); // No more dogs available
-          handleAlert('No More Dogs', 'You\'ve seen all available dogs for now!');
-      }
-      } catch (error: any) {
-        console.error('Failed to fetch dogs:', error);
-        if (error.response) {
-          const text = error.response.text();
-          console.error('Backend error response: ', text);
-        }
-      }  
-    }, [currentDogIndex, dogs.length]);
+    console.log('🔄 Dogs effect triggered:');
+    console.log('   - dogs.length:', dogs.length);
+    console.log('   - currentDogIndex:', currentDogIndex);
+    console.log('   - isLoading:', isLoading);
+    
+    if (dogs.length > currentDogIndex) {
+      const dogToShow = dogs[currentDogIndex];
+      console.log('✅ Setting current dog:', dogToShow);
+      setCurrentDog(dogToShow);
+      // Reset animated values for the new card
+      translateX.value = 0;
+      translateY.value = 0;
+    } else if (!isLoading) {
+      console.log('❌ No more dogs available');
+      setCurrentDog(null); // No more dogs available
+      handleAlert('No More Dogs', 'You\'ve seen all available dogs for now!');
+    }
+  }, [currentDogIndex, dogs, isLoading]);
 
   // Function to handle swipe completion (runs on JS thread)
-  const onSwipeCompleteJS = (direction: 'Left' | 'Right') => {
+  const onSwipeCompleteJS = async (direction: 'left' | 'right') => {
     if (!currentDog) return;
 
     console.log(`Swiped ${direction} on ${currentDog.name}`);
+
+    const swipesApi = new SwipesApi(apiConfig)
 
     const swipeData: SwipeCreate = {
       dogId: currentDog.id,
@@ -181,9 +404,22 @@ const DogSwipeScreen: React.FC = () => {
 
     swipesApi.createSwipe(swipeReq);
 
-    setCurrentDogIndex(prevIndex => prevIndex + 1); // Move to the next dog
-    if (currentDogIndex == dogs.length - 2 && currentDogIndex < total - LIMIT) {
-      setPage(prevPage => prevPage + 1)
+    const nextIndex = currentDogIndex + 1;
+    setCurrentDogIndex(nextIndex);
+
+    // If we're running low on dogs (e.g., only 2 left), fetch more
+    if (dogs.length - nextIndex <= 2 && !isLoading) {
+      try {
+        setIsLoading(true);
+        const moreDogs = await fetchDogs();
+        if (moreDogs && moreDogs.length > 0) {
+          setDogs(prevDogs => [...prevDogs, ...moreDogs]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch more dogs:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -204,13 +440,13 @@ const DogSwipeScreen: React.FC = () => {
       if (event.translationX > SWIPE_THRESHOLD) {
         // Swiped right (like)
         translateX.value = withTiming(width * 1.5, { duration: SWIPE_OUT_DURATION }, () => {
-          runOnJS(onSwipeCompleteJS)('Right');
+          runOnJS(onSwipeCompleteJS)('right');
         });
         translateY.value = withTiming(event.translationY, { duration: SWIPE_OUT_DURATION });
       } else if (event.translationX < -SWIPE_THRESHOLD) {
         // Swiped left (dislike)
         translateX.value = withTiming(-width * 1.5, { duration: SWIPE_OUT_DURATION }, () => {
-          runOnJS(onSwipeCompleteJS)('Left');
+          runOnJS(onSwipeCompleteJS)('left');
         });
         translateY.value = withTiming(event.translationY, { duration: SWIPE_OUT_DURATION });
       } else {
@@ -312,8 +548,12 @@ const DogSwipeScreen: React.FC = () => {
                     <Text style={styles.dogBreed}>{currentDog.breed}</Text>
                 </View>
               </>
+            ) : isLoading ? (
+              <View style={styles.noDogsContent}>
+                <Text style={styles.noDogsText}>Loading dogs near you...</Text>
+              </View>
             ) : (
-              <View style={styles.noDogsContent}> {/* New style for content inside the card */}
+              <View style={styles.noDogsContent}>
                 <Text style={styles.noDogsText}>No dogs available right now. Check back later!</Text>
               </View>
             )}
