@@ -13,6 +13,8 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App'; // Import RootStackParamList
 import AppHeader from '../components/AppHeader';
 import AppFooter from '../components/AppFooter';
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import gesture-handler and reanimated components/hooks
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -43,6 +45,218 @@ interface Dog {
   description: string;
   photoUrl: string; // URL to the dog's image
 }
+
+async function fetchDogs(): Promise<Dog[]> {
+  try {
+    // Debug: Check all stored tokens
+    const idToken = await AsyncStorage.getItem("idToken");
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    const refreshToken = await AsyncStorage.getItem("refreshToken");
+    
+    console.log('=== TOKEN DEBUG ===');
+    console.log('ID Token:', idToken ? `${idToken.substring(0, 20)}...` : 'null');
+    console.log('Access Token:', accessToken ? `${accessToken.substring(0, 20)}...` : 'null');
+    console.log('Refresh Token:', refreshToken ? `${refreshToken.substring(0, 20)}...` : 'null');
+    
+    // Helper function to decode base64url (JWT uses base64url encoding, not regular base64)
+    const base64UrlDecode = (str: string) => {
+      // Convert base64url to base64
+      str = str.replace(/-/g, '+').replace(/_/g, '/');
+      // Add padding if needed
+      while (str.length % 4) {
+        str += '=';
+      }
+      
+      // For React Native, we need to handle base64 decoding differently
+      try {
+        // Try browser atob first
+        if (typeof atob !== 'undefined') {
+          return atob(str);
+        }
+        // Fallback for React Native - simple manual base64 decode
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+        let result = '';
+        let i = 0;
+        
+        while (i < str.length) {
+          const a = chars.indexOf(str.charAt(i++));
+          const b = chars.indexOf(str.charAt(i++));
+          const c = chars.indexOf(str.charAt(i++));
+          const d = chars.indexOf(str.charAt(i++));
+          
+          const bitmap = (a << 18) | (b << 12) | (c << 6) | d;
+          
+          result += String.fromCharCode((bitmap >> 16) & 255);
+          if (c !== 64) result += String.fromCharCode((bitmap >> 8) & 255);
+          if (d !== 64) result += String.fromCharCode(bitmap & 255);
+        }
+        
+        return result;
+      } catch (e) {
+        console.log('Base64 decode error:', e);
+        return null;
+      }
+    };
+
+    // Let's decode the JWT to see what's inside
+    if (idToken) {
+      console.log('🔍 Attempting to decode ID Token...');
+      try {
+        const tokenParts = idToken.split('.');
+        console.log('ID Token parts:', tokenParts.length);
+        
+        if (tokenParts.length !== 3) {
+          console.log('❌ Invalid ID Token format - should have 3 parts separated by dots');
+        } else {
+          const payloadB64 = tokenParts[1];
+          console.log('ID Token payload (base64):', payloadB64.substring(0, 50) + '...');
+          
+          const decodedPayload = base64UrlDecode(payloadB64);
+          if (decodedPayload) {
+            const payload = JSON.parse(decodedPayload);
+            console.log('🔍 ID Token payload decoded successfully:');
+            console.log('  - Full payload:', JSON.stringify(payload, null, 2));
+            console.log('  - sub:', payload.sub);
+            console.log('  - aud:', payload.aud);
+            console.log('  - iss:', payload.iss);
+            console.log('  - token_use:', payload.token_use);
+            console.log('  - exp:', payload.exp);
+            console.log('  - iat:', payload.iat);
+            
+            // Check if audience matches API Gateway expectation
+            if (payload.aud === '6gif7noadq6h4pcrg4aesumjqm') {
+              console.log('✅ ID Token audience MATCHES API Gateway!');
+            } else {
+              console.log('❌ ID Token audience MISMATCH!');
+              console.log('   Expected: 6gif7noadq6h4pcrg4aesumjqm');
+              console.log('   Actual:', payload.aud);
+            }
+          } else {
+            console.log('❌ Failed to decode ID token payload');
+          }
+        }
+      } catch (e) {
+        console.log('❌ Failed to decode ID token:', e);
+      }
+    }
+    
+    if (accessToken) {
+      console.log('🔍 Attempting to decode Access Token...');
+      try {
+        const tokenParts = accessToken.split('.');
+        console.log('Access Token parts:', tokenParts.length);
+        
+        if (tokenParts.length !== 3) {
+          console.log('❌ Invalid Access Token format - should have 3 parts separated by dots');
+        } else {
+          const payloadB64 = tokenParts[1];
+          console.log('Access Token payload (base64):', payloadB64.substring(0, 50) + '...');
+          
+          const decodedPayload = base64UrlDecode(payloadB64);
+          if (decodedPayload) {
+            const payload = JSON.parse(decodedPayload);
+            console.log('🔍 Access Token payload decoded successfully:');
+            console.log('  - Full payload:', JSON.stringify(payload, null, 2));
+            console.log('  - sub:', payload.sub);
+            console.log('  - aud:', payload.aud);
+            console.log('  - iss:', payload.iss);
+            console.log('  - token_use:', payload.token_use);
+            console.log('  - client_id:', payload.client_id);
+            console.log('  - exp:', payload.exp);
+            console.log('  - iat:', payload.iat);
+            
+            // Check if client_id matches API Gateway expectation
+            if (payload.client_id === '6gif7noadq6h4pcrg4aesumjqm') {
+              console.log('✅ Access Token client_id MATCHES API Gateway!');
+            } else {
+              console.log('❌ Access Token client_id MISMATCH!');
+              console.log('   Expected: 6gif7noadq6h4pcrg4aesumjqm');
+              console.log('   Actual:', payload.client_id);
+            }
+          } else {
+            console.log('❌ Failed to decode access token payload');
+          }
+        }
+      } catch (e) {
+        console.log('❌ Failed to decode access token:', e);
+      }
+    }
+    
+    console.log('=================');
+    
+    if (!idToken && !accessToken) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    // Try different token formats in order of preference
+    // Based on our analysis: ID Token has correct audience, Access Token has aud=undefined
+    // So prioritize ID Token since it matches API Gateway expectation (aud: 6gif7noadq6h4pcrg4aesumjqm)
+    const tokenAttempts = [
+      { name: 'Bearer ID Token', token: idToken, format: (t: string) => `Bearer ${t}` },
+      { name: 'Direct ID Token', token: idToken, format: (t: string) => t },
+      { name: 'Bearer Access Token', token: accessToken, format: (t: string) => `Bearer ${t}` },
+      { name: 'Direct Access Token', token: accessToken, format: (t: string) => t },
+    ].filter(attempt => attempt.token); // Only include attempts where token exists
+
+    for (const attempt of tokenAttempts) {
+      try {
+        console.log(`\n🔄 Trying ${attempt.name}...`);
+        console.log(`Token preview: ${attempt.token!.substring(0, 30)}...`);
+        
+        const res = await axios.get("https://52p1yd0ot6.execute-api.eu-west-2.amazonaws.com/default/NearestDogs", {
+          headers: {
+            Authorization: attempt.format(attempt.token!),
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log(`✅ SUCCESS with ${attempt.name}!`);
+        console.log('Response status:', res.status);
+        console.log('Response data:', res.data);
+        console.log('Dogs array:', res.data.dogs);
+        console.log('Dogs array length:', res.data.dogs ? res.data.dogs.length : 'undefined');
+        
+        // Assuming your API returns an array of dogs or an object with a dogs array
+        const dogsArray = res.data.dogs || res.data || [];
+        console.log('Final dogs array to return:', dogsArray);
+        console.log('Final dogs array length:', dogsArray.length);
+        
+        return dogsArray;
+        
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.log(`❌ Failed with ${attempt.name}`);
+          console.log('   Status:', error.response?.status);
+          console.log('   Message:', error.response?.statusText);
+          console.log('   Data:', JSON.stringify(error.response?.data, null, 2));
+          console.log('   Headers:', JSON.stringify(error.response?.headers, null, 2));
+        } else {
+          console.log(`❌ Failed with ${attempt.name}:`, error);
+        }
+        
+        // If this is not a 401 error, or if this is the last attempt, throw the error
+        if (!axios.isAxiosError(error) || error.response?.status !== 401 || attempt === tokenAttempts[tokenAttempts.length - 1]) {
+          if (attempt === tokenAttempts[tokenAttempts.length - 1]) {
+            console.error('\n🚨 All token attempts failed');
+            throw new Error('Authentication failed with all token formats. Please log in again.');
+          } else if (axios.isAxiosError(error) && error.response?.status !== 401) {
+            throw error; // Re-throw non-401 errors immediately
+          }
+        }
+        // Continue to next attempt for 401 errors
+        console.log('   Continuing to next token format...\n');
+      }
+    }
+    
+    // This should never be reached, but TypeScript needs a return statement
+    throw new Error('Unexpected error: no token attempts were made');
+    
+  } catch (error) {
+    console.error('Error fetching dogs:', error);
+    throw error;
+  }
+}
+
 
 // Mock Data for Dogs (replace with actual API calls later)
 const mockDogs: Dog[] = [
@@ -92,33 +306,88 @@ const DogSwipeScreen: React.FC = () => {
   const navigation = useNavigation<DogSwipeScreenNavigationProp>();
   const [currentDogIndex, setCurrentDogIndex] = useState(0);
   const [currentDog, setCurrentDog] = useState<Dog | null>(null);
+  const [dogs, setDogs] = useState<Dog[]>([]); // State to store fetched dogs
+  const [isLoading, setIsLoading] = useState(true); // Loading state
 
   // Reanimated shared values for card position
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
+  // Fetch dogs when component mounts
+  useEffect(() => {
+    const loadDogs = async () => {
+      try {
+        console.log('🐕 Starting to load dogs...');
+        setIsLoading(true);
+        const fetchedDogs = await fetchDogs();
+        console.log('🐕 Fetched dogs result:', fetchedDogs);
+        console.log('🐕 Fetched dogs length:', fetchedDogs ? fetchedDogs.length : 'null/undefined');
+        
+        const finalDogs = fetchedDogs || mockDogs;
+        console.log('🐕 Final dogs to set:', finalDogs);
+        console.log('🐕 Final dogs length:', finalDogs.length);
+        
+        setDogs(finalDogs); // Fallback to mock data if API fails
+      } catch (error) {
+        console.error('❌ Failed to fetch dogs:', error);
+        console.log('🐕 Using mock data due to error. Mock dogs length:', mockDogs.length);
+        setDogs(mockDogs); // Use mock data as fallback
+        handleAlert('Error', 'Failed to load dogs. Using sample data.');
+      } finally {
+        setIsLoading(false);
+        console.log('🐕 Loading completed');
+      }
+    };
+
+    loadDogs();
+  }, []);
+
   // Load the first dog when the component mounts or index changes
   useEffect(() => {
-    if (mockDogs.length > currentDogIndex) {
-      setCurrentDog(mockDogs[currentDogIndex]);
+    console.log('🔄 Dogs effect triggered:');
+    console.log('   - dogs.length:', dogs.length);
+    console.log('   - currentDogIndex:', currentDogIndex);
+    console.log('   - isLoading:', isLoading);
+    
+    if (dogs.length > currentDogIndex) {
+      const dogToShow = dogs[currentDogIndex];
+      console.log('✅ Setting current dog:', dogToShow);
+      setCurrentDog(dogToShow);
       // Reset animated values for the new card
       translateX.value = 0;
       translateY.value = 0;
-    } else {
+    } else if (!isLoading) {
+      console.log('❌ No more dogs available');
       setCurrentDog(null); // No more dogs available
       handleAlert('No More Dogs', 'You\'ve seen all available dogs for now!');
     }
-  }, [currentDogIndex]);
+  }, [currentDogIndex, dogs, isLoading]);
 
   // Function to handle swipe completion (runs on JS thread)
-  const onSwipeCompleteJS = (direction: 'left' | 'right') => {
+  const onSwipeCompleteJS = async (direction: 'left' | 'right') => {
     if (!currentDog) return;
 
     console.log(`Swiped ${direction} on ${currentDog.name}`);
     // TODO: Send swipe data to backend (Swipes table)
     // You'd typically make an API call here: POST /api/swipes { adopterId, dogId, direction }
 
-    setCurrentDogIndex(prevIndex => prevIndex + 1); // Move to the next dog
+    const nextIndex = currentDogIndex + 1;
+    setCurrentDogIndex(nextIndex);
+
+    // If we're running low on dogs (e.g., only 2 left), fetch more
+    if (dogs.length - nextIndex <= 2 && !isLoading) {
+      try {
+        setIsLoading(true);
+        const moreDogs = await fetchDogs();
+        if (moreDogs && moreDogs.length > 0) {
+          setDogs(prevDogs => [...prevDogs, ...moreDogs]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch more dogs:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
   };
 
   // Navigate to DogProfileDetailScreen (runs on JS thread)
@@ -246,8 +515,12 @@ const DogSwipeScreen: React.FC = () => {
                     <Text style={styles.dogBreed}>{currentDog.breed}</Text>
                 </View>
               </>
+            ) : isLoading ? (
+              <View style={styles.noDogsContent}>
+                <Text style={styles.noDogsText}>Loading dogs near you...</Text>
+              </View>
             ) : (
-              <View style={styles.noDogsContent}> {/* New style for content inside the card */}
+              <View style={styles.noDogsContent}>
                 <Text style={styles.noDogsText}>No dogs available right now. Check back later!</Text>
               </View>
             )}
