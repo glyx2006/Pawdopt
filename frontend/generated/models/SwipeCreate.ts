@@ -84,10 +84,10 @@ export function SwipeCreateToJSONTyped(value?: SwipeCreate | null, ignoreDiscrim
     if (value == null) {
         return value;
     }
-
+    console.log("value:", value)
     return {
         'dogId': value['dogId'],
-        'dog_created_at': value['dogCreatedAt'],
+        'dogCreatedAt': value['dogCreatedAt'],
         'direction': value['direction'],
         'shelterId': value['shelterId']
     };

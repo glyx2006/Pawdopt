@@ -134,6 +134,7 @@ export class BaseAPI {
     protected async request(context: RequestOpts, initOverrides?: RequestInit | InitOverrideFunction): Promise<Response> {
         const { url, init } = await this.createFetchParams(context, initOverrides);
         const response = await this.fetchApi(url, init);
+        console.log(response)
         if (response && (response.status >= 200 && response.status < 300)) {
             return response;
         }
@@ -141,7 +142,6 @@ export class BaseAPI {
     }
 
     private async createFetchParams(context: RequestOpts, initOverrides?: RequestInit | InitOverrideFunction) {
-        console.log(`CONTEXT ${context['body']}`)
         let url = this.configuration.basePath + context.path;
         if (context.query !== undefined && Object.keys(context.query).length !== 0) {
             // only add the querystring to the URL if there are query parameters.
@@ -164,7 +164,6 @@ export class BaseAPI {
             body: context.body,
             credentials: this.configuration.credentials,
         };
-        console.log(`INITPARAMS: ${initParams['body']}`)
 
         const overriddenInit: RequestInit = {
             ...initParams,
@@ -174,9 +173,11 @@ export class BaseAPI {
             }))
         };
 
-        console.log(`OVERRIDDENINIT ${overriddenInit['body']}`) // body undefined
-
         let body: any;
+        console.log('headers[Content-Type]:', headers['Content-Type']);
+        console.log('isJsonMime?', this.isJsonMime(headers['Content-Type']));
+        console.log('overriddenInit.body before stringify:', overriddenInit.body);
+
         if (isFormData(overriddenInit.body)
             || (overriddenInit.body instanceof URLSearchParams)
             || isBlob(overriddenInit.body)) {
@@ -192,22 +193,29 @@ export class BaseAPI {
             body
         };
 
+        console.log("FINAL INIT before return:", init.headers, init.body);
+
         return { url, init };
     }
 
     private fetchApi = async (url: string, init: RequestInit) => {
         let fetchParams = { url, init };
-        console.log(init) // body undefined
+        console.log("init", init)
         for (const middleware of this.middleware) {
             if (middleware.pre) {
-                fetchParams = await middleware.pre({
+                console.log("Before middleware:", fetchParams.init.body);
+                const result = await middleware.pre({
                     fetch: this.fetchApi,
                     ...fetchParams,
-                }) || fetchParams;
+                });
+                console.log("After middleware:", result?.init?.body);
+                fetchParams = result || fetchParams;
             }
         }
+
         let response: Response | undefined = undefined;
         try {
+            console.log("fetchparams.init", fetchParams.init)
             response = await (this.configuration.fetchApi || fetch)(fetchParams.url, fetchParams.init);
         } catch (e) {
             for (const middleware of this.middleware) {

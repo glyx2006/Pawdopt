@@ -70,8 +70,7 @@ export class SwipesApi extends runtime.BaseAPI {
             query: queryParameters,
             body: SwipeCreateToJSON(requestParameters['swipeCreate']),
         }
-        console.log(`TOSEND ${tosend}`)
-        console.log(`INITOVERRIDES ${initOverrides}`)
+        console.log(`swipecreatetojson output:: ${SwipeCreateFromJSON(requestParameters['swipeCreate'])}`)
         const response = await this.request(tosend, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SwipeFromJSON(jsonValue));
