@@ -3,14 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 
 import { RootStackParamList, Dog } from '../../App';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
 import { getAccessToken } from '../../services/CognitoService';
-import { uploadDogProfile } from '../../src/api';
+import { uploadDogProfile, updateDogProfile } from '../../src/api';
 
 type AddDogDescriptionRouteProp = RouteProp<RootStackParamList, 'AddDogDescription'>;
 
 const AddDogDescriptionScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<AddDogDescriptionRouteProp>();
-  const [bio, setBio] = useState('');
   const {
     onAddDog,
     shelterId,
@@ -22,8 +21,13 @@ const AddDogDescriptionScreen: React.FC = () => {
     color,
     size,
     photos,
-    photoKeys
+    photoKeys,
+    editMode,
+    existingDog,
   } = route.params || {};
+
+  // Initialize bio with existing dog's description if in edit mode
+  const [bio, setBio] = useState(editMode && existingDog ? existingDog.description || '' : '');
 
   const canContinue = bio.trim().length > 0;
 
@@ -31,6 +35,7 @@ const AddDogDescriptionScreen: React.FC = () => {
     try {
       const token = await getAccessToken();
       if (!token) return alert('Please sign in first');
+
       const payload = {
         name,
         age: dob,
@@ -42,19 +47,35 @@ const AddDogDescriptionScreen: React.FC = () => {
         dog_status: 'AVAILABLE',
         shelter_id: shelterId,
         shelter_postcode: shelterPostcode,
-        photo_keys: photoKeys,
+        // For edit mode, we might have a mix of existing and new photos
+        photoKeys: photoKeys || [],
       };
 
-      const response = await uploadDogProfile(payload, token);
-
-    
-  
-      if (response.ok) {
-        alert('Dog uploaded!');
-        navigation.navigate('AddDogSuccess');
+      let response;
+      
+      if (editMode && existingDog) {
+        // Update existing dog
+        response = await updateDogProfile(existingDog.id, payload, token);
+        
+        if (response.ok) {
+          alert('Dog updated successfully!');
+          // Navigate back to dashboard
+          navigation.navigate('AddDogSuccess');
+        } else {
+          const text = await response.text();
+          alert('Update failed: ' + text);
+        }
       } else {
-        const text = await response.text();
-        alert('Upload failed: ' + text);
+        // Create new dog
+        response = await uploadDogProfile(payload, token);
+        
+        if (response.ok) {
+          alert('Dog uploaded!');
+          navigation.navigate('AddDogSuccess');
+        } else {
+          const text = await response.text();
+          alert('Upload failed: ' + text);
+        }
       }
     } catch (error) {
       alert('Error: ' + (error as Error).message);
@@ -70,13 +91,20 @@ const AddDogDescriptionScreen: React.FC = () => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Text style={styles.backButtonText}>{'<'}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Enter dog description</Text>
+        <Text style={styles.title}>
+          {editMode ? 'Update dog description' : 'Enter dog description'}
+        </Text>
         <Text style={styles.inputLabel}>Bio</Text>
+        {editMode && existingDog && existingDog.description && (
+          <Text style={styles.editNote}>
+            Editing existing description - make any changes needed below:
+          </Text>
+        )}
         <TextInput
           style={styles.textAreaInput}
           value={bio}
           onChangeText={setBio}
-          placeholder=""
+          placeholder={editMode ? "Update the dog's bio..." : "Enter a description for the dog..."}
           multiline
           textAlignVertical="top"
         />
@@ -87,7 +115,9 @@ const AddDogDescriptionScreen: React.FC = () => {
             onPress={handleContinue}
           >
             <View style={[styles.continueButtonGradient, { backgroundColor: canContinue ? '#F7B781' : '#E5E5E5' }]}>
-              <Text style={[styles.continueButtonText, { color: canContinue ? '#fff' : '#A3A3A3' }]}>CONTINUE</Text>
+              <Text style={[styles.continueButtonText, { color: canContinue ? '#fff' : '#A3A3A3' }]}>
+                {editMode ? 'UPDATE' : 'CONTINUE'}
+              </Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -132,6 +162,13 @@ const styles = StyleSheet.create({
     color: '#F7B781',
     marginBottom: 5,
     marginTop: 15,
+  },
+  editNote: {
+    alignSelf: 'flex-start',
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 8,
+    fontStyle: 'italic',
   },
   textAreaInput: {
     width: '100%',

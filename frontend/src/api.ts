@@ -34,11 +34,11 @@ export async function uploadImagesToS3(uris: string[], urls: string[]) {
     const blob = await res.blob();
 
     const uploadRes = await fetch(urls[i], {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'image/jpeg',
-      },
-      body: blob,
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'image/jpeg',
+          },
+          body: blob,
     });
 
     return uploadRes;
@@ -76,6 +76,21 @@ export async function deleteDog(dogId: string, dogCreatedAt: string, token: stri
   });
 
   // 204 No Content response doesn't have a body to parse
+  return response;
+}
+
+export async function updateDogProfile(dogId: string, data: any, token: string) {
+  console.log('Frontend updating dog with this data:', JSON.stringify(data, null, 2));
+  
+  const response = await fetch(`https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default/dog/${dogId}`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
   return response;
 }
 
