@@ -1,5 +1,5 @@
 // src/screens/AddDogScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,26 +22,23 @@ import { handleAlert } from '../utils/AlertUtils';
 
 type AddDogRouteProp = RouteProp<RootStackParamList, 'AddDog'>;
 
+// Utility function to convert age to approximate DOB
+const convertAgeToApproxDob = (age: number): string => {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1; // getMonth() returns 0-11
+  
+  const birthYear = currentYear - age;
+  // Use current month as approximation
+  const birthMonth = currentMonth.toString().padStart(2, '0');
+  
+  return `${birthYear}/${birthMonth}`;
+};
+
 const AddDogScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<AddDogRouteProp>();
-  const { onAddDog, shelterId, shelterPostcode } = route.params;
-
-  // State for dog details
-  const [name, setName] = useState('');
-  const [breed, setBreed] = useState('');
-  const [dob, setDob] = useState('');
-  const [gender, setGender] = useState('');
-  const [color, setColor] = useState('');
-  const [size, setSize] = useState('');
-  const [calculatedAge, setCalculatedAge] = useState<number | null>(null);
-  // State for custom breed input
-  const [showCustomBreed, setShowCustomBreed] = useState(false);
-  const [customBreed, setCustomBreed] = useState('');
-  // const [description, setDescription] = useState('');
-  // const [photoUrl, setPhotoUrl] = useState('');
-  // const [status, setStatus] = useState('Available');
-  const [loading, setLoading] = useState(false);
+  const { onAddDog, shelterId, shelterPostcode, editMode, existingDog } = route.params;
 
   const breedOptions = [
     { label: 'Australian Shepherd', value: 'Australian Shepherd' },
@@ -70,6 +67,41 @@ const AddDogScreen: React.FC = () => {
     { label: 'Yorkshire Terrier', value: 'Yorkshire Terrier' },
     { label: 'Other', value: 'Other' },
   ];
+
+  // State for dog details
+  const [name, setName] = useState(editMode && existingDog ? existingDog.name : '');
+  const [breed, setBreed] = useState(() => {
+    if (editMode && existingDog) {
+      const isPredefineBreed = breedOptions.some(option => option.value === existingDog.breed);
+      return isPredefineBreed ? existingDog.breed : 'Other';
+    }
+    return '';
+  });
+  const [dob, setDob] = useState(editMode && existingDog ? convertAgeToApproxDob(existingDog.age) : '');
+  const [gender, setGender] = useState(editMode && existingDog ? existingDog.gender : '');
+  const [color, setColor] = useState(editMode && existingDog ? existingDog.color || '' : '');
+  const [size, setSize] = useState(editMode && existingDog ? existingDog.size || '' : '');
+  const [calculatedAge, setCalculatedAge] = useState<number | null>(editMode && existingDog ? existingDog.age : null);
+  // State for custom breed input
+  const [showCustomBreed, setShowCustomBreed] = useState(() => {
+    if (editMode && existingDog) {
+      // Check if the existing breed is in our predefined list
+      const isPredefineBreed = breedOptions.some(option => option.value === existingDog.breed);
+      return !isPredefineBreed && existingDog.breed !== '';
+    }
+    return false;
+  });
+  const [customBreed, setCustomBreed] = useState(() => {
+    if (editMode && existingDog) {
+      const isPredefineBreed = breedOptions.some(option => option.value === existingDog.breed);
+      return !isPredefineBreed ? existingDog.breed : '';
+    }
+    return '';
+  });
+  // const [description, setDescription] = useState('');
+  // const [photoUrl, setPhotoUrl] = useState('');
+  // const [status, setStatus] = useState('Available');
+  const [loading, setLoading] = useState(false);
 
   const colorOptions = [
     { label: 'Black', value: 'Black' },
@@ -172,6 +204,17 @@ const AddDogScreen: React.FC = () => {
     }
   };
 
+  // Initialize DOB with existing dog's age when in edit mode
+  useEffect(() => {
+    if (editMode && existingDog && dob) {
+      // Process the already-initialized DOB through handleDobChange to calculate age
+      const dobValidation = validateDob(dob);
+      if (dobValidation.isValid && dobValidation.age !== undefined) {
+        setCalculatedAge(dobValidation.age);
+      }
+    }
+  }, [editMode, existingDog, dob]);
+
   const validateDob = (dobString: string) => {
     if (!/^\d{4}\/\d{2}$/.test(dobString)) {
       return { isValid: false, message: 'Please enter DOB in YYYY/MM format.' };
@@ -230,10 +273,13 @@ const AddDogScreen: React.FC = () => {
       shelterPostcode,
       name,
       breed: breedValue,
-      dob,
+      dob: calculatedAge !== null ? calculatedAge.toString() : '',
       gender,
       color,
       size,
+      // Pass edit mode parameters
+      editMode,
+      existingDog,
     });
   };
 
@@ -250,7 +296,9 @@ const AddDogScreen: React.FC = () => {
             <Text style={styles.backButtonText}>{'<'}</Text>
           </TouchableOpacity>
 
-          <Text style={styles.title}>Enter dog details</Text>
+          <Text style={styles.title}>
+            {editMode ? 'Edit dog details' : 'Enter dog details'}
+          </Text>
 
           {/* Dog Name Input */}
           <Text style={styles.inputLabel}>Dog Name</Text>
@@ -374,7 +422,9 @@ const AddDogScreen: React.FC = () => {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
             >
-              <Text style={styles.nextButtonText}>Next</Text>
+              <Text style={styles.nextButtonText}>
+                {editMode ? 'Next' : 'Next'}
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>

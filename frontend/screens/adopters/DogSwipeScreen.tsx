@@ -115,18 +115,24 @@ const DogSwipeScreen: React.FC = () => {
   // Reanimated shared values for card position
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
-  
-  // Fetch dogs
-  let page = 1
-  let prevIndex = 0
+
+  let page = 0
   const LIMIT = 5
+  let total = 0
   const dogsApi = new DogsApi(apiConfig)
   const [dogs, setDogs] = useState<Dog[]>([])
   const loadDogs = async (pageNo: number) => {
-    const response: DogPage = await dogsApi.listDogs({limit: LIMIT, page: pageNo});
-    setDogs(response.dogs ?? [])
+      const response: DogPage = await dogsApi.listDogs({limit: LIMIT, page: pageNo});
+      setDogs(prevDogs => [...prevDogs, ...response.dogs ?? []])
+      total = response.total ?? 0
   }
-  loadDogs(page)
+
+  // Fetch dogs
+  useEffect(() => {
+    loadDogs(page)
+  }, [page]);
+
+
   // Load the first dog when the component mounts or index changes
   useEffect(() => {
       try {
@@ -157,6 +163,7 @@ const DogSwipeScreen: React.FC = () => {
 
     const swipeData: SwipeCreate = {
       dogId: currentDog.id,
+      dogCreatedAt: currentDog.createdAt,
       direction: direction,
       shelterId: currentDog.shelterId
     }
@@ -168,9 +175,8 @@ const DogSwipeScreen: React.FC = () => {
     swipesApi.createSwipe(swipeReq);
 
     setCurrentDogIndex(prevIndex => prevIndex + 1); // Move to the next dog
-    if (prevIndex == dogs.length - 2) {
+    if (currentDogIndex == dogs.length - 2 && currentDogIndex < total - LIMIT) {
       page = page + 1;
-      loadDogs(page)
     }
   };
 

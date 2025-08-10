@@ -62,13 +62,17 @@ export class SwipesApi extends runtime.BaseAPI {
 
         let urlPath = `/swipe`;
 
-        const response = await this.request({
+        const method: HTTPMethod = 'POST'
+        const tosend = {
             path: urlPath,
-            method: 'POST',
+            method: method,
             headers: headerParameters,
             query: queryParameters,
             body: SwipeCreateToJSON(requestParameters['swipeCreate']),
-        }, initOverrides);
+        }
+        console.log(`TOSEND ${tosend}`)
+        console.log(`INITOVERRIDES ${initOverrides}`)
+        const response = await this.request(tosend, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SwipeFromJSON(jsonValue));
     }

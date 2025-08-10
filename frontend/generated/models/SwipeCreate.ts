@@ -25,6 +25,7 @@ export interface SwipeCreate {
      * @memberof SwipeCreate
      */
     dogId: string;
+    dogCreatedAt: string;
     /**
      * 
      * @type {string}
@@ -68,9 +69,10 @@ export function SwipeCreateFromJSONTyped(json: any, ignoreDiscriminator: boolean
         return json;
     }
     return {
-        
-        'dogId': json['dogId'],
+        'dogId': json['dog_id'],
+        'dogCreatedAt': json['dog_created_at'],
         'direction': json['direction'],
+        'shelterId': json['shelter_id']
     };
 }
 
@@ -84,9 +86,10 @@ export function SwipeCreateToJSONTyped(value?: SwipeCreate | null, ignoreDiscrim
     }
 
     return {
-        
         'dogId': value['dogId'],
+        'dog_created_at': value['dogCreatedAt'],
         'direction': value['direction'],
+        'shelterId': value['shelterId']
     };
 }
 
