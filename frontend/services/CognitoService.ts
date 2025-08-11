@@ -260,7 +260,9 @@ export async function signUp(params: {
 export async function signIn(email: string, password: string): Promise<{ idToken: string; accessToken: string; refreshToken?: string }> {
   // ...existing code...
   try {
-    const response = await fetch(`https://55kq17gfi7.execute-api.eu-west-2.amazonaws.com/default/CognitoLoginFunction`, {
+    const loginUrl = `https://55kq17gfi7.execute-api.eu-west-2.amazonaws.com/default/CognitoLoginFunction`; // Update with your actual Lambda URL
+    const preferencesUrl = `https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD`;
+    const response = await fetch(loginUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -280,6 +282,38 @@ export async function signIn(email: string, password: string): Promise<{ idToken
       await AsyncStorage.setItem('refreshToken', refreshToken);
     } else {
       console.warn('No refresh token provided in login response. This may affect session management.');
+    }
+
+    const decodedToken: CustomJwtPayload = jwtDecode(idToken);
+    const userRole = decodedToken['custom:role'];
+    if (userRole === 'adopter') {
+        console.log('Adopter logged in, checking preferences...');
+        try {
+            const getResponse = await fetch(preferencesUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            });
+            if (getResponse.ok) {
+                const preferencesData = await getResponse.json();
+                console.log('Preferences Data from GET request:', preferencesData);
+                if (!preferencesData || Object.keys(preferencesData).length === 0) {
+                    console.log('No preferences found, creating default preferences...');
+                    await createAdopterPreferences(accessToken);
+                } else {
+                    console.log('Preferences already exist:', preferencesData);
+                }
+            } else {
+                const errorText = await getResponse.text();
+                console.error('Failed to fetch adopter preferences:', errorText);
+                throw new Error(`Failed to fetch adopter preferences: ${errorText}`);
+            }
+        } catch (error) {
+            console.error('Error checking or creating adopter preferences:', error);
+        }
+
     }
     
     return { idToken, accessToken, refreshToken };
@@ -365,6 +399,45 @@ export async function updateUserAttributes(attributes: Record<string, string>): 
     // ...existing code...
   } catch (error) {
     // ...existing code...
+    throw error;
+  }
+}
+
+/**
+ * Creates an initial, empty preferences entry for a new adopter.
+ * @param token The user's access token for authentication.
+ * @returns A promise that resolves on successful creation.
+ */
+export async function createAdopterPreferences(token: string): Promise<void> {
+  try {
+    const url = `https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD`; 
+    const defaultPreferences = {
+      minAge: null,
+      maxAge: null,
+      size: ['Any'],
+      color: ['Any'],
+      preferredBreeds: ['Any'],
+    };
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      // The body can be an empty object. The Lambda function will use the adopterId
+      // from the JWT token and save it with the provided preferences (an empty object).
+      body: JSON.stringify(defaultPreferences), 
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Failed to create adopter preferences:', errorText);
+      throw new Error(`Failed to create adopter preferences: ${errorText}`);
+    }
+
+    console.log('Adopter preferences created successfully.');
+  } catch (error) {
+    console.error('Error in createAdopterPreferences:', error);
     throw error;
   }
 }

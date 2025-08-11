@@ -1,5 +1,3 @@
-// AdopterEditPreferencesScreen.tsx
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -11,7 +9,8 @@ import {
   ActivityIndicator,
   TextInput,
   Platform,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  Modal,
 } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,12 +24,17 @@ import BackButton from '../components/BackButton';
 interface Preferences {
   minAge: string;
   maxAge: string;
-  size: string;
-  color: string;
+  size: string[];
+  color: string[];
   preferredBreeds: string[];
 }
 
 type EditAdopterPreferencesScreenNavigationProp = NavigationProp<RootStackParamList, 'EditAdopterPreference'>;
+
+// Define options for the dropdowns
+const SIZES = ['Small', 'Medium', 'Large', 'Any'];
+const COLORS = ['Black', 'Brown', 'White', 'Ginger', 'Tricolor', 'Any'];
+const BREEDS = ['Labrador', 'German Shepherd', 'Poodle', 'Bulldog', 'Beagle', 'Golden Retriever', 'Any'];
 
 const EditAdopterPreferencesScreen: React.FC = () => {
   const navigation = useNavigation<EditAdopterPreferencesScreenNavigationProp>();
@@ -38,12 +42,15 @@ const EditAdopterPreferencesScreen: React.FC = () => {
   const [preferences, setPreferences] = useState<Preferences>({
     minAge: '',
     maxAge: '',
-    size: '',
-    color: '',
-    preferredBreeds: [],
+    size: ['Any'],
+    color: ['Any'],
+    preferredBreeds: ['Any'],
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  // Corrected the type to 'preferredBreeds'
+  const [currentModalType, setCurrentModalType] = useState<'size' | 'color' | 'preferredBreeds' | null>(null);
 
   // Function to fetch preferences from your API
   const fetchPreferences = async () => {
@@ -56,8 +63,7 @@ const EditAdopterPreferencesScreen: React.FC = () => {
         return;
       }
 
-      // Replace with your actual API Gateway URL for fetching preferences
-      const response = await fetch('https://YOUR_API_GATEWAY_URL/adopter-preferences', {
+      const response = await fetch('https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -73,9 +79,9 @@ const EditAdopterPreferencesScreen: React.FC = () => {
       setPreferences({
         minAge: data.minAge?.toString() || '',
         maxAge: data.maxAge?.toString() || '',
-        size: data.size || '',
-        color: data.color || '',
-        preferredBreeds: data.preferredBreeds || [],
+        size: data.size && Array.isArray(data.size) ? data.size : ['Any'],
+        color: data.color && Array.isArray(data.color) ? data.color : ['Any'],
+        preferredBreeds: data.preferredBreeds && Array.isArray(data.preferredBreeds) ? data.preferredBreeds : ['Any'],
       });
     } catch (error) {
       console.error('Error fetching preferences:', error);
@@ -105,8 +111,7 @@ const EditAdopterPreferencesScreen: React.FC = () => {
         maxAge: preferences.maxAge ? parseInt(preferences.maxAge) : null,
       };
 
-      // Replace with your actual API Gateway URL for updating preferences
-      const response = await fetch('https://YOUR_API_GATEWAY_URL/adopter-preferences', {
+      const response = await fetch('https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -127,6 +132,105 @@ const EditAdopterPreferencesScreen: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // The function call for breeds is now 'preferredBreeds'
+  const handleModalOpen = (type: 'size' | 'color' | 'preferredBreeds') => {
+    setCurrentModalType(type);
+    setModalVisible(true);
+  };
+
+  // Unified function to handle multi-select logic for all three types
+  const handleSelectOption = (option: string) => {
+    if (!currentModalType) return;
+
+    setPreferences(prev => {
+      // Because currentModalType now matches the property names, this works correctly
+      let currentOptions = prev[currentModalType];
+      let updatedOptions = [...currentOptions];
+
+      if (option === 'Any') {
+        updatedOptions = ['Any'];
+      } else {
+        if (updatedOptions.includes('Any')) {
+          updatedOptions = [];
+        }
+        const index = updatedOptions.indexOf(option);
+        if (index > -1) {
+          updatedOptions.splice(index, 1);
+        } else {
+          updatedOptions.push(option);
+        }
+        if (updatedOptions.length === 0) {
+          updatedOptions = ['Any'];
+        }
+      }
+      return { ...prev, [currentModalType]: updatedOptions };
+    });
+  };
+
+  const renderDropdownModal = () => {
+    let options: string[] = [];
+    let title = '';
+    let selectedOptions: string[] = [];
+
+    // The switch statement now checks for 'preferredBreeds'
+    switch (currentModalType) {
+      case 'size':
+        options = SIZES;
+        title = 'Select Size(s)';
+        selectedOptions = preferences.size;
+        break;
+      case 'color':
+        options = COLORS;
+        title = 'Select Color(s)';
+        selectedOptions = preferences.color;
+        break;
+      case 'preferredBreeds':
+        options = BREEDS;
+        title = 'Select Preferred Breed(s)';
+        selectedOptions = preferences.preferredBreeds;
+        break;
+      default:
+        return null;
+    }
+
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>{title}</Text>
+            <ScrollView style={styles.modalOptionsContainer}>
+              {options.map((option, index) => {
+                const isSelected = selectedOptions.includes(option);
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={[styles.modalOption, isSelected && styles.selectedOption]}
+                    onPress={() => handleSelectOption(option)}
+                  >
+                    <Text style={[styles.modalOptionText, isSelected && styles.selectedOptionText]}>
+                      {option}
+                    </Text>
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={20} color="#FF6F61" style={styles.checkmarkIcon} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            <TouchableOpacity style={styles.modalCloseButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.modalCloseButtonText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
   };
 
   if (isLoading) {
@@ -176,40 +280,42 @@ const EditAdopterPreferencesScreen: React.FC = () => {
             />
           </View>
 
-          {/* Size Input */}
+          {/* Size Dropdown */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Size</Text>
-            <TextInput
-              style={styles.input}
-              value={preferences.size}
-              onChangeText={(text) => setPreferences({ ...preferences, size: text })}
-              placeholder="e.g., Small, Medium, Large"
-              placeholderTextColor="#999"
-            />
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => handleModalOpen('size')}
+            >
+              <Text style={styles.dropdownText}>{preferences.size.join(', ') || 'Select one or more sizes'}</Text>
+              <Ionicons name="chevron-down" size={20} color="#999" />
+            </TouchableOpacity>
           </View>
           
-          {/* Color Input */}
+          {/* Color Dropdown */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Color</Text>
-            <TextInput
-              style={styles.input}
-              value={preferences.color}
-              onChangeText={(text) => setPreferences({ ...preferences, color: text })}
-              placeholder="e.g., Black, Brown, White"
-              placeholderTextColor="#999"
-            />
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => handleModalOpen('color')}
+            >
+              <Text style={styles.dropdownText}>{preferences.color.join(', ') || 'Select one or more colors'}</Text>
+              <Ionicons name="chevron-down" size={20} color="#999" />
+            </TouchableOpacity>
           </View>
 
-          {/* Preferred Breeds Input */}
+          {/* Preferred Breeds Dropdown (Multi-select) */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Preferred Breeds (separate with comma)</Text>
-            <TextInput
-              style={styles.input}
-              value={preferences.preferredBreeds.join(', ')}
-              onChangeText={(text) => setPreferences({ ...preferences, preferredBreeds: text.split(',').map(s => s.trim()) })}
-              placeholder="e.g., Labrador, German Shepherd"
-              placeholderTextColor="#999"
-            />
+            <Text style={styles.label}>Preferred Breeds</Text>
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => handleModalOpen('preferredBreeds')} // <-- Corrected function call here
+            >
+              <Text style={styles.dropdownText}>
+                {preferences.preferredBreeds.join(', ') || 'Select one or more breeds'}
+              </Text>
+              <Ionicons name="chevron-down" size={20} color="#999" />
+            </TouchableOpacity>
           </View>
           
           <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={isSaving}>
@@ -222,6 +328,7 @@ const EditAdopterPreferencesScreen: React.FC = () => {
           
         </ScrollView>
       </KeyboardAvoidingView>
+      {renderDropdownModal()}
     </SafeAreaView>
   );
 };
@@ -244,6 +351,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  dropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+  },
   saveButton: {
     backgroundColor: '#FF6F61',
     padding: 15,
@@ -253,6 +375,62 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   saveButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  modalOptionsContainer: {
+    // flexGrow: 1,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  selectedOption: {
+    backgroundColor: '#fff5f5', // Light pink background for selected option
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+  },
+  selectedOptionText: {
+    fontWeight: 'bold',
+    color: '#FF6F61',
+  },
+  checkmarkIcon: {
+    marginLeft: 10,
+  },
+  modalCloseButton: {
+    marginTop: 15,
+    padding: 15,
+    backgroundColor: '#FF6F61',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalCloseButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });
 
 export default EditAdopterPreferencesScreen;
