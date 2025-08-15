@@ -17,6 +17,7 @@ const AddDogDescriptionScreen: React.FC = () => {
     name,
     breed,
     dob,
+    age,
     gender,
     color,
     size,
@@ -38,7 +39,8 @@ const AddDogDescriptionScreen: React.FC = () => {
 
       const payload = {
         name,
-        age: dob,
+        age: age, // Use the calculated age number
+        dob: dob, // Also store the original DOB string (YYYY/MM format)
         breed,
         gender,
         color,

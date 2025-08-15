@@ -102,7 +102,8 @@ export type RootStackParamList = {
     shelterPostcode?: string;
     name: string;
     breed: string;
-    dob: string;
+    dob: string; // Original DOB string (YYYY/MM)
+    age: number | null; // Calculated age number
     gender: string;
     color: string;
     size: string;
@@ -116,7 +117,8 @@ export type RootStackParamList = {
     shelterPostcode?: string;
     name: string;
     breed: string;
-    dob: string;
+    dob: string; // Original DOB string (YYYY/MM)
+    age: number | null; // Calculated age number
     gender: string;
     color: string;
     size: string;
