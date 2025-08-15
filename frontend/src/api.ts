@@ -7,8 +7,8 @@ global.Buffer = Buffer;
 
 // ================== API ENDPOINT CONSTANTS ==================
 const API_ENDPOINTS = {
-  PRESIGN_IMAGE_URLS: 'https://1g53nof6f8.execute-api.eu-west-2.amazonaws.com/default/presignImageUrls',
-  DOG_API_BASE: 'https://m4gwfeebyk.execute-api.eu-west-2.amazonaws.com/default',
+  PRESIGN_IMAGE_URLS: 'https://1g53nof6f8.execute-api.eu-west-2.amazonaws.com/presignImageUrls',
+  DOG_API_BASE: 'https://m4gwfeebyk.execute-api.eu-west-2.amazonaws.com',
 } as const;
 
 // ================== FUNCTIONS ==================
