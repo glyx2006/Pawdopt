@@ -47,6 +47,9 @@ const PUBLIC_DEFAULT_IMAGE = 'https://static.vecteezy.com/system/resources/previ
 
 type AdopterProfileScreenNavigationProp = NavigationProp<RootStackParamList, 'AdopterProfile'>;
 
+const getSignedImageUrl_API = 'https://n1854t96wc.execute-api.eu-west-2.amazonaws.com/default/getSignedImageUrl';
+const preferences_API = 'https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD';
+
 const AdopterProfileScreen: React.FC = () => {
   const navigation = useNavigation<AdopterProfileScreenNavigationProp>();
   const [profile, setProfile] = useState<AdopterProfile>(initialProfileState);
@@ -65,7 +68,7 @@ const AdopterProfileScreen: React.FC = () => {
       if (!token) throw new Error('No access token found');
 
       console.log("Fetching signed URL for S3 key:", s3key);
-      const response = await fetch('https://n1854t96wc.execute-api.eu-west-2.amazonaws.com/default/getSignedImageUrl', {
+      const response = await fetch(getSignedImageUrl_API, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +99,7 @@ const AdopterProfileScreen: React.FC = () => {
         console.error('No access token found for fetching preferences.');
         return;
       }
-      const response = await fetch('https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD', {
+      const response = await fetch(preferences_API, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

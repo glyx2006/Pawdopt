@@ -85,9 +85,31 @@ const DogProfileDetailScreen: React.FC<{
 
   const handleApplyForAdoption = () => {
     if (dog) {
-      handleAlert('Apply for Adoption', `Applying for ${dog.name}! (TODO: Implement actual adoption application process)`);
-      // TODO: Implement actual adoption application logic (API call to backend)
-      // This would likely navigate to an application form or confirmation screen
+      Alert.alert(
+        'Apply for Adoption', 
+        `Submit an adoption application for ${dog.name}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Apply',
+            onPress: () => {
+              // TODO: Implement actual adoption application logic (API call to backend)
+              // This would create an adoption request entry
+              Alert.alert(
+                'Application Sent!', 
+                `Your adoption application for ${dog.name} has been sent to the shelter. You can check its status in your requests.`,
+                [
+                  { 
+                    text: 'View My Requests', 
+                    onPress: () => navigation.navigate('AdoptionRequests')
+                  },
+                  { text: 'OK' }
+                ]
+              );
+            }
+          }
+        ]
+      );
     }
   };
 

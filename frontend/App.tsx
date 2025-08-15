@@ -25,6 +25,8 @@ import ChatListScreen from './screens/chat/ChatListScreen';
 import ChatScreen from './screens/chat/ChatScreen';
 import EditAdopterProfileScreen from './screens/adopters/EditAdopterProfileScreen';
 import AdoptionRequestsScreen from './screens/adopters/AdoptionRequestsScreen';
+import IncomingRequestsScreen from './screens/shelters/IncomingRequestsScreen';
+import AdopterProfileTemplate from './screens/shelters/AdopterProfileTemplate';
 
 export interface Dog {
   id: string;
@@ -131,6 +133,21 @@ export type RootStackParamList = {
   EditAdopterPreference: undefined;
   AdopterProfile: undefined; 
   AdoptionRequests: undefined;
+  IncomingRequests: undefined; // For shelters to see incoming adoption requests
+  AdopterProfileTemplate: { // For shelters to view adopter profiles
+    adopter: {
+      adopterId: string;
+      adopterName: string;
+      email: string;
+      contact: string;
+      address: { formatted: string };
+      postcode: string;
+      iconUrl: string;
+      experience?: string;
+      dateOfBirth?: string;
+      gender?: string;
+    };
+  };
   EditAdopterProfile: { profile: AdopterProfile };
   ChatListScreen: {
     role: 'adopter' | 'shelter';
@@ -249,6 +266,16 @@ export default function App() {
           <Stack.Screen
             name="AdoptionRequests"
             component={AdoptionRequestsScreen}
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen
+            name="IncomingRequests"
+            component={IncomingRequestsScreen}
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen
+            name="AdopterProfileTemplate"
+            component={AdopterProfileTemplate}
             options={{ headerShown: false }} 
           />
           <Stack.Screen

@@ -11,10 +11,11 @@ import { RootStackParamList } from '../../App';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { ShelterProfile } from './ShelterProfileScreen';
 
+const preSignIconUrl_API = 'https://teg3n5fne0.execute-api.eu-west-2.amazonaws.com/default/PreSignIconUrl';
 // Utility functions for S3 interaction
 const getPresignedUrlForIcon = async (token: string) => {
   try {
-    const response = await fetch('https://teg3n5fne0.execute-api.eu-west-2.amazonaws.com/default/PreSignIconUrl', {
+    const response = await fetch(preSignIconUrl_API, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

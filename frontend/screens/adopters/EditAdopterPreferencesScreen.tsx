@@ -36,6 +36,7 @@ const SIZES = ['Small', 'Medium', 'Large', 'Any'];
 const COLORS = ['Black', 'Brown', 'White', 'Ginger', 'Tricolor', 'Any'];
 const BREEDS = ['Labrador', 'German Shepherd', 'Poodle', 'Bulldog', 'Beagle', 'Golden Retriever', 'Any'];
 
+const preferences_API = 'https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD';
 const EditAdopterPreferencesScreen: React.FC = () => {
   const navigation = useNavigation<EditAdopterPreferencesScreenNavigationProp>();
   
@@ -63,7 +64,7 @@ const EditAdopterPreferencesScreen: React.FC = () => {
         return;
       }
 
-      const response = await fetch('https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD', {
+      const response = await fetch(preferences_API, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +112,7 @@ const EditAdopterPreferencesScreen: React.FC = () => {
         maxAge: preferences.maxAge ? parseInt(preferences.maxAge) : null,
       };
 
-      const response = await fetch('https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD', {
+      const response = await fetch(preferences_API, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

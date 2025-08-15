@@ -8,6 +8,8 @@ import AppHeader from '../components/AppHeader';
 import AppFooter from '../components/AppFooter';
 import { signOut, getCurrentUserAttributes, getAccessToken, UserAttributes } from '../../services/CognitoService';
 
+const getSignedImageUrl_API = 'https://n1854t96wc.execute-api.eu-west-2.amazonaws.com/default/getSignedImageUrl';
+
 export interface ShelterProfile {
   shelterId: string;
   shelterName: string;
@@ -48,7 +50,7 @@ const ShelterProfileScreen: React.FC = () => {
       if (!token) throw new Error('No access token found');
 
       console.log("Fetching signed URL for S3 key:", s3key); 
-      const response = await fetch('https://n1854t96wc.execute-api.eu-west-2.amazonaws.com/default/getSignedImageUrl', {
+      const response = await fetch(getSignedImageUrl_API, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

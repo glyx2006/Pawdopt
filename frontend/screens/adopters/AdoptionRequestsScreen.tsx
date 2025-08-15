@@ -71,24 +71,24 @@ const AdoptionRequestsScreen: React.FC<AdoptionRequestsScreenProps> = ({ navigat
       const mockRequests: AdoptionRequest[] = [
         {
           requestId: 'req1', dogId: 'dog1', adopterId: currentAdopterId, shelterId: 'shelterA',
-          status: 'Pending', createdAt: '2025-07-20T10:00:00Z',
+          status: 'Pending', createdAt: '2025-08-15T10:00:00Z',
           dog_details: mockDogs['dog1']
         },
         {
           requestId: 'req2', dogId: 'dog2', adopterId: currentAdopterId, shelterId: 'shelterB',
-          status: 'Approved', createdAt: '2025-07-15T11:00:00Z', respondedAt: '2025-07-16T09:00:00Z', chatid: 'chat123',
+          status: 'Approved', createdAt: '2025-08-12T11:00:00Z', respondedAt: '2025-08-13T09:00:00Z', chatid: 'chat123',
           dog_details: mockDogs['dog2']
         },
         {
           requestId: 'req3', dogId: 'dog3', adopterId: currentAdopterId, shelterId: 'shelterA',
-          status: 'Rejected', createdAt: '2025-07-10T09:00:00Z', respondedAt: '2025-07-11T14:00:00Z',
+          status: 'Rejected', createdAt: '2025-08-10T09:00:00Z', respondedAt: '2025-08-11T14:00:00Z',
           dog_details: mockDogs['dog3']
         },
         // This request will initially be Pending, and if "Withdraw" is clicked,
         // its client-side status will change to 'Withdrawn' to show the "Remove" button.
         {
             requestId: 'req4_pending_to_withdrawn', dogId: 'dog4', adopterId: currentAdopterId, shelterId: 'shelterC',
-            status: 'Pending', createdAt: '2025-07-05T14:00:00Z',
+            status: 'Pending', createdAt: '2025-08-08T14:00:00Z',
             dog_details: mockDogs['dog4']
         }
       ];

@@ -402,7 +402,33 @@ const DogSwipeScreen: React.FC = () => {
     console.log("swipedate:", swipeData)
     console.log("swipecreatetojson output:", SwipeCreateToJSON(swipeData))
 
+    // Create the swipe record
     swipesApi.createSwipe(swipeReq);
+
+    // If swiped right, also create an adoption request
+    if (direction === 'right') {
+      try {
+        console.log(`Creating adoption request for ${currentDog.name}`);
+        // TODO: Implement adoption request creation when API is ready
+        // const requestsApi = new RequestsApi(apiConfig);
+        // const requestData = {
+        //   dogId: currentDog.id,
+        //   shelterId: currentDog.shelterId,
+        //   status: 'Pending'
+        // };
+        // await requestsApi.createRequest({ requestCreate: requestData });
+        
+        // Show success message
+        Alert.alert(
+          'Application Sent!', 
+          `Your adoption application for ${currentDog.name} has been sent to the shelter. You can check its status in your requests.`,
+          [{ text: 'OK' }]
+        );
+      } catch (error) {
+        console.error('Failed to create adoption request:', error);
+        Alert.alert('Error', 'Failed to send adoption application. Please try again.');
+      }
+    }
 
     const nextIndex = currentDogIndex + 1;
     setCurrentDogIndex(nextIndex);
@@ -515,6 +541,11 @@ const DogSwipeScreen: React.FC = () => {
     navigation.navigate('AdopterDashboard'); // Assuming this is your main home
   };
 
+  // Navigate to adoption requests
+  const goToRequests = () => {
+    navigation.navigate('AdoptionRequests');
+  };
+
   return (
     <View style={styles.container}>
       <AppHeader></AppHeader>
@@ -565,7 +596,9 @@ const DogSwipeScreen: React.FC = () => {
         onPressHome={goToHome}
         onPressChat={goToChat}
         onPressProfile={goToProfile}
+        onPressRequests={goToRequests}
         activeScreen="home"
+        userRole="adopter"
       />
     </View>
   );

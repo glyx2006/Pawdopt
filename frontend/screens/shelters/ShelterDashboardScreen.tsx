@@ -190,6 +190,10 @@ const ShelterDashboardScreen: React.FC = () => {
     navigation.navigate('ShelterProfile'); // You'll create this screen later
   };
 
+  const goToIncomingRequests = () => {
+    navigation.navigate('IncomingRequests');
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}> {/* New container for loading spinner */}
@@ -204,13 +208,23 @@ const ShelterDashboardScreen: React.FC = () => {
       <AppHeader /> {/* AppHeader will now automatically avoid the safe area */}
 
       <View style={styles.contentContainer}> {/* Scrollable content area */}
-        <TouchableOpacity // Changed from Pressable to TouchableOpacity
-          onPress={navigateToAddDog}
-          style={styles.addDogButton} // Simplified style application
-          activeOpacity={0.8} // Added activeOpacity for feedback
-        >
-          <Text style={styles.addDogButtonText}>+ Add New Dog</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity // Changed from Pressable to TouchableOpacity
+            onPress={navigateToAddDog}
+            style={styles.addDogButton} // Simplified style application
+            activeOpacity={0.8} // Added activeOpacity for feedback
+          >
+            <Text style={styles.addDogButtonText}>+ Add New Dog</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            onPress={goToIncomingRequests}
+            style={styles.requestsButton}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.requestsButtonText}>📋 Adoption Requests</Text>
+          </TouchableOpacity>
+        </View>
 
         {dogs.length === 0 ? (
           <Text style={styles.noDogsText}>You haven't added any dogs yet. Tap 'Add New Dog' to get started!</Text>
@@ -264,6 +278,12 @@ const styles = StyleSheet.create({
     flex: 1, // Takes up remaining space between header and footer
     paddingHorizontal: 20, // Apply horizontal padding here for the main content
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 25,
+    gap: 10,
+  },
   flatListContent: {
     paddingBottom: 20, // Add padding at the bottom of the list for better scrolling above footer
   },
@@ -272,8 +292,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 30,
-    alignSelf: 'center',
-    marginBottom: 25,
+    flex: 1,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -283,7 +303,25 @@ const styles = StyleSheet.create({
   addDogButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 18,
+    fontSize: 16,
+  },
+  requestsButton: {
+    backgroundColor: '#2196F3',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    flex: 1,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  requestsButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   noDogsText: {
     textAlign: 'center',

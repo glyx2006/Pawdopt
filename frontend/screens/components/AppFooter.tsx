@@ -7,14 +7,18 @@ interface AppFooterProps {
   onPressProfile: () => void;
   onPressHome: () => void;
   onPressChat: () => void;
-  activeScreen: 'profile' | 'home' | 'chat'; // To highlight active icon
+  onPressRequests?: () => void; // Optional for adopters only
+  activeScreen: 'profile' | 'home' | 'chat' | 'requests'; // To highlight active icon
+  userRole?: 'adopter' | 'shelter'; // To show different footer layouts
 }
 
 const AppFooter: React.FC<AppFooterProps> = ({
   onPressProfile,
   onPressHome,
   onPressChat,
+  onPressRequests,
   activeScreen,
+  userRole = 'adopter',
 }) => {
   const getIconColor = (screen: string) =>
     activeScreen === screen ? '#FF6F61' : '#888'; // Active vs inactive color
@@ -29,6 +33,12 @@ const AppFooter: React.FC<AppFooterProps> = ({
         <Ionicons name="home-outline" size={30} color={getIconColor('home')} />
         <Text style={[styles.iconText, { color: getIconColor('home') }]}>Home</Text>
       </TouchableOpacity>
+      {userRole === 'adopter' && onPressRequests && (
+        <TouchableOpacity onPress={onPressRequests} style={styles.footerIcon}>
+          <Ionicons name="document-text-outline" size={30} color={getIconColor('requests')} />
+          <Text style={[styles.iconText, { color: getIconColor('requests') }]}>Requests</Text>
+        </TouchableOpacity>
+      )}
       <TouchableOpacity onPress={onPressProfile} style={styles.footerIcon}>
         <Ionicons name="person-outline" size={30} color={getIconColor('profile')} />
         <Text style={[styles.iconText, { color: getIconColor('profile') }]}>Profile</Text>
