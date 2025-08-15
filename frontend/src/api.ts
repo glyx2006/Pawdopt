@@ -5,8 +5,16 @@ import { getIdToken } from '../services/CognitoService';
 
 global.Buffer = Buffer;
 
+// ================== API ENDPOINT CONSTANTS ==================
+const API_ENDPOINTS = {
+  PRESIGN_IMAGE_URLS: 'https://nwmkpbnrrh.execute-api.eu-west-2.amazonaws.com/default/PresignImageUrls',
+  DOG_API_BASE: 'https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default',
+  CREATE_DOG_ENTRY: 'https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default/CreateDogEntryFunction',
+} as const;
+
+// ================== FUNCTIONS ==================
 export async function getPresignedUrls(fileCount: number, token: string): Promise<{ uploadUrls: string[], keys: string[] }> {
-  const response = await fetch('https://nwmkpbnrrh.execute-api.eu-west-2.amazonaws.com/default/PresignImageUrls', {
+  const response = await fetch(API_ENDPOINTS.PRESIGN_IMAGE_URLS, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -21,9 +29,8 @@ export async function getPresignedUrls(fileCount: number, token: string): Promis
   }
 
   const json = await response.json();
-  console.log('Presigned URL response:', json); // 🔍 Add this
+  console.log('Presigned URL response:', json);
 
-  // Make sure to return the correct keys based on what's in `json`
   const uploadUrls = json.uploadUrls ?? json.urls ?? [];
   const keys = json.keys ?? [];
 
@@ -36,18 +43,17 @@ export async function uploadImagesToS3(uris: string[], urls: string[]) {
     const blob = await res.blob();
 
     const uploadRes = await fetch(urls[i], {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'image/jpeg',
-          },
-          body: blob,
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'image/jpeg',
+      },
+      body: blob,
     });
 
     return uploadRes;
   });
 
   const results = await Promise.all(uploads);
-
   const failed = results.filter(r => !r.ok);
   if (failed.length > 0) {
     throw new Error("One or more uploads failed.");
@@ -55,7 +61,7 @@ export async function uploadImagesToS3(uris: string[], urls: string[]) {
 }
 
 export async function uploadDogProfile(data: any, token: string) {
-  const response = await fetch('https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default/CreateDogEntryFunction', {
+  const response = await fetch(API_ENDPOINTS.CREATE_DOG_ENTRY, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -68,7 +74,7 @@ export async function uploadDogProfile(data: any, token: string) {
 }
 
 export async function deleteDog(dogId: string, dogCreatedAt: string, token: string) {
-  const response = await fetch(`https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default/dog/${dogId}`, {
+  const response = await fetch(`${API_ENDPOINTS.DOG_API_BASE}/dog/${dogId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -77,14 +83,13 @@ export async function deleteDog(dogId: string, dogCreatedAt: string, token: stri
     },
   });
 
-  // 204 No Content response doesn't have a body to parse
   return response;
 }
 
 export async function updateDogProfile(dogId: string, data: any, token: string) {
   console.log('Frontend updating dog with this data:', JSON.stringify(data, null, 2));
   
-  const response = await fetch(`https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default/dog/${dogId}`, {
+  const response = await fetch(`${API_ENDPOINTS.DOG_API_BASE}/dog/${dogId}`, {
     method: 'PATCH',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -96,8 +101,7 @@ export async function updateDogProfile(dogId: string, data: any, token: string) 
   return response;
 }
 
-
-export const apiConfig = new Configuration ({
-  basePath: `https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default`,
-  accessToken: getIdToken()
+export const apiConfig = new Configuration({
+  basePath: API_ENDPOINTS.DOG_API_BASE,
+  accessToken: getIdToken(),
 });

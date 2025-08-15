@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Image, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  Image,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,20 +21,33 @@ import AppHeader from '../components/AppHeader';
 import UploadModal from './UploadModal';
 import { RootStackParamList } from '../../App';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { ShelterProfile } from './ShelterProfileScreen';
 
+// ========================
+// Constants
+// ========================
+const API_PRESIGN_ICON_URL =
+  'https://teg3n5fne0.execute-api.eu-west-2.amazonaws.com/default/PreSignIconUrl';
+
+const PUBLIC_DEFAULT_IMAGE =
+  'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
+
+const S3_BASE_ICON_URL =
+  'https://icon-images-uploads.s3.eu-west-2.amazonaws.com/';
+
+const DEFAULT_ICON_FILENAME = 'default-avatar-icon.jpg';
+
+// ========================
 // Utility functions for S3 interaction
+// ========================
 const getPresignedUrlForIcon = async (token: string) => {
   try {
-    const response = await fetch('https://teg3n5fne0.execute-api.eu-west-2.amazonaws.com/default/PreSignIconUrl', {
+    const response = await fetch(API_PRESIGN_ICON_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        count: 1,
-      }),
+      body: JSON.stringify({ count: 1 }),
     });
 
     if (!response.ok) {
@@ -58,9 +83,14 @@ const uploadImageToS3 = async (uri: string, signedUrl: string) => {
   }
 };
 
-
-type EditShelterProfileScreenNavigationProp = NavigationProp<RootStackParamList, 'EditShelterProfile'>;
-type EditShelterProfileScreenRouteProp = RouteProp<RootStackParamList, 'EditShelterProfile'>;
+type EditShelterProfileScreenNavigationProp = NavigationProp<
+  RootStackParamList,
+  'EditShelterProfile'
+>;
+type EditShelterProfileScreenRouteProp = RouteProp<
+  RootStackParamList,
+  'EditShelterProfile'
+>;
 
 const EditShelterProfileScreen: React.FC = () => {
   const navigation = useNavigation<EditShelterProfileScreenNavigationProp>();
@@ -76,10 +106,8 @@ const EditShelterProfileScreen: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // New state to hold the local URI of the image before saving
   const [imageFileUri, setImageFileUri] = useState<string | null>(null);
 
-  // Set initial state from the profile object on component mount
   useEffect(() => {
     setShelterName(profile.shelterName);
     setContact(profile.contact);
@@ -95,10 +123,12 @@ const EditShelterProfileScreen: React.FC = () => {
 
     try {
       if (imageFileUri) {
-        // Only upload to S3 if a new image was selected
         const token = await getAccessToken();
         if (!token) {
-          Alert.alert('Authentication Error', 'Could not get access token. Please sign in again.');
+          Alert.alert(
+            'Authentication Error',
+            'Could not get access token. Please sign in again.'
+          );
           setIsUploading(false);
           return;
         }
@@ -109,16 +139,16 @@ const EditShelterProfileScreen: React.FC = () => {
       }
 
       const attributesToUpdate = {
-        email: profile.email, // Keep the original email
+        email: profile.email,
         name: shelterName,
         phone_number: contact,
-        address: JSON.stringify( { formatted: address } ), 
+        address: JSON.stringify({ formatted: address }),
         'custom:postcode': postcode,
         'custom:iconURL': newIconUrl,
       };
 
       await updateUserAttributes(attributesToUpdate);
-      setImageFileUri(null); // Reset the temporary URI
+      setImageFileUri(null);
       Alert.alert('Success', 'Profile updated successfully!');
       console.log('Profile updated:', attributesToUpdate);
       navigation.goBack();
@@ -131,32 +161,37 @@ const EditShelterProfileScreen: React.FC = () => {
   };
 
   const handleImagePicker = (source: 'camera' | 'gallery') => {
-    // Delay ensures modal closes before picker launches
     setTimeout(async () => {
       let result;
 
       try {
         if (source === 'camera') {
-          const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+          const permissionResult =
+            await ImagePicker.requestCameraPermissionsAsync();
           if (!permissionResult.granted) {
-            Alert.alert('Permission Denied', 'Camera access is required to take a photo.');
+            Alert.alert(
+              'Permission Denied',
+              'Camera access is required to take a photo.'
+            );
             return;
           }
 
-          console.log('Opening camera...');
           result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
             aspect: [1, 1],
             quality: 1,
           });
         } else {
-          const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          const permissionResult =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
           if (!permissionResult.granted) {
-            Alert.alert('Permission Denied', 'Photo library access is required to choose an image.');
+            Alert.alert(
+              'Permission Denied',
+              'Photo library access is required to choose an image.'
+            );
             return;
           }
 
-          console.log('Opening image library...');
           result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
@@ -165,32 +200,31 @@ const EditShelterProfileScreen: React.FC = () => {
           });
         }
 
-        console.log('Image picker result:', result);
-
         if (result?.canceled) return;
 
         const imageUri = result.assets[0].uri;
-        setImageFileUri(imageUri); // Used for upload
-        setIconUrl(imageUri); // Display immediately
-        Alert.alert('Image Selected', 'Press "Save Changes" to finalize your profile update.');
-
+        setImageFileUri(imageUri);
+        setIconUrl(imageUri);
+        Alert.alert(
+          'Image Selected',
+          'Press "Save Changes" to finalize your profile update.'
+        );
       } catch (error) {
         console.error('Image selection failed:', error);
         Alert.alert('Error', 'An error occurred while selecting the image.');
       } finally {
-        // Always close modal after picker finishes
         setModalVisible(false);
       }
-    }, 150); // Small delay improves picker launch reliability
+    }, 150);
   };
 
   const handleCamera = () => handleImagePicker('camera');
   const handleGallery = () => handleImagePicker('gallery');
 
-  const PUBLIC_DEFAULT_IMAGE = 'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
-  const displayImageUrl = iconUrl === 'default-avatar-icon.jpg'
-    ? PUBLIC_DEFAULT_IMAGE
-    : (imageFileUri || `https://icon-images-uploads.s3.eu-west-2.amazonaws.com/${iconUrl}`);
+  const displayImageUrl =
+    iconUrl === DEFAULT_ICON_FILENAME
+      ? PUBLIC_DEFAULT_IMAGE
+      : imageFileUri || `${S3_BASE_ICON_URL}${iconUrl}`;
 
   if (isLoading) {
     return (
@@ -203,81 +237,81 @@ const EditShelterProfileScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <AppHeader
-        leftComponent={
-          <BackButton onPress={() => navigation.goBack()} />
-        }
-      />
+      <AppHeader leftComponent={<BackButton onPress={() => navigation.goBack()} />} />
       <KeyboardAvoidingView
-            style={styles.keyboardAvoidingContainer}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        style={styles.keyboardAvoidingContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.sectionTitle}>Edit Shelter Information</Text>
+
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            style={styles.imageContainer}
           >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.sectionTitle}>Edit Shelter Information</Text>
-
-        <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.imageContainer}>
-          {isUploading ? (
-            <View style={[styles.profilePic, styles.uploadingOverlay]}>
-              <ActivityIndicator size="large" color="#fff" />
+            {isUploading ? (
+              <View style={[styles.profilePic, styles.uploadingOverlay]}>
+                <ActivityIndicator size="large" color="#fff" />
+              </View>
+            ) : (
+              <Image source={{ uri: displayImageUrl }} style={styles.profilePic} />
+            )}
+            <View style={styles.changeIconOverlay}>
+              <Ionicons name="camera" size={30} color="#fff" />
             </View>
-          ) : (
-            <Image
-              source={{ uri: displayImageUrl }}
-              style={styles.profilePic}
+          </TouchableOpacity>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Shelter Name</Text>
+            <TextInput
+              style={styles.input}
+              value={shelterName}
+              onChangeText={setShelterName}
             />
-          )}
-          <View style={styles.changeIconOverlay}>
-            <Ionicons name="camera" size={30} color="#fff" />
           </View>
-        </TouchableOpacity>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Shelter Name</Text>
-          <TextInput
-            style={styles.input}
-            value={shelterName}
-            onChangeText={setShelterName}
-          />
-        </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Contact Number</Text>
+            <TextInput
+              style={styles.input}
+              value={contact}
+              onChangeText={setContact}
+              keyboardType="phone-pad"
+            />
+          </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Contact Number</Text>
-          <TextInput
-            style={styles.input}
-            value={contact}
-            onChangeText={setContact}
-            keyboardType="phone-pad"
-          />
-        </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Address</Text>
+            <TextInput
+              style={styles.input}
+              value={address}
+              onChangeText={setAddress}
+              multiline
+            />
+          </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Address</Text>
-          <TextInput
-            style={styles.input}
-            value={address}
-            onChangeText={setAddress}
-            multiline
-          />
-        </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Postcode</Text>
+            <TextInput
+              style={styles.input}
+              value={postcode}
+              onChangeText={setPostcode}
+            />
+          </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Postcode</Text>
-          <TextInput
-            style={styles.input}
-            value={postcode}
-            onChangeText={setPostcode}
-          />
-        </View>
-
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={isUploading}>
-          {isUploading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.saveButtonText}>Save Changes</Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleSave}
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.saveButtonText}>Save Changes</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
       </KeyboardAvoidingView>
 
       <UploadModal
@@ -294,18 +328,28 @@ const EditShelterProfileScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  keyboardAvoidingContainer: {
-    flex: 1,
-  },
+  keyboardAvoidingContainer: { flex: 1 },
   safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8f8f8' },
-  loadingText: { marginTop: 10, fontSize: 16, color: '#555' },
-  container: { flexGrow: 1, padding: 20, paddingBottom: 80, alignItems: 'center' },
-  sectionTitle: { fontSize: 22, fontWeight: 'bold', color: '#333', marginBottom: 20 },
-  imageContainer: {
-    marginBottom: 20,
-    position: 'relative',
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8',
   },
+  loadingText: { marginTop: 10, fontSize: 16, color: '#555' },
+  container: {
+    flexGrow: 1,
+    padding: 20,
+    paddingBottom: 80,
+    alignItems: 'center',
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 20,
+  },
+  imageContainer: { marginBottom: 20, position: 'relative' },
   profilePic: {
     width: 150,
     height: 150,
@@ -334,8 +378,23 @@ const styles = StyleSheet.create({
   },
   inputGroup: { width: '100%', marginBottom: 15 },
   label: { fontSize: 16, color: '#555', marginBottom: 5 },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 16, color: '#333' },
-  saveButton: { backgroundColor: '#FF6F61', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20, width: '100%' },
+  input: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#333',
+  },
+  saveButton: {
+    backgroundColor: '#FF6F61',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+    width: '100%',
+  },
   saveButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
 });
 
