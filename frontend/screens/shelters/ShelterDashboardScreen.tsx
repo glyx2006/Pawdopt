@@ -17,7 +17,7 @@ import { DogsApi } from '../../generated/apis';
 import { DogPage } from '../../generated/models';
 import { Configuration } from '../../generated';
 import { getAccessToken, getIdToken } from '../../services/CognitoService';
-import { apiConfig } from '../../src/api';
+import { dogApiConfig } from '../../src/api';
 
 // Mock data for initial display
 // const initialMockDogs: Dog[] = [
@@ -59,7 +59,7 @@ const ShelterDashboardScreen: React.FC = () => {
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null); // For modal
   const [isModalVisible, setIsModalVisible] = useState(false); // For modal visibility
 
-  const dogsApi = new DogsApi(apiConfig);
+  const dogsApi = new DogsApi(dogApiConfig);
 
   // Simulate fetching dogs (replace with actual API call later)
   const fetchDogs = useCallback(async () => {

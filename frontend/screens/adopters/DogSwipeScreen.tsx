@@ -33,7 +33,7 @@ import { handleAlert } from '../utils/AlertUtils';
 
 import { getAccessToken } from '../../services/CognitoService';
 import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest, SwipeCreateDirectionEnum, SwipeCreateToJSON } from '../../generated';
-import { apiConfig } from '../../src/api';
+import { swipeApiConfig } from '../../src/api';
 import { DogsApi, DogPage } from '../../generated';
 import { CookieStorage } from 'amazon-cognito-identity-js';
 
@@ -212,7 +212,7 @@ async function fetchDogs(): Promise<Dog[]> {
         console.log(`\n🔄 Trying ${attempt.name}...`);
         console.log(`Token preview: ${attempt.token!.substring(0, 30)}...`);
         
-        const res = await axios.get("https://52p1yd0ot6.execute-api.eu-west-2.amazonaws.com/default/NearestDogs", {
+        const res = await axios.get("https://m4gwfeebyk.execute-api.eu-west-2.amazonaws.com/default/swipe", {
           headers: {
             Authorization: attempt.format(attempt.token!),
             'Content-Type': 'application/json',
@@ -386,7 +386,7 @@ const DogSwipeScreen: React.FC = () => {
 
     console.log(`Swiped ${direction} on ${currentDog.name}`);
 
-    const swipesApi = new SwipesApi(apiConfig)
+    const swipesApi = new SwipesApi(swipeApiConfig)
 
     const swipeData: SwipeCreate = {
       dogId: currentDog.id,
