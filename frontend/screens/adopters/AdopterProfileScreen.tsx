@@ -30,9 +30,9 @@ const INITIAL_PREFERENCES_STATE = {
 const PUBLIC_DEFAULT_IMAGE =
   'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
 
-const API_SIGNED_URL = 'https://n1854t96wc.execute-api.eu-west-2.amazonaws.com/default/getSignedImageUrl';
-const API_PREFERENCES = 'https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD';
-const ICON_BUCKET = 'icon-images-uploads';
+const API_SIGNED_URL = 'https://1g53nof6f8.execute-api.eu-west-2.amazonaws.com/default/getSignedImageUrl';
+const API_PREFERENCES = 'https://y2wy5m6frb.execute-api.eu-west-2.amazonaws.com/default/preferences';
+const ICON_BUCKET = 'icon-images-uploads-2';
 
 type AdopterProfile = typeof INITIAL_PROFILE_STATE;
 type Preferences = typeof INITIAL_PREFERENCES_STATE;

@@ -7,9 +7,8 @@ global.Buffer = Buffer;
 
 // ================== API ENDPOINT CONSTANTS ==================
 const API_ENDPOINTS = {
-  PRESIGN_IMAGE_URLS: 'https://nwmkpbnrrh.execute-api.eu-west-2.amazonaws.com/default/PresignImageUrls',
-  DOG_API_BASE: 'https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default',
-  CREATE_DOG_ENTRY: 'https://ghjg31mre8.execute-api.eu-west-2.amazonaws.com/default/CreateDogEntryFunction',
+  PRESIGN_IMAGE_URLS: 'https://1g53nof6f8.execute-api.eu-west-2.amazonaws.com/default/presignImageUrls',
+  DOG_API_BASE: 'https://m4gwfeebyk.execute-api.eu-west-2.amazonaws.com/default',
 } as const;
 
 // ================== FUNCTIONS ==================
@@ -61,7 +60,7 @@ export async function uploadImagesToS3(uris: string[], urls: string[]) {
 }
 
 export async function uploadDogProfile(data: any, token: string) {
-  const response = await fetch(API_ENDPOINTS.CREATE_DOG_ENTRY, {
+  const response = await fetch(`${API_ENDPOINTS.DOG_API_BASE}/dog`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -101,7 +100,12 @@ export async function updateDogProfile(dogId: string, data: any, token: string) 
   return response;
 }
 
-export const apiConfig = new Configuration({
+export const dogApiConfig = new Configuration({
   basePath: API_ENDPOINTS.DOG_API_BASE,
   accessToken: getIdToken(),
 });
+
+export const swipeApiConfig = new Configuration({
+  basePath: 'https://yvj4ov9377.execute-api.eu-west-2.amazonaws.com',
+  accessToken: getIdToken()
+})

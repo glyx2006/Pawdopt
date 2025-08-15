@@ -2,12 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 // ================== API ENDPOINT CONSTANTS ==================
-const SIGNUP_URL = 'https://sd9to5sjo8.execute-api.eu-west-2.amazonaws.com/default/CognitoSignUpFunction';
-const LOGIN_URL = 'https://55kq17gfi7.execute-api.eu-west-2.amazonaws.com/default/CognitoLoginFunction';
-const PREFERENCES_URL = 'https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD';
-const REFRESH_SESSION_URL = 'https://ptyql0y64k.execute-api.eu-west-2.amazonaws.com/default/RefreshSessionFunction';
-const UPDATE_USER_ATTRIBUTES_URL = 'https://trb1e74wd2.execute-api.eu-west-2.amazonaws.com/default/UpdateUserAttributesFunction';
-
+const COGNITO_API_BASE_URL = 'https://pj0r2r59y5.execute-api.eu-west-2.amazonaws.com/default';
+const SIGNUP_URL = `${COGNITO_API_BASE_URL}/signup`;
+const LOGIN_URL = `${COGNITO_API_BASE_URL}/login`;
+const PREFERENCES_URL = 'https://y2wy5m6frb.execute-api.eu-west-2.amazonaws.com/default/preferences';
+const REFRESH_SESSION_URL = `${COGNITO_API_BASE_URL}/refresh`;
+const UPDATE_USER_ATTRIBUTES_URL = `${COGNITO_API_BASE_URL}/update`;
 // ================== INTERFACES ==================
 interface StructuredAddress {
   formatted: string;

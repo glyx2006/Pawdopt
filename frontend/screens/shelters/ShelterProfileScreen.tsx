@@ -12,14 +12,14 @@ import { signOut, getCurrentUserAttributes, getAccessToken } from '../../service
 // Constants
 // ======================
 const API_GET_SIGNED_IMAGE_URL =
-  'https://n1854t96wc.execute-api.eu-west-2.amazonaws.com/default/getSignedImageUrl';
+  'https://1g53nof6f8.execute-api.eu-west-2.amazonaws.com/default/getSignedImageUrl';
 
 const PUBLIC_DEFAULT_IMAGE =
   'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
 
 const DEFAULT_ICON_FILENAME = 'default-avatar-icon.jpg';
 
-const ICON_BUCKET_NAME = 'icon-images-uploads';
+const ICON_BUCKET_NAME = 'icon-images-uploads-2';
 
 // ======================
 // Types
