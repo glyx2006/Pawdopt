@@ -20,6 +20,13 @@ import { getAccessToken } from '../../services/CognitoService';
 import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
 
+// =====================
+// Constants
+// =====================
+const API_BASE_URL =
+  'https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default';
+const PREFERENCE_CRUD_ENDPOINT = `${API_BASE_URL}/preferenceCRUD`;
+
 // Define the structure for adopter preferences
 interface Preferences {
   minAge: string;
@@ -29,16 +36,28 @@ interface Preferences {
   preferredBreeds: string[];
 }
 
-type EditAdopterPreferencesScreenNavigationProp = NavigationProp<RootStackParamList, 'EditAdopterPreference'>;
+type EditAdopterPreferencesScreenNavigationProp = NavigationProp<
+  RootStackParamList,
+  'EditAdopterPreference'
+>;
 
 // Define options for the dropdowns
 const SIZES = ['Small', 'Medium', 'Large', 'Any'];
 const COLORS = ['Black', 'Brown', 'White', 'Ginger', 'Tricolor', 'Any'];
-const BREEDS = ['Labrador', 'German Shepherd', 'Poodle', 'Bulldog', 'Beagle', 'Golden Retriever', 'Any'];
+const BREEDS = [
+  'Labrador',
+  'German Shepherd',
+  'Poodle',
+  'Bulldog',
+  'Beagle',
+  'Golden Retriever',
+  'Any',
+];
 
 const EditAdopterPreferencesScreen: React.FC = () => {
-  const navigation = useNavigation<EditAdopterPreferencesScreenNavigationProp>();
-  
+  const navigation =
+    useNavigation<EditAdopterPreferencesScreenNavigationProp>();
+
   const [preferences, setPreferences] = useState<Preferences>({
     minAge: '',
     maxAge: '',
@@ -49,8 +68,9 @@ const EditAdopterPreferencesScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  // Corrected the type to 'preferredBreeds'
-  const [currentModalType, setCurrentModalType] = useState<'size' | 'color' | 'preferredBreeds' | null>(null);
+  const [currentModalType, setCurrentModalType] = useState<
+    'size' | 'color' | 'preferredBreeds' | null
+  >(null);
 
   // Function to fetch preferences from your API
   const fetchPreferences = async () => {
@@ -58,12 +78,15 @@ const EditAdopterPreferencesScreen: React.FC = () => {
     try {
       const token = await getAccessToken();
       if (!token) {
-        Alert.alert('Authentication Error', 'Could not get access token.');
+        Alert.alert(
+          'Authentication Error',
+          'Could not get access token.'
+        );
         navigation.goBack();
         return;
       }
 
-      const response = await fetch('https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD', {
+      const response = await fetch(PREFERENCE_CRUD_ENDPOINT, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -79,13 +102,21 @@ const EditAdopterPreferencesScreen: React.FC = () => {
       setPreferences({
         minAge: data.minAge?.toString() || '',
         maxAge: data.maxAge?.toString() || '',
-        size: data.size && Array.isArray(data.size) ? data.size : ['Any'],
-        color: data.color && Array.isArray(data.color) ? data.color : ['Any'],
-        preferredBreeds: data.preferredBreeds && Array.isArray(data.preferredBreeds) ? data.preferredBreeds : ['Any'],
+        size:
+          data.size && Array.isArray(data.size) ? data.size : ['Any'],
+        color:
+          data.color && Array.isArray(data.color) ? data.color : ['Any'],
+        preferredBreeds:
+          data.preferredBreeds && Array.isArray(data.preferredBreeds)
+            ? data.preferredBreeds
+            : ['Any'],
       });
     } catch (error) {
       console.error('Error fetching preferences:', error);
-      Alert.alert('Error', 'Failed to load preferences. Please try again.');
+      Alert.alert(
+        'Error',
+        'Failed to load preferences. Please try again.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -101,17 +132,24 @@ const EditAdopterPreferencesScreen: React.FC = () => {
     try {
       const token = await getAccessToken();
       if (!token) {
-        Alert.alert('Authentication Error', 'Could not get access token.');
+        Alert.alert(
+          'Authentication Error',
+          'Could not get access token.'
+        );
         return;
       }
-      
+
       const preferencesToSave = {
         ...preferences,
-        minAge: preferences.minAge ? parseInt(preferences.minAge) : null,
-        maxAge: preferences.maxAge ? parseInt(preferences.maxAge) : null,
+        minAge: preferences.minAge
+          ? parseInt(preferences.minAge)
+          : null,
+        maxAge: preferences.maxAge
+          ? parseInt(preferences.maxAge)
+          : null,
       };
 
-      const response = await fetch('https://qgp3dyz6z0.execute-api.eu-west-2.amazonaws.com/default/preferenceCRUD', {
+      const response = await fetch(PREFERENCE_CRUD_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -128,24 +166,26 @@ const EditAdopterPreferencesScreen: React.FC = () => {
       navigation.goBack();
     } catch (error) {
       console.error('Error saving preferences:', error);
-      Alert.alert('Error', 'Failed to save preferences. Please try again.');
+      Alert.alert(
+        'Error',
+        'Failed to save preferences. Please try again.'
+      );
     } finally {
       setIsSaving(false);
     }
   };
 
-  // The function call for breeds is now 'preferredBreeds'
-  const handleModalOpen = (type: 'size' | 'color' | 'preferredBreeds') => {
+  const handleModalOpen = (
+    type: 'size' | 'color' | 'preferredBreeds'
+  ) => {
     setCurrentModalType(type);
     setModalVisible(true);
   };
 
-  // Unified function to handle multi-select logic for all three types
   const handleSelectOption = (option: string) => {
     if (!currentModalType) return;
 
-    setPreferences(prev => {
-      // Because currentModalType now matches the property names, this works correctly
+    setPreferences((prev) => {
       let currentOptions = prev[currentModalType];
       let updatedOptions = [...currentOptions];
 
@@ -174,7 +214,6 @@ const EditAdopterPreferencesScreen: React.FC = () => {
     let title = '';
     let selectedOptions: string[] = [];
 
-    // The switch statement now checks for 'preferredBreeds'
     switch (currentModalType) {
       case 'size':
         options = SIZES;
@@ -211,20 +250,36 @@ const EditAdopterPreferencesScreen: React.FC = () => {
                 return (
                   <TouchableOpacity
                     key={index}
-                    style={[styles.modalOption, isSelected && styles.selectedOption]}
+                    style={[
+                      styles.modalOption,
+                      isSelected && styles.selectedOption,
+                    ]}
                     onPress={() => handleSelectOption(option)}
                   >
-                    <Text style={[styles.modalOptionText, isSelected && styles.selectedOptionText]}>
+                    <Text
+                      style={[
+                        styles.modalOptionText,
+                        isSelected && styles.selectedOptionText,
+                      ]}
+                    >
                       {option}
                     </Text>
                     {isSelected && (
-                      <Ionicons name="checkmark-circle" size={20} color="#FF6F61" style={styles.checkmarkIcon} />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={20}
+                        color="#FF6F61"
+                        style={styles.checkmarkIcon}
+                      />
                     )}
                   </TouchableOpacity>
                 );
               })}
             </ScrollView>
-            <TouchableOpacity style={styles.modalCloseButton} onPress={() => setModalVisible(false)}>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setModalVisible(false)}
+            >
               <Text style={styles.modalCloseButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
@@ -254,26 +309,30 @@ const EditAdopterPreferencesScreen: React.FC = () => {
         <ScrollView contentContainerStyle={styles.container}>
           <Text style={styles.title}>Edit Pet Preferences</Text>
 
-          {/* Min Age Input */}
+          {/* Min Age */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Minimum Age (years)</Text>
             <TextInput
               style={styles.input}
               value={preferences.minAge}
-              onChangeText={(text) => setPreferences({ ...preferences, minAge: text })}
+              onChangeText={(text) =>
+                setPreferences({ ...preferences, minAge: text })
+              }
               keyboardType="numeric"
               placeholder="e.g., 1"
               placeholderTextColor="#999"
             />
           </View>
-          
-          {/* Max Age Input */}
+
+          {/* Max Age */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Maximum Age (years)</Text>
             <TextInput
               style={styles.input}
               value={preferences.maxAge}
-              onChangeText={(text) => setPreferences({ ...preferences, maxAge: text })}
+              onChangeText={(text) =>
+                setPreferences({ ...preferences, maxAge: text })
+              }
               keyboardType="numeric"
               placeholder="e.g., 5"
               placeholderTextColor="#999"
@@ -287,11 +346,14 @@ const EditAdopterPreferencesScreen: React.FC = () => {
               style={styles.dropdownButton}
               onPress={() => handleModalOpen('size')}
             >
-              <Text style={styles.dropdownText}>{preferences.size.join(', ') || 'Select one or more sizes'}</Text>
+              <Text style={styles.dropdownText}>
+                {preferences.size.join(', ') ||
+                  'Select one or more sizes'}
+              </Text>
               <Ionicons name="chevron-down" size={20} color="#999" />
             </TouchableOpacity>
           </View>
-          
+
           {/* Color Dropdown */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Color</Text>
@@ -299,33 +361,40 @@ const EditAdopterPreferencesScreen: React.FC = () => {
               style={styles.dropdownButton}
               onPress={() => handleModalOpen('color')}
             >
-              <Text style={styles.dropdownText}>{preferences.color.join(', ') || 'Select one or more colors'}</Text>
-              <Ionicons name="chevron-down" size={20} color="#999" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Preferred Breeds Dropdown (Multi-select) */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Preferred Breeds</Text>
-            <TouchableOpacity
-              style={styles.dropdownButton}
-              onPress={() => handleModalOpen('preferredBreeds')} // <-- Corrected function call here
-            >
               <Text style={styles.dropdownText}>
-                {preferences.preferredBreeds.join(', ') || 'Select one or more breeds'}
+                {preferences.color.join(', ') ||
+                  'Select one or more colors'}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#999" />
             </TouchableOpacity>
           </View>
-          
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={isSaving}>
+
+          {/* Preferred Breeds Dropdown */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Preferred Breeds</Text>
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => handleModalOpen('preferredBreeds')}
+            >
+              <Text style={styles.dropdownText}>
+                {preferences.preferredBreeds.join(', ') ||
+                  'Select one or more breeds'}
+              </Text>
+              <Ionicons name="chevron-down" size={20} color="#999" />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleSave}
+            disabled={isSaving}
+          >
             {isSaving ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.saveButtonText}>Save Preferences</Text>
             )}
           </TouchableOpacity>
-          
         </ScrollView>
       </KeyboardAvoidingView>
       {renderDropdownModal()}
@@ -393,9 +462,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: 'center',
   },
-  modalOptionsContainer: {
-    // flexGrow: 1,
-  },
+  modalOptionsContainer: {},
   modalOption: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -405,7 +472,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   selectedOption: {
-    backgroundColor: '#fff5f5', // Light pink background for selected option
+    backgroundColor: '#fff5f5',
   },
   modalOptionText: {
     fontSize: 16,
