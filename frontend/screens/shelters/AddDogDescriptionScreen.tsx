@@ -50,8 +50,11 @@ const AddDogDescriptionScreen: React.FC = () => {
         shelter_id: shelterId,
         shelter_postcode: shelterPostcode,
         // For edit mode, we might have a mix of existing and new photos
-        photoKeys: photoKeys || [],
+        photo_keys: photoKeys || [], // Try both field names
       };
+
+      console.log('Payload being sent:', JSON.stringify(payload, null, 2));
+      console.log('PhotoKeys:', photoKeys);
 
       let response;
       
