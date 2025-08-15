@@ -273,7 +273,8 @@ const AddDogScreen: React.FC = () => {
       shelterPostcode,
       name,
       breed: breedValue,
-      dob: calculatedAge !== null ? calculatedAge.toString() : '',
+      dob, // Original DOB string (YYYY/MM format)
+      age: calculatedAge, // Calculated age number
       gender,
       color,
       size,
