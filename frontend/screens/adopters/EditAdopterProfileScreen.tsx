@@ -13,7 +13,7 @@ import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navig
 // ==========================
 // Constants
 // ==========================
-const API_PRESIGN_ICON_URL = 'https://1g53nof6f8.execute-api.eu-west-2.amazonaws.com/default/presignIconUrl';
+const API_PRESIGN_ICON_URL = 'https://1g53nof6f8.execute-api.eu-west-2.amazonaws.com/presignIconUrl';
 const PUBLIC_DEFAULT_IMAGE = 'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
 const S3_BASE_URL = 'https://icon-images-uploads-2.s3.eu-west-2.amazonaws.com/';
 const DEFAULT_AVATAR_FILENAME = 'default-avatar-icon.jpg';

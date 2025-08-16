@@ -36,6 +36,7 @@ import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, Cr
 import { swipeApiConfig } from '../../src/api';
 import { DogsApi, DogPage } from '../../generated';
 import { CookieStorage } from 'amazon-cognito-identity-js';
+import { clearScreenDown } from 'readline';
 
 const { width } = Dimensions.get('window'); // Get screen width for responsive sizing
 
@@ -133,11 +134,11 @@ async function fetchDogs(): Promise<Dog[]> {
             console.log('  - iat:', payload.iat);
             
             // Check if audience matches API Gateway expectation
-            if (payload.aud === '6gif7noadq6h4pcrg4aesumjqm') {
+            if (payload.aud === '5om6lvl7i35e3l0r4mijck46td') {
               console.log('✅ ID Token audience MATCHES API Gateway!');
             } else {
               console.log('❌ ID Token audience MISMATCH!');
-              console.log('   Expected: 6gif7noadq6h4pcrg4aesumjqm');
+              console.log('   Expected: 5om6lvl7i35e3l0r4mijck46td');
               console.log('   Actual:', payload.aud);
             }
           } else {
@@ -175,11 +176,11 @@ async function fetchDogs(): Promise<Dog[]> {
             console.log('  - iat:', payload.iat);
             
             // Check if client_id matches API Gateway expectation
-            if (payload.client_id === '6gif7noadq6h4pcrg4aesumjqm') {
+            if (payload.client_id === '5om6lvl7i35e3l0r4mijck46td') {
               console.log('✅ Access Token client_id MATCHES API Gateway!');
             } else {
               console.log('❌ Access Token client_id MISMATCH!');
-              console.log('   Expected: 6gif7noadq6h4pcrg4aesumjqm');
+              console.log('   Expected: 5om6lvl7i35e3l0r4mijck46td');
               console.log('   Actual:', payload.client_id);
             }
           } else {
@@ -212,7 +213,7 @@ async function fetchDogs(): Promise<Dog[]> {
         console.log(`\n🔄 Trying ${attempt.name}...`);
         console.log(`Token preview: ${attempt.token!.substring(0, 30)}...`);
         
-        const res = await axios.get("https://m4gwfeebyk.execute-api.eu-west-2.amazonaws.com/default/swipe", {
+        const res = await axios.get("https://m4gwfeebyk.execute-api.eu-west-2.amazonaws.com/swipe", {
           headers: {
             Authorization: attempt.format(attempt.token!),
             'Content-Type': 'application/json',
@@ -361,20 +362,20 @@ const DogSwipeScreen: React.FC = () => {
 
   // Load the first dog when the component mounts or index changes
   useEffect(() => {
-    console.log('🔄 Dogs effect triggered:');
-    console.log('   - dogs.length:', dogs.length);
-    console.log('   - currentDogIndex:', currentDogIndex);
-    console.log('   - isLoading:', isLoading);
+    // console.log('🔄 Dogs effect triggered:');
+    // console.log('   - dogs.length:', dogs.length);
+    // console.log('   - currentDogIndex:', currentDogIndex);
+    // console.log('   - isLoading:', isLoading);
     
     if (dogs.length > currentDogIndex) {
       const dogToShow = dogs[currentDogIndex];
-      console.log('✅ Setting current dog:', dogToShow);
+      // console.log('✅ Setting current dog:', dogToShow);
       setCurrentDog(dogToShow);
       // Reset animated values for the new card
       translateX.value = 0;
       translateY.value = 0;
     } else if (!isLoading) {
-      console.log('❌ No more dogs available');
+      // console.log('❌ No more dogs available');
       setCurrentDog(null); // No more dogs available
       handleAlert('No More Dogs', 'You\'ve seen all available dogs for now!');
     }
@@ -408,19 +409,22 @@ const DogSwipeScreen: React.FC = () => {
     setCurrentDogIndex(nextIndex);
 
     // If we're running low on dogs (e.g., only 2 left), fetch more
-    if (dogs.length - nextIndex <= 2 && !isLoading) {
-      try {
-        setIsLoading(true);
-        const moreDogs = await fetchDogs();
-        if (moreDogs && moreDogs.length > 0) {
-          setDogs(prevDogs => [...prevDogs, ...moreDogs]);
-        }
-      } catch (error) {
-        console.error('Failed to fetch more dogs:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+
+    // This is for pagination but not using pagination rn
+
+    // if (dogs.length - nextIndex <= 2 && !isLoading) {
+    //   try {
+    //     setIsLoading(true);
+    //     const moreDogs = await fetchDogs();
+    //     if (moreDogs && moreDogs.length > 0) {
+    //       setDogs(prevDogs => [...prevDogs, ...moreDogs]);
+    //     }
+    //   } catch (error) {
+    //     console.error('Failed to fetch more dogs:', error);
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
+    // }
   };
 
   // Navigate to DogProfileDetailScreen (runs on JS thread)
