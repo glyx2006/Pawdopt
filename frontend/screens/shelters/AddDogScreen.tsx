@@ -77,7 +77,7 @@ const AddDogScreen: React.FC = () => {
     }
     return '';
   });
-  const [dob, setDob] = useState(editMode && existingDog ? convertAgeToApproxDob(existingDog.age) : '');
+  const [dob, setDob] = useState(editMode && existingDog ? existingDog.dob : '');
   const [gender, setGender] = useState(editMode && existingDog ? existingDog.gender : '');
   const [color, setColor] = useState(editMode && existingDog ? existingDog.color || '' : '');
   const [size, setSize] = useState(editMode && existingDog ? existingDog.size || '' : '');

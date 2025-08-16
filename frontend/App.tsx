@@ -30,6 +30,7 @@ export interface Dog {
   id: string;
   name: string;
   breed: string;
+  dob: string; // Original DOB string (YYYY/MM)
   age: number;
   gender: string;
   color: string;

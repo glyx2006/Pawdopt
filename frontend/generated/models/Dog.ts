@@ -50,6 +50,12 @@ export interface Dog {
      * @type {string}
      * @memberof Dog
      */
+    dob: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Dog
+     */
     breed: string;
     /**
      * 
@@ -110,6 +116,7 @@ export function instanceOfDog(value: object): value is Dog {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('age' in value) || value['age'] === undefined) return false;
+    if (!('dob' in value) || value['dob'] === undefined) return false;
     if (!('breed' in value) || value['breed'] === undefined) return false;
     if (!('gender' in value) || value['gender'] === undefined) return false;
     if (!('photoURLs' in value) || value['photoURLs'] === undefined) return false;
@@ -133,6 +140,7 @@ export function DogFromJSONTyped(json: any, ignoreDiscriminator: boolean): Dog {
         'id': json['dog_id'],
         'name': json['name'],
         'age': json['age'],
+        'dob': json['dob'],
         'breed': json['breed'],
         'gender': json['gender'],
         'photoURLs': json['photoURLs'],
@@ -159,6 +167,7 @@ export function DogToJSONTyped(value?: Dog | null, ignoreDiscriminator: boolean 
         'id': value['id'],
         'name': value['name'],
         'age': value['age'],
+        'dob': value['dob'],
         'breed': value['breed'],
         'gender': value['gender'],
         'photoURLs': value['photoURLs'],
