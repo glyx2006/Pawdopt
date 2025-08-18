@@ -33,7 +33,7 @@ import { handleAlert } from '../utils/AlertUtils';
 
 import { getAccessToken } from '../../services/CognitoService';
 import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest, SwipeCreateDirectionEnum, SwipeCreateToJSON } from '../../generated';
-import { swipeApiConfig } from '../../src/api';
+import { swipesApi } from '../../src/api';
 import { DogsApi, DogPage } from '../../generated';
 import { CookieStorage } from 'amazon-cognito-identity-js';
 import { clearScreenDown } from 'readline';
@@ -325,6 +325,27 @@ const mockDogs: Dog[] = [
 const SWIPE_THRESHOLD = width * 0.25;
 const SWIPE_OUT_DURATION = 250; // milliseconds
 
+// Swipe function
+export async function swipe(dogId: string, dogCreatedAt: string, direction: SwipeCreateDirectionEnum, shelterId: string): Promise<boolean>{
+    const swipeData: SwipeCreate = {
+      dogId: dogId,
+      dogCreatedAt: dogCreatedAt,
+      direction: direction,
+      shelterId: shelterId
+    }
+
+    const swipeReq: CreateSwipeRequest = {
+      swipeCreate: swipeData
+    }
+
+    console.log("swipedate:", swipeData)
+    console.log("swipecreatetojson output:", SwipeCreateToJSON(swipeData))
+
+    const res = await swipesApi.createSwipe(swipeReq);
+
+    return !!res;
+  }
+
 const DogSwipeScreen: React.FC = () => {
   const navigation = useNavigation<DogSwipeScreenNavigationProp>();
   const [currentDogIndex, setCurrentDogIndex] = useState(0);
@@ -386,29 +407,14 @@ const DogSwipeScreen: React.FC = () => {
     }
   }, [currentDogIndex, dogs, isLoading]);
 
+
   // Function to handle swipe completion (runs on JS thread)
   const onSwipeCompleteJS = async (direction: 'left' | 'right') => {
     if (!currentDog) return;
 
     console.log(`Swiped ${direction} on ${currentDog.name}`);
 
-    const swipesApi = new SwipesApi(swipeApiConfig)
-
-    const swipeData: SwipeCreate = {
-      dogId: currentDog.id,
-      dogCreatedAt: currentDog.createdAt,
-      direction: direction,
-      shelterId: currentDog.shelterId
-    }
-
-    const swipeReq: CreateSwipeRequest = {
-      swipeCreate: swipeData
-    }
-
-    console.log("swipedate:", swipeData)
-    console.log("swipecreatetojson output:", SwipeCreateToJSON(swipeData))
-
-    swipesApi.createSwipe(swipeReq);
+    swipe(currentDog.id, currentDog.createdAt, direction, currentDog.shelterId);
 
     const nextIndex = currentDogIndex + 1;
     setCurrentDogIndex(nextIndex);

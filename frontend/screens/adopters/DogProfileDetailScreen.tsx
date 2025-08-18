@@ -5,9 +5,11 @@ import { LinearGradient } from 'expo-linear-gradient'; // For the Apply button
 
 import { RootStackParamList } from '../../App'; // Import RootStackParamList
 import { handleAlert } from '../utils/AlertUtils';
-import { DogCreateFromJSON, DogsApi } from '../../generated';
-import { dogApiConfig } from '../../src/api';
+import { DogCreateFromJSON, DogsApi, SwipesApi } from '../../generated';
+import { dogsApi } from '../../src/api';
 import { Dog } from '../../generated';
+import { swipe } from './DogSwipeScreen';
+
 // Define the type for the route parameters for this screen
 type DogProfileDetailScreenRouteProp = RouteProp<RootStackParamList, 'DogProfileDetail'>;
 // Define the type for the navigation prop for this screen
@@ -82,13 +84,12 @@ const DogProfileDetailScreen: React.FC<{
     // In a real app, you'd fetch dog details from your backend using dogId
     // For now, find the dog from mock data
     const fetchDog = async () => {
-      const dogApi: DogsApi = new DogsApi(dogApiConfig);
       const request = {
         dogId: dogId,
         dogCreatedAt: dogCreatedAt
       }
 
-      const foundDog = await dogApi.getDog(request);
+      const foundDog = await dogsApi.getDog(request);
       if (foundDog) {
         setDog(foundDog);
       } else {
@@ -99,12 +100,22 @@ const DogProfileDetailScreen: React.FC<{
     fetchDog();
   }, [dogId, dogCreatedAt]); // Re-run effect if dogId changes
 
-  const handleApplyForAdoption = () => {
+  const handleApplyForAdoption = async () => {
     if (dog) {
-      handleAlert('Apply for Adoption', `Applying for ${dog.name}! (TODO: Implement actual adoption application process)`);
+      const success = await swipe(dogId, dogCreatedAt, 'right', dog.shelterId);
+      try{
+        if (success){
+          handleAlert(`Request Success`, `Applying for ${dog.name} from ${dog.shelterName}!`);
+        }
+      } catch (e) {
+          handleAlert('Error', `${e}`)
+      }
       // TODO: Implement actual adoption application logic (API call to backend)
       // This would likely navigate to an application form or confirmation screen
     }
+    
+    // Navigate to home screen
+    navigation.navigate('AdopterDashboard');
   };
 
   if (!dog) {
@@ -177,7 +188,7 @@ const DogProfileDetailScreen: React.FC<{
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
             >
-              <Text style={styles.applyButtonText}>Apply for Adoption</Text>
+              <Text style={styles.applyButtonText}>Request to Chat with {dog.shelterName}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
