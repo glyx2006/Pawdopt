@@ -104,8 +104,13 @@ export const getCurrentUserAttributes = async (): Promise<UserAttributes | null>
   }
 };
 
-export const getIdToken = async (): Promise<string> => {
-  return (await AsyncStorage.getItem('idToken')) ?? '';
+export const getIdToken = async (): Promise<string | null> => {
+  const token = await AsyncStorage.getItem('idToken');
+  if (!token || isTokenExpired(token)) {
+    const refreshedTokens = await refreshSession();
+    return refreshedTokens ? refreshedTokens.idToken : null;
+  }
+  return token;
 };
 
 export const getAccessToken = async (): Promise<string | null> => {

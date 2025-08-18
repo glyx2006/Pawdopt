@@ -54,6 +54,7 @@ interface Dog {
   createdAt: string;
   shelterId: string;
   photoURLs: string[]; // URL to the dog's image
+  distance: number;
 }
 
 async function fetchDogs(): Promise<Dog[]> {
@@ -280,6 +281,7 @@ const mockDogs: Dog[] = [
     createdAt: 'today',
     shelterId: 'shelterId',
     photoURLs: ['https://placehold.co/600x400/FFD194/FFF?text=Cooper'], // Placeholder image
+    distance: 3
   },
   {
     id: 'dog2',
@@ -291,6 +293,7 @@ const mockDogs: Dog[] = [
     createdAt: 'today',
     shelterId: 'shelterId',
     photoURLs: ['https://placehold.co/600x400/FFACAC/FFF?text=Luna'], // Placeholder image
+    distance: 3
   },
   {
     id: 'dog3',
@@ -302,6 +305,7 @@ const mockDogs: Dog[] = [
     createdAt: 'today',
     shelterId: 'shelterId',
     photoURLs: ['https://placehold.co/600x400/94D1FF/FFF?text=Max'],
+    distance: 3
   },
   {
     id: 'dog4',
@@ -313,6 +317,7 @@ const mockDogs: Dog[] = [
     createdAt: 'today',
     shelterId: 'shelterId',
     photoURLs: ['https://placehold.co/600x400/94FFD1/FFF?text=Daisy'],
+    distance: 3
   },
 ];
 
@@ -430,7 +435,7 @@ const DogSwipeScreen: React.FC = () => {
   // Navigate to DogProfileDetailScreen (runs on JS thread)
   const goToDogDetailsJS = () => {
     if (currentDog) {
-      navigation.navigate('DogProfileDetail', { dogId: currentDog.id });
+      navigation.navigate('DogProfileDetail', { dogId: currentDog.id, dogCreatedAt: currentDog.createdAt, distance: currentDog.distance });
     }
   };
 

@@ -41,6 +41,7 @@ export interface DeleteDogRequest {
 
 export interface GetDogRequest {
     dogId: string;
+    dogCreatedAt: string;
 }
 
 export interface ListDogsRequest {
@@ -170,6 +171,7 @@ export class DogsApi extends runtime.BaseAPI {
 
             if (tokenString) {
                 headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters["x-created-at"] = requestParameters['dogCreatedAt']
             }
         }
 
