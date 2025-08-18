@@ -95,6 +95,12 @@ export interface Dog {
     status: DogStatusEnum;
     color: string;
     size: string;
+    shelterName?: string;
+    shelterAddress?: string;
+    distance?: number;
+    shelterEmail?: string;
+    shelterContact?: string;
+    shelterPostcode?: string;
 }
 
 
@@ -136,7 +142,6 @@ export function DogFromJSONTyped(json: any, ignoreDiscriminator: boolean): Dog {
         return json;
     }
     return {
-        
         'id': json['dog_id'],
         'name': json['name'],
         'age': json['age'],
@@ -149,7 +154,13 @@ export function DogFromJSONTyped(json: any, ignoreDiscriminator: boolean): Dog {
         'createdAt': json['created_at'],
         'status': json['dog_status'],
         'color': json['color'] || '',
-        'size': json['size'] || ''
+        'size': json['size'] || '',
+        'shelterName': json['shelter_name'],
+        'distance': json['distance'],
+        'shelterEmail': json['shelter_email'],
+        'shelterContact': json['shelter_contact'],
+        'shelterAddress': json['shelter_address'],
+        'shelterPostcode': json['shelter_postcode']
     };
 }
 
@@ -163,7 +174,6 @@ export function DogToJSONTyped(value?: Dog | null, ignoreDiscriminator: boolean 
     }
 
     return {
-        
         'id': value['id'],
         'name': value['name'],
         'age': value['age'],

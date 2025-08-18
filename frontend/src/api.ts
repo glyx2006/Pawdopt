@@ -1,7 +1,7 @@
 import * as FileSystem from 'expo-file-system';
 import { Buffer } from 'buffer';
 import { Configuration } from '../generated';
-import { getIdToken } from '../services/CognitoService';
+import { getIdToken, getAccessToken } from '../services/CognitoService';
 
 global.Buffer = Buffer;
 
@@ -102,10 +102,10 @@ export async function updateDogProfile(dogId: string, data: any, token: string) 
 
 export const dogApiConfig = new Configuration({
   basePath: API_ENDPOINTS.DOG_API_BASE,
-  accessToken: getIdToken(),
+  accessToken: async () => (await getIdToken()) ?? '',
 });
 
 export const swipeApiConfig = new Configuration({
   basePath: 'https://yvj4ov9377.execute-api.eu-west-2.amazonaws.com',
-  accessToken: getIdToken()
+  accessToken: async () => (await getIdToken()) ?? ''
 })

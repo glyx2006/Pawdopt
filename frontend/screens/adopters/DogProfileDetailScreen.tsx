@@ -1,87 +1,103 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Platform, Dimensions } from 'react-native';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient'; // For the Apply button
 
 import { RootStackParamList } from '../../App'; // Import RootStackParamList
 import { handleAlert } from '../utils/AlertUtils';
-
+import { DogCreateFromJSON, DogsApi } from '../../generated';
+import { dogApiConfig } from '../../src/api';
+import { Dog } from '../../generated';
 // Define the type for the route parameters for this screen
 type DogProfileDetailScreenRouteProp = RouteProp<RootStackParamList, 'DogProfileDetail'>;
 // Define the type for the navigation prop for this screen
 type DogProfileDetailScreenNavigationProp = NavigationProp<RootStackParamList, 'DogProfileDetail'>;
 
 // Re-defining Dog interface for clarity, ensure it matches mockDogs in DogSwipeScreen
-interface Dog {
-  id: string;
-  name: string;
-  breed: string;
-  age: number;
-  gender: string;
-  description: string;
-  photoUrl: string;
-}
+// interface Dog {
+//   id: string;
+//   name: string;
+//   breed: string;
+//   age: number;
+//   gender: string;
+//   description: string;
+//   photoUrl: string;
+// }
 
 // Mock Data for Dogs (should ideally be fetched from a central place or backend)
 // This is a copy from DogSwipeScreen for standalone testing.
-const mockDogs: Dog[] = [
-  {
-    id: 'dog1',
-    name: 'Cooper',
-    breed: 'Samoyed',
-    age: 2,
-    gender: 'Male',
-    description: 'Cooper is a fluffy, friendly, and playful Samoyed looking for a loving home. He loves belly rubs, long walks in the park, and playing fetch. Cooper is great with kids and other dogs, making him a perfect family companion. He is fully vaccinated and house-trained. Come meet Cooper and let him steal your heart!',
-    photoUrl: 'https://placehold.co/600x400/FFD194/FFF?text=Cooper',
-  },
-  {
-    id: 'dog2',
-    name: 'Luna',
-    breed: 'Labradoodle',
-    age: 1,
-    gender: 'Female',
-    description: 'Luna is an energetic and intelligent Labradoodle. She loves to learn new tricks and enjoys active playtime. Luna is very affectionate and thrives on human companionship. She is looking for a home where she can get plenty of exercise and mental stimulation. Luna is spayed and up-to-date on all her vaccinations.',
-    photoUrl: 'https://placehold.co/600x400/FFACAC/FFF?text=Luna',
-  },
-  {
-    id: 'dog3',
-    name: 'Max',
-    breed: 'German Shepherd',
-    age: 3,
-    gender: 'Male',
-    description: 'Max is a loyal and intelligent German Shepherd. He is well-trained and has a protective but gentle nature. Max enjoys outdoor adventures and would thrive in a home with a large yard or access to open spaces. He is looking for an experienced owner who can continue his training and provide him with plenty of love and attention.',
-    photoUrl: 'https://placehold.co/600x400/94D1FF/FFF?text=Max',
-  },
-  {
-    id: 'dog4',
-    name: 'Daisy',
-    breed: 'Beagle',
-    age: 4,
-    gender: 'Female',
-    description: 'Daisy is a sweet and curious Beagle with an excellent nose! She loves to explore new scents and enjoys long walks. Daisy is very affectionate and loves to cuddle up on the couch. She would do well in a home where she is the center of attention or with another calm dog. Daisy is spayed and ready for her new adventure.',
-    photoUrl: 'https://placehold.co/600x400/94FFD1/FFF?text=Daisy',
-  },
-];
+// const mockDogs: Dog[] = [
+//   {
+//     id: 'dog1',
+//     name: 'Cooper',
+//     breed: 'Samoyed',
+//     age: 2,
+//     gender: 'Male',
+//     description: 'Cooper is a fluffy, friendly, and playful Samoyed looking for a loving home. He loves belly rubs, long walks in the park, and playing fetch. Cooper is great with kids and other dogs, making him a perfect family companion. He is fully vaccinated and house-trained. Come meet Cooper and let him steal your heart!',
+//     photoUrl: 'https://placehold.co/600x400/FFD194/FFF?text=Cooper',
+//   },
+//   {
+//     id: 'dog2',
+//     name: 'Luna',
+//     breed: 'Labradoodle',
+//     age: 1,
+//     gender: 'Female',
+//     description: 'Luna is an energetic and intelligent Labradoodle. She loves to learn new tricks and enjoys active playtime. Luna is very affectionate and thrives on human companionship. She is looking for a home where she can get plenty of exercise and mental stimulation. Luna is spayed and up-to-date on all her vaccinations.',
+//     photoUrl: 'https://placehold.co/600x400/FFACAC/FFF?text=Luna',
+//   },
+//   {
+//     id: 'dog3',
+//     name: 'Max',
+//     breed: 'German Shepherd',
+//     age: 3,
+//     gender: 'Male',
+//     description: 'Max is a loyal and intelligent German Shepherd. He is well-trained and has a protective but gentle nature. Max enjoys outdoor adventures and would thrive in a home with a large yard or access to open spaces. He is looking for an experienced owner who can continue his training and provide him with plenty of love and attention.',
+//     photoUrl: 'https://placehold.co/600x400/94D1FF/FFF?text=Max',
+//   },
+//   {
+//     id: 'dog4',
+//     name: 'Daisy',
+//     breed: 'Beagle',
+//     age: 4,
+//     gender: 'Female',
+//     description: 'Daisy is a sweet and curious Beagle with an excellent nose! She loves to explore new scents and enjoys long walks. Daisy is very affectionate and loves to cuddle up on the couch. She would do well in a home where she is the center of attention or with another calm dog. Daisy is spayed and ready for her new adventure.',
+//     photoUrl: 'https://placehold.co/600x400/94FFD1/FFF?text=Daisy',
+//   },
+// ];
 
 
 const DogProfileDetailScreen: React.FC<{
   navigation: DogProfileDetailScreenNavigationProp;
   route: DogProfileDetailScreenRouteProp;
 }> = ({ navigation, route }) => {
-  const { dogId } = route.params; // Get the dogId passed from the previous screen
+  const { dogId, dogCreatedAt, distance } = route.params; // Get the dogId passed from the previous screen
   const [dog, setDog] = useState<Dog | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState<Number>(0);
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+  const [infoHeight, setInfoHeight] = useState(0);
+
 
   useEffect(() => {
     // In a real app, you'd fetch dog details from your backend using dogId
     // For now, find the dog from mock data
-    const foundDog = mockDogs.find(d => d.id === dogId);
-    if (foundDog) {
-      setDog(foundDog);
-    } else {
-      handleAlert('Error', 'Dog not found!');
-      navigation.goBack(); // Go back if dog not found
-    }
-  }, [dogId]); // Re-run effect if dogId changes
+    const fetchDog = async () => {
+      const dogApi: DogsApi = new DogsApi(dogApiConfig);
+      const request = {
+        dogId: dogId,
+        dogCreatedAt: dogCreatedAt
+      }
+
+      const foundDog = await dogApi.getDog(request);
+      if (foundDog) {
+        setDog(foundDog);
+      } else {
+        handleAlert('Error', 'Dog not found!');
+        navigation.goBack(); // Go back if dog not found
+      }
+    };
+    fetchDog();
+  }, [dogId, dogCreatedAt]); // Re-run effect if dogId changes
 
   const handleApplyForAdoption = () => {
     if (dog) {
@@ -106,8 +122,27 @@ const DogProfileDetailScreen: React.FC<{
         <Text style={styles.backButtonText}>{'<'}</Text>
       </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <Image source={{ uri: dog.photoUrl }} style={styles.dogImage} />
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={true}
+        style={[styles.scrollViewContent, {height: screenHeight - infoHeight}]}
+        onMomentumScrollEnd={(event) => {
+        const index = Math.round(event.nativeEvent.contentOffset.x / (screenWidth * 0.9 - 40));
+          setCurrentImageIndex(index);
+        }}
+      >
+          {dog.photoURLs.map((url, index) => (
+            <Image 
+              key={index}
+              source={{ uri: url }} 
+              style={[styles.modalDogImage, { width: screenWidth, height: screenHeight - infoHeight}]} 
+            />
+          ))}
+      </ScrollView>
+
+      {/* <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <Image source={{ uri: dog.photoURLs }} style={styles.dogImage} /> */}
 
         <View style={styles.infoContainer}>
           <View style={styles.nameAgeGender}>
@@ -116,9 +151,23 @@ const DogProfileDetailScreen: React.FC<{
             <Text style={styles.dogGender}> ({dog.gender})</Text>
           </View>
           <Text style={styles.dogBreed}>{dog.breed}</Text>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline"}}>
+            <View>
+              <Text style={styles.sectionTitle}>About {dog.name}</Text>
+              <Text style={styles.dogDescription}>{dog.description}</Text>
+            </View>
+            <View style={styles.shelterCard}>
+              <Text style={styles.shelterTitle}>🏠 Shelter Information</Text>
+              <Text style={styles.shelterDetail}>📍 {dog.shelterName}</Text>
+              <Text style={styles.shelterDetail}>🛣️ {dog.shelterAddress} {dog.shelterPostcode}</Text>
+              <Text style={styles.shelterDetail}>📏 Distance: {distance} km</Text>
+              <Text style={styles.shelterDetail}>📧 {dog.shelterEmail}</Text>
+              <Text style={styles.shelterDetail}>📞 {dog.shelterContact}</Text>
+            </View>
+          </View>
 
-          <Text style={styles.sectionTitle}>About {dog.name}</Text>
-          <Text style={styles.dogDescription}>{dog.description}</Text>
+
+            
 
           {/* Apply for Adoption Button */}
           <TouchableOpacity onPress={handleApplyForAdoption} style={styles.applyButtonWrapper}>
@@ -132,7 +181,7 @@ const DogProfileDetailScreen: React.FC<{
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      {/* </ScrollView> */}
     </View>
   );
 };
@@ -168,11 +217,18 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     paddingBottom: 40, // Space for the bottom of the scroll view
+    borderRadius: 15,
+  },
+    modalDogImage: {
+    // height: 250,
+    borderRadius: 15,
+    marginBottom: 20,
+    resizeMode: 'cover',
   },
   dogImage: {
     width: '100%',
     height: 350, // Fixed height for the image
-    resizeMode: 'cover',
+    // resizeMode: 'cover',
   },
   infoContainer: {
     padding: 20,
@@ -201,6 +257,30 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#888',
     marginBottom: 20,
+  },
+  shelterCard: {
+    marginTop: 20,
+    padding: 15,
+    borderRadius: 12,
+    backgroundColor: "#f9f9f9", // light gray/neutral background
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 3, // shadow for Android
+  },
+
+  shelterTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 10,
+  },
+
+  shelterDetail: {
+    fontSize: 16,
+    color: "#555",
+    marginBottom: 6,
   },
   sectionTitle: {
     fontSize: 22,
