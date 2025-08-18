@@ -142,7 +142,7 @@ const ShelterProfileScreen: React.FC = () => {
   };
 
   const handleIncomingRequests = () => {
-    Alert.alert('Feature', 'This feature is coming soon!');
+    navigation.navigate('IncomingRequests');
   };
 
   const handleLogout = () => {
