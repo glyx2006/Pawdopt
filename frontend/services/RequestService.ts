@@ -93,12 +93,12 @@ export async function deleteAdoptionRequest(requestId: string, createdAt: string
   }
 }
 
-export async function createChat(adopterId: string, dogId: string): Promise<string> {
+export async function createChat(adopterId: string, dogId: string, dogCreatedAt: string): Promise<string> {
     const headers = await withAuthHeaders();
     const response = await fetch(`${CHAT_API_BASE}`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ adopterId, dogId }),
+        body: JSON.stringify({ adopterId, dogId, dogCreatedAt }),
     });
 
     if (!response.ok) {

@@ -186,6 +186,7 @@ interface RawChatData {
   adopterId: string;
   shelterId: string;
   dogId: string;
+  dogCreatedAt: string;
   status: string;
   createdAt: string;
 }
@@ -195,6 +196,7 @@ export interface EnrichedChatData {
   chatId: string;
   dogId: string;
   dogName: string;
+  dogCreatedAt: string;
   dogPhotoUrl?: string;
   shelterId: string;
   shelterName: string;
@@ -272,15 +274,17 @@ export async function enrichChatData(rawChats: RawChatData[], userRole: 'adopter
       let dogPhotoUrl = 'https://via.placeholder.com/50/FFE4B5/000000?text=DOG';
       
       try {
-        // We need the dog's created_at for the API call, but we don't have it
-        // For now, we'll use a placeholder. TODO: Store dog created_at in chat record
-        const dogData = await getDogProfileById(chat.dogId, await getIdToken() || '');
+        // Use the dogCreatedAt from chat record, or fallback to placeholder
+        const createdAt = chat.dogCreatedAt ;
+        console.log(`Fetching dog ${chat.dogId} with created_at: ${createdAt}`);
+        const dogData = await getDogProfileById(chat.dogId, createdAt, await getIdToken() || '');
         dogName = dogData.name || dogName;
         if (dogData.photoURLs && dogData.photoURLs.length > 0) {
           dogPhotoUrl = dogData.photoURLs[0];
         }
+        console.log(`Successfully fetched dog: ${dogName}`);
       } catch (error) {
-        console.warn('Failed to fetch dog details for', chat.dogId, error);
+        console.warn('Failed to fetch dog details for', chat.dogId, 'with created_at:', chat.dogCreatedAt, error);
       }
 
       // Fetch user details
@@ -309,6 +313,7 @@ export async function enrichChatData(rawChats: RawChatData[], userRole: 'adopter
         chatId: chat.chatId,
         dogId: chat.dogId,
         dogName,
+        dogCreatedAt: chat.dogCreatedAt,
         dogPhotoUrl,
         shelterId: chat.shelterId,
         shelterName,
@@ -327,6 +332,7 @@ export async function enrichChatData(rawChats: RawChatData[], userRole: 'adopter
         chatId: chat.chatId,
         dogId: chat.dogId,
         dogName: `Dog ${chat.dogId.substring(0, 8)}`,
+        dogCreatedAt: chat.dogCreatedAt || '2024-01-01T00:00:00Z',
         shelterId: chat.shelterId,
         shelterName: `Shelter ${chat.shelterId.substring(0, 8)}`,
         adopterId: chat.adopterId,
