@@ -11,6 +11,69 @@ import { fetchUserChats, enrichChatData, EnrichedChatData } from '../../src/api'
 // Use the EnrichedChatData interface from API instead of local ChatThread
 type ChatThread = EnrichedChatData;
 
+const mockChatThreads: ChatThread[] = [
+  // Active chat for Adopter
+  {
+    chatId: 'chat-1',
+    dogId: 'mock-dog-1',
+    dogName: 'Bella',
+    shelterId: 'mock-shelter-id-1',
+    shelterName: 'Happy Paws Rescue',
+    adopterId: 'mock-adopter-id-1',
+    adopterName: 'Jane Doe',
+    lastMessageAt: '2025-07-29T10:00:00Z',
+    lastMessagePreview: 'Sounds great! Looking forward to meeting Bella.',
+    status: 'active',
+    unreadCount: 0,
+    otherParticipantPhotoUrl: 'https://via.placeholder.com/50/C1FFDD/000000?text=SH', // Shelter mock pic
+  },
+  // Pending request for Shelter
+  {
+    chatId: 'chat-2',
+    dogId: 'mock-dog-3', // Assuming a new dog for a new request
+    dogName: 'Buddy',
+    shelterId: 'mock-shelter-id-1',
+    shelterName: 'Happy Paws Rescue',
+    adopterId: 'mock-adopter-id-2',
+    adopterName: 'John Smith',
+    lastMessageAt: '2025-07-30T11:30:00Z',
+    lastMessagePreview: 'New adoption request for Buddy!',
+    status: 'pending_request',
+    unreadCount: 1, // Indicate new request
+    otherParticipantPhotoUrl: 'https://via.placeholder.com/50/FFDDC1/000000?text=AD', // Adopter mock pic
+  },
+  // Active chat for Shelter
+  {
+    chatId: 'chat-3',
+    dogId: 'mock-dog-2',
+    dogName: 'Charlie',
+    shelterId: 'mock-shelter-id-1',
+    shelterName: 'Happy Paws Rescue',
+    adopterId: 'mock-adopter-id-3',
+    adopterName: 'Alice Brown',
+    lastMessageAt: '2025-07-28T15:45:00Z',
+    lastMessagePreview: 'We are very excited to welcome Charlie!',
+    status: 'active',
+    unreadCount: 0,
+    otherParticipantPhotoUrl: 'https://via.placeholder.com/50/FFDDC1/000000?text=AB', // Adopter mock pic
+  },
+   // Pending request for Adopter (that they sent)
+  {
+    chatId: 'chat-4',
+    dogId: 'mock-dog-4',
+    dogName: 'Lucy',
+    shelterId: 'mock-shelter-id-2',
+    shelterName: 'City Animal Shelter',
+    adopterId: 'mock-adopter-id-1', // Jane Doe sending a request
+    adopterName: 'Jane Doe',
+    lastMessageAt: '2025-07-30T12:00:00Z',
+    lastMessagePreview: 'Your request for Lucy is pending review.',
+    status: 'pending_request',
+    unreadCount: 0,
+    otherParticipantPhotoUrl: 'https://via.placeholder.co/50/C1FFDD/000000?text=CA', // Shelter mock pic
+  },
+];
+
 type ChatListScreenRouteProp = RouteProp<RootStackParamList, 'ChatListScreen'>;
 type ChatListScreenNavigationProp = NavigationProp<RootStackParamList, 'ChatListScreen'>;
 
