@@ -1,120 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions, ScrollView, Alert, Platform } from 'react-native';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient'; // For the Apply button
-
-import { RootStackParamList } from '../../App'; // Import RootStackParamList
+import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context'; 
+import { RootStackParamList } from '../../App';
 import { handleAlert } from '../utils/AlertUtils';
-import { DogCreateFromJSON, DogsApi, SwipesApi } from '../../generated';
 import { dogsApi } from '../../src/api';
 import { Dog } from '../../generated';
 import { swipe } from './DogSwipeScreen';
 
-// Define the type for the route parameters for this screen
+// Define types (assuming they are correct)
 type DogProfileDetailScreenRouteProp = RouteProp<RootStackParamList, 'DogProfileDetail'>;
-// Define the type for the navigation prop for this screen
 type DogProfileDetailScreenNavigationProp = NavigationProp<RootStackParamList, 'DogProfileDetail'>;
-
-// Re-defining Dog interface for clarity, ensure it matches mockDogs in DogSwipeScreen
-// interface Dog {
-//   id: string;
-//   name: string;
-//   breed: string;
-//   age: number;
-//   gender: string;
-//   description: string;
-//   photoUrl: string;
-// }
-
-// Mock Data for Dogs (should ideally be fetched from a central place or backend)
-// This is a copy from DogSwipeScreen for standalone testing.
-// const mockDogs: Dog[] = [
-//   {
-//     id: 'dog1',
-//     name: 'Cooper',
-//     breed: 'Samoyed',
-//     age: 2,
-//     gender: 'Male',
-//     description: 'Cooper is a fluffy, friendly, and playful Samoyed looking for a loving home. He loves belly rubs, long walks in the park, and playing fetch. Cooper is great with kids and other dogs, making him a perfect family companion. He is fully vaccinated and house-trained. Come meet Cooper and let him steal your heart!',
-//     photoUrl: 'https://placehold.co/600x400/FFD194/FFF?text=Cooper',
-//   },
-//   {
-//     id: 'dog2',
-//     name: 'Luna',
-//     breed: 'Labradoodle',
-//     age: 1,
-//     gender: 'Female',
-//     description: 'Luna is an energetic and intelligent Labradoodle. She loves to learn new tricks and enjoys active playtime. Luna is very affectionate and thrives on human companionship. She is looking for a home where she can get plenty of exercise and mental stimulation. Luna is spayed and up-to-date on all her vaccinations.',
-//     photoUrl: 'https://placehold.co/600x400/FFACAC/FFF?text=Luna',
-//   },
-//   {
-//     id: 'dog3',
-//     name: 'Max',
-//     breed: 'German Shepherd',
-//     age: 3,
-//     gender: 'Male',
-//     description: 'Max is a loyal and intelligent German Shepherd. He is well-trained and has a protective but gentle nature. Max enjoys outdoor adventures and would thrive in a home with a large yard or access to open spaces. He is looking for an experienced owner who can continue his training and provide him with plenty of love and attention.',
-//     photoUrl: 'https://placehold.co/600x400/94D1FF/FFF?text=Max',
-//   },
-//   {
-//     id: 'dog4',
-//     name: 'Daisy',
-//     breed: 'Beagle',
-//     age: 4,
-//     gender: 'Female',
-//     description: 'Daisy is a sweet and curious Beagle with an excellent nose! She loves to explore new scents and enjoys long walks. Daisy is very affectionate and loves to cuddle up on the couch. She would do well in a home where she is the center of attention or with another calm dog. Daisy is spayed and ready for her new adventure.',
-//     photoUrl: 'https://placehold.co/600x400/94FFD1/FFF?text=Daisy',
-//   },
-// ];
-
 
 const DogProfileDetailScreen: React.FC<{
   navigation: DogProfileDetailScreenNavigationProp;
   route: DogProfileDetailScreenRouteProp;
 }> = ({ navigation, route }) => {
-  const { dogId, dogCreatedAt, distance } = route.params; // Get the dogId passed from the previous screen
+  const { dogId, dogCreatedAt, distance } = route.params;
   const [dog, setDog] = useState<Dog | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState<Number>(0);
   const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const [infoHeight, setInfoHeight] = useState(0);
-
 
   useEffect(() => {
-    // In a real app, you'd fetch dog details from your backend using dogId
-    // For now, find the dog from mock data
     const fetchDog = async () => {
       const request = {
         dogId: dogId,
-        dogCreatedAt: dogCreatedAt
-      }
+        dogCreatedAt: dogCreatedAt,
+      };
 
-      const foundDog = await dogsApi.getDog(request);
-      if (foundDog) {
-        setDog(foundDog);
-      } else {
-        handleAlert('Error', 'Dog not found!');
-        navigation.goBack(); // Go back if dog not found
+      try {
+        const foundDog = await dogsApi.getDog(request);
+        if (foundDog) {
+          setDog(foundDog);
+        } else {
+          handleAlert('Error', 'Dog not found!');
+          navigation.goBack();
+        }
+      } catch (e) {
+        handleAlert('Error', 'Failed to fetch dog data.');
+        navigation.goBack();
       }
     };
     fetchDog();
-  }, [dogId, dogCreatedAt]); // Re-run effect if dogId changes
+  }, [dogId, dogCreatedAt]);
 
   const handleApplyForAdoption = async () => {
     if (dog) {
       const success = await swipe(dogId, dogCreatedAt, 'right', dog.shelterId);
-      try{
-        if (success){
+      try {
+        if (success) {
           handleAlert(`Request Success`, `Applying for ${dog.name} from ${dog.shelterName}!`);
         }
       } catch (e) {
-          handleAlert('Error', `${e}`)
+        handleAlert('Error', `${e}`);
       }
-      // TODO: Implement actual adoption application logic (API call to backend)
-      // This would likely navigate to an application form or confirmation screen
     }
-    
-    // Navigate to home screen
     navigation.navigate('AdopterDashboard');
   };
 
@@ -127,34 +67,30 @@ const DogProfileDetailScreen: React.FC<{
   }
 
   return (
-    <View style={styles.container}>
-      {/* Back Arrow */}
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>{'<'}</Text>
-      </TouchableOpacity>
+    <SafeAreaView style={styles.safeAreaContainer}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        {/* Back Button */}
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>{'<'}</Text>
+        </TouchableOpacity>
 
-      <ScrollView
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={true}
-        style={[styles.scrollViewContent, {height: screenHeight - infoHeight}]}
-        onMomentumScrollEnd={(event) => {
-        const index = Math.round(event.nativeEvent.contentOffset.x / (screenWidth * 0.9 - 40));
-          setCurrentImageIndex(index);
-        }}
-      >
+        {/* Horizontal Image Gallery */}
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={true}
+          style={styles.imageGallery}
+        >
           {dog.photoURLs.map((url, index) => (
-            <Image 
+            <Image
               key={index}
-              source={{ uri: url }} 
-              style={[styles.modalDogImage, { width: screenWidth, height: screenHeight - infoHeight}]} 
+              source={{ uri: url }}
+              style={[styles.dogImage, { width: screenWidth }]}
             />
           ))}
-      </ScrollView>
+        </ScrollView>
 
-      {/* <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <Image source={{ uri: dog.photoURLs }} style={styles.dogImage} /> */}
-
+        {/* Dog Information Section */}
         <View style={styles.infoContainer}>
           <View style={styles.nameAgeGender}>
             <Text style={styles.dogName}>{dog.name}</Text>
@@ -162,7 +98,7 @@ const DogProfileDetailScreen: React.FC<{
             <Text style={styles.dogGender}> ({dog.gender})</Text>
           </View>
           <Text style={styles.dogBreed}>{dog.breed}</Text>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline"}}>
+          <View style={{ flexDirection: "column", justifyContent: "space-between", alignItems: "baseline" }}>
             <View>
               <Text style={styles.sectionTitle}>About {dog.name}</Text>
               <Text style={styles.dogDescription}>{dog.description}</Text>
@@ -176,32 +112,30 @@ const DogProfileDetailScreen: React.FC<{
               <Text style={styles.shelterDetail}>📞 {dog.shelterContact}</Text>
             </View>
           </View>
-
-
-            
-
-          {/* Apply for Adoption Button */}
-          <TouchableOpacity onPress={handleApplyForAdoption} style={styles.applyButtonWrapper}>
-            <LinearGradient
-              colors={['#FFD194', '#FFACAC']}
-              style={styles.applyButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <Text style={styles.applyButtonText}>Request to Chat with {dog.shelterName}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
         </View>
-      {/* </ScrollView> */}
-    </View>
+      </ScrollView>
+
+      {/* Apply for Adoption Button at the bottom */}
+      <View style={styles.bottomButtonContainer}>
+        <TouchableOpacity onPress={handleApplyForAdoption} style={styles.applyButtonWrapper}>
+          <LinearGradient
+            colors={['#FFD194', '#FFACAC']}
+            style={styles.applyButtonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text style={styles.applyButtonText}>Request to Chat with {dog.shelterName}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeAreaContainer: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'ios' ? 50 : 20, // Adjust for status bar
   },
   loadingContainer: {
     flex: 1,
@@ -213,11 +147,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#666',
   },
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: 20, // Add padding at the bottom for the main scroll view
+  },
   backButton: {
-    position: 'absolute', // Position absolutely to overlay content
-    top: Platform.OS === 'ios' ? 50 : 20,
+    position: 'absolute',
+    top: 20, // Adjusted top for SafeAreaView
     left: 20,
-    zIndex: 10, // Ensure it's above other content
+    zIndex: 10,
     padding: 10,
   },
   backButtonText: {
@@ -225,21 +163,12 @@ const styles = StyleSheet.create({
     color: '#FF7B7B',
     fontWeight: 'bold',
   },
-  scrollViewContent: {
-    flexGrow: 1,
-    paddingBottom: 40, // Space for the bottom of the scroll view
-    borderRadius: 15,
-  },
-    modalDogImage: {
-    // height: 250,
-    borderRadius: 15,
-    marginBottom: 20,
-    resizeMode: 'cover',
+  imageGallery: {
+    height: Dimensions.get('window').height * 0.5, // Use a percentage of the screen height
   },
   dogImage: {
-    width: '100%',
-    height: 350, // Fixed height for the image
-    // resizeMode: 'cover',
+    height: '100%',
+    resizeMode: 'cover',
   },
   infoContainer: {
     padding: 20,
@@ -273,21 +202,19 @@ const styles = StyleSheet.create({
     marginTop: 20,
     padding: 15,
     borderRadius: 12,
-    backgroundColor: "#f9f9f9", // light gray/neutral background
+    backgroundColor: "#f9f9f9",
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
-    elevation: 3, // shadow for Android
+    elevation: 3,
   },
-
   shelterTitle: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#333",
     marginBottom: 10,
   },
-
   shelterDetail: {
     fontSize: 16,
     color: "#555",
@@ -305,12 +232,17 @@ const styles = StyleSheet.create({
     color: '#555',
     lineHeight: 24,
   },
+  bottomButtonContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
   applyButtonWrapper: {
     width: '100%',
-    marginTop: 30,
     borderRadius: 50,
     overflow: 'hidden',
-    alignSelf: 'center', // Center the button
+    alignSelf: 'center',
   },
   applyButtonGradient: {
     paddingVertical: 15,

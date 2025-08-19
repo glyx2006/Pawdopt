@@ -3,7 +3,7 @@ import { Configuration } from "../generated";
 import { getIdToken } from "./CognitoService";
 
 // ================== API ENDPOINT CONSTANTS ==================
-const REQUEST_API_BASE = "https://yvj4ov9377.execute-api.eu-west-2.amazonaws.com/requestsCRUD"; // Replace with your actual API Gateway base URL
+const REQUEST_API_BASE = "https://151hivlwt4.execute-api.eu-west-2.amazonaws.com/default/requestsCRUD"; // Replace with your actual API Gateway base URL
 
 // ================== INTERFACES ==================
 export interface AdoptionRequest {
@@ -14,6 +14,7 @@ export interface AdoptionRequest {
   dogCreatedAt: string;
   shelterId: string;
   status: "pending" | "approved" | "rejected" | "withdrawn";
+  chatid?: string; // Optional, if chat is created
 }
 
 // ================== HELPERS ==================
@@ -29,7 +30,7 @@ const withAuthHeaders = async () => {
 // ================== FUNCTIONS ==================
 export async function createAdoptionRequest(dogId: string, dogCreatedAt: string, shelterId: string): Promise<AdoptionRequest> {
   const headers = await withAuthHeaders();
-  const response = await fetch(`${REQUEST_API_BASE}/request`, {
+  const response = await fetch(`${REQUEST_API_BASE}`, {
     method: "POST",
     headers,
     body: JSON.stringify({ dogId, dogCreatedAt, shelterId }),
@@ -43,7 +44,7 @@ export async function createAdoptionRequest(dogId: string, dogCreatedAt: string,
 
 export async function getAdoptionRequests(): Promise<AdoptionRequest[]> {
   const headers = await withAuthHeaders();
-  const response = await fetch(`${REQUEST_API_BASE}/request`, {
+  const response = await fetch(`${REQUEST_API_BASE}`, {
     method: "GET",
     headers,
   });
@@ -68,7 +69,7 @@ export async function getAdoptionRequests(): Promise<AdoptionRequest[]> {
 
 export async function updateAdoptionRequestStatus(requestId: string, createdAt: string, status: AdoptionRequest["status"]): Promise<void> {
   const headers = await withAuthHeaders();
-  const response = await fetch(`${REQUEST_API_BASE}/request`, {
+  const response = await fetch(`${REQUEST_API_BASE}`, {
     method: "PATCH",
     headers,
     body: JSON.stringify({ requestId, createdAt, status }),
@@ -81,7 +82,7 @@ export async function updateAdoptionRequestStatus(requestId: string, createdAt: 
 
 export async function deleteAdoptionRequest(requestId: string, createdAt: string): Promise<void> {
   const headers = await withAuthHeaders();
-  const response = await fetch(`${REQUEST_API_BASE}/request`, {
+  const response = await fetch(`${REQUEST_API_BASE}`, {
     method: "DELETE",
     headers,
     body: JSON.stringify({ requestId, createdAt }),
