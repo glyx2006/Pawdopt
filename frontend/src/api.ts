@@ -117,12 +117,11 @@ export const swipeApiConfig = new Configuration({
 
 export const swipesApi = new SwipesApi(swipeApiConfig);
 
-export async function getDogProfileById(dogId: string, dogCreatedAt: string, token: string): Promise<Dog> {
+export async function getDogProfileById(dogId: string, token: string): Promise<Dog> {
   const response = await fetch(`${API_ENDPOINTS.DOG_API_BASE}/dog/${dogId}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'x-created-at': dogCreatedAt,
       'Content-Type': 'application/json'
     },
   });
@@ -137,16 +136,16 @@ export async function getDogProfileById(dogId: string, dogCreatedAt: string, tok
 
 // NEW: Function to fetch details for multiple dogs by their IDs
 // This will be called from AdoptionRequestsScreen.tsx
-export async function getDogsByIds(dogsInfo: Array<{ dogId: string; dogCreatedAt: string }>): Promise<Dog[]> {
+export async function getDogsByIds(dogsInfo: Array<{ dogId: string}>): Promise<Dog[]> {
     const token = await getIdToken(); // Or use getIdToken() as per your backend
     if (!token) {
       throw new Error("No token available. Please log in.");
     }
 
     // Use Promise.all to fetch all dogs concurrently for better performance
-    const fetchPromises = dogsInfo.map(async ({ dogId, dogCreatedAt }) => {
+    const fetchPromises = dogsInfo.map(async ({ dogId }) => {
         try {
-            return await getDogProfileById(dogId, dogCreatedAt, token);
+            return await getDogProfileById(dogId, token);
         } catch (error) {
             console.error(`Failed to fetch dog with ID ${dogId}:`, error);
             // Return null so we can filter out failed requests later
@@ -275,7 +274,7 @@ export async function enrichChatData(rawChats: RawChatData[], userRole: 'adopter
       try {
         // We need the dog's created_at for the API call, but we don't have it
         // For now, we'll use a placeholder. TODO: Store dog created_at in chat record
-        const dogData = await getDogProfileById(chat.dogId, '2024-01-01T00:00:00Z', await getIdToken() || '');
+        const dogData = await getDogProfileById(chat.dogId, await getIdToken() || '');
         dogName = dogData.name || dogName;
         if (dogData.photoURLs && dogData.photoURLs.length > 0) {
           dogPhotoUrl = dogData.photoURLs[0];
