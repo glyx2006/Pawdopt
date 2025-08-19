@@ -110,7 +110,7 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
               await updateAdoptionRequestStatus(request.requestId, request.createdAt, 'approved');
 
               // Step 2: Create a chat and get the chatId
-              const chatId = await createChat(request.adopterId, request.dogId);
+              const chatId = await createChat(request.adopterId, request.dogId, request.dogCreatedAt);
 
               // Step 3: Update the request with the new chatId
               await updateAdoptionRequestChatId(request.requestId, chatId);
