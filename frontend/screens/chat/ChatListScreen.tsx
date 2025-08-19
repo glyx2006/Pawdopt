@@ -6,86 +6,10 @@ import { RootStackParamList, Dog } from '../../App'; // Import Dog and RootStack
 import AppHeader from '../components/AppHeader';
 import AppFooter from '../components/AppFooter';
 import { Ionicons } from '@expo/vector-icons'; // For icons
+import { fetchUserChats, enrichChatData, EnrichedChatData } from '../../src/api'; // Import new API functions
 
-// Define ChatThread interface based on your DynamoDB Chats table
-interface ChatThread {
-  chatId: string;
-  dogId: string;
-  dogName: string; // Denormalized for display
-  shelterId: string;
-  shelterName: string; // Denormalized for display
-  adopterId: string;
-  adopterName: string; // Denormalized for display
-  lastMessageAt: string;
-  lastMessagePreview: string;
-  status: 'pending_request' | 'active' | 'closed' | 'rejected';
-  unreadCount?: number; // Optional for displaying unread messages
-  otherParticipantPhotoUrl: string; // Mock for display
-}
-
-// Mock Data for Chat Threads
-const mockChatThreads: ChatThread[] = [
-  // Active chat for Adopter
-  {
-    chatId: 'chat-1',
-    dogId: 'mock-dog-1',
-    dogName: 'Bella',
-    shelterId: 'mock-shelter-id-1',
-    shelterName: 'Happy Paws Rescue',
-    adopterId: 'mock-adopter-id-1',
-    adopterName: 'Jane Doe',
-    lastMessageAt: '2025-07-29T10:00:00Z',
-    lastMessagePreview: 'Sounds great! Looking forward to meeting Bella.',
-    status: 'active',
-    unreadCount: 0,
-    otherParticipantPhotoUrl: 'https://via.placeholder.com/50/C1FFDD/000000?text=SH', // Shelter mock pic
-  },
-  // Pending request for Shelter
-  {
-    chatId: 'chat-2',
-    dogId: 'mock-dog-3', // Assuming a new dog for a new request
-    dogName: 'Buddy',
-    shelterId: 'mock-shelter-id-1',
-    shelterName: 'Happy Paws Rescue',
-    adopterId: 'mock-adopter-id-2',
-    adopterName: 'John Smith',
-    lastMessageAt: '2025-07-30T11:30:00Z',
-    lastMessagePreview: 'New adoption request for Buddy!',
-    status: 'pending_request',
-    unreadCount: 1, // Indicate new request
-    otherParticipantPhotoUrl: 'https://via.placeholder.com/50/FFDDC1/000000?text=AD', // Adopter mock pic
-  },
-  // Active chat for Shelter
-  {
-    chatId: 'chat-3',
-    dogId: 'mock-dog-2',
-    dogName: 'Charlie',
-    shelterId: 'mock-shelter-id-1',
-    shelterName: 'Happy Paws Rescue',
-    adopterId: 'mock-adopter-id-3',
-    adopterName: 'Alice Brown',
-    lastMessageAt: '2025-07-28T15:45:00Z',
-    lastMessagePreview: 'We are very excited to welcome Charlie!',
-    status: 'active',
-    unreadCount: 0,
-    otherParticipantPhotoUrl: 'https://via.placeholder.com/50/FFDDC1/000000?text=AB', // Adopter mock pic
-  },
-   // Pending request for Adopter (that they sent)
-  {
-    chatId: 'chat-4',
-    dogId: 'mock-dog-4',
-    dogName: 'Lucy',
-    shelterId: 'mock-shelter-id-2',
-    shelterName: 'City Animal Shelter',
-    adopterId: 'mock-adopter-id-1', // Jane Doe sending a request
-    adopterName: 'Jane Doe',
-    lastMessageAt: '2025-07-30T12:00:00Z',
-    lastMessagePreview: 'Your request for Lucy is pending review.',
-    status: 'pending_request',
-    unreadCount: 0,
-    otherParticipantPhotoUrl: 'https://via.placeholder.co/50/C1FFDD/000000?text=CA', // Shelter mock pic
-  },
-];
+// Use the EnrichedChatData interface from API instead of local ChatThread
+type ChatThread = EnrichedChatData;
 
 type ChatListScreenRouteProp = RouteProp<RootStackParamList, 'ChatListScreen'>;
 type ChatListScreenNavigationProp = NavigationProp<RootStackParamList, 'ChatListScreen'>;
@@ -99,26 +23,30 @@ const ChatListScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Simulate fetching chats based on user role and ID
+  // Fetch chats from DynamoDB using the API
   const fetchChats = useCallback(async () => {
     setIsRefreshing(true);
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    
+    try {
+      // Fetch raw chat data from API
+      const rawChats = await fetchUserChats();
+      
+      // Enrich the chat data with dog and user details
+      const enrichedChats = await enrichChatData(rawChats, userRole);
+      
+      // Sort by last message time (most recent first)
+      enrichedChats.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
 
-    let filteredChats: ChatThread[] = [];
-    if (userRole === 'adopter') {
-      filteredChats = mockChatThreads.filter(chat => chat.adopterId === userId);
-    } else { // shelter
-      filteredChats = mockChatThreads.filter(chat => chat.shelterId === userId);
+      setChats(enrichedChats);
+    } catch (error) {
+      console.error('Failed to fetch chats:', error);
+      setChats([]); // Set empty array on error
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
     }
-
-    // Sort by last message time (most recent first)
-    filteredChats.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
-
-    setChats(filteredChats);
-    setLoading(false);
-    setIsRefreshing(false);
-  }, [userRole, userId]);
+  }, [userRole]);
 
   useEffect(() => {
     fetchChats();
@@ -184,7 +112,7 @@ const ChatListScreen: React.FC = () => {
   // Footer Navigation Handlers
   const goToProfile = () => {
     if (userRole === 'adopter') {
-      navigation.navigate('AdopterProfile', {});
+      navigation.navigate('AdopterProfile');
     } else {
       navigation.navigate('ShelterProfile');
     }

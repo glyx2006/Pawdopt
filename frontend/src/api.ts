@@ -11,6 +11,7 @@ const API_ENDPOINTS = {
   PRESIGN_IMAGE_URLS: 'https://1g53nof6f8.execute-api.eu-west-2.amazonaws.com/presignImageUrls',
   DOG_API_BASE: 'https://m4gwfeebyk.execute-api.eu-west-2.amazonaws.com',
   ADOPTER_API_BASE: 'https://hljqzvnyla.execute-api.eu-west-2.amazonaws.com/default/adoptersCRUD',
+  CHAT_API_BASE: 'https://7ng635vzx5.execute-api.eu-west-2.amazonaws.com/default/chatCRUD',
 } as const;
 
 // ================== FUNCTIONS ==================
@@ -176,4 +177,169 @@ export async function getAdoptersByIds(adopterIds: string[]): Promise<AdopterPro
   }
 
   return response.json();
+}
+
+// ================== CHAT API FUNCTIONS ==================
+
+// Interface for raw chat data from DynamoDB
+interface RawChatData {
+  chatId: string;
+  adopterId: string;
+  shelterId: string;
+  dogId: string;
+  status: string;
+  createdAt: string;
+}
+
+// Interface for enriched chat data for the frontend
+export interface EnrichedChatData {
+  chatId: string;
+  dogId: string;
+  dogName: string;
+  dogPhotoUrl?: string;
+  shelterId: string;
+  shelterName: string;
+  adopterId: string;
+  adopterName: string;
+  lastMessageAt: string;
+  lastMessagePreview: string;
+  status: 'pending_request' | 'active' | 'closed' | 'rejected';
+  unreadCount?: number;
+  otherParticipantPhotoUrl: string;
+}
+
+// Fetch all chats for current user
+export async function fetchUserChats(): Promise<RawChatData[]> {
+  const token = await getIdToken();
+  if (!token) {
+    throw new Error("No token available. Please log in.");
+  }
+
+  const response = await fetch(API_ENDPOINTS.CHAT_API_BASE, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Failed to fetch chats: ${text}`);
+  }
+
+  const data = await response.json();
+  return data.chats || [];
+}
+
+// Fetch shelter details by ID
+export async function getShelterDetails(shelterId: string): Promise<{ name: string; photoUrl?: string }> {
+  // TODO: Implement when shelter API is available
+  // For now, return placeholder data
+  return {
+    name: `Shelter ${shelterId.substring(0, 8)}`,
+    photoUrl: 'https://via.placeholder.com/50/C1FFDD/000000?text=SH'
+  };
+}
+
+// Fetch adopter details by ID
+export async function getAdopterDetails(adopterId: string): Promise<{ name: string; photoUrl?: string }> {
+  try {
+    const adopters = await getAdoptersByIds([adopterId]);
+    const adopter = adopters[0];
+    if (adopter) {
+      return {
+        name: adopter.adopterName,
+        photoUrl: adopter.iconUrl || 'https://via.placeholder.com/50/FFDDC1/000000?text=AD'
+      };
+    }
+  } catch (error) {
+    console.error('Failed to fetch adopter details:', error);
+  }
+  
+  // Fallback
+  return {
+    name: `Adopter ${adopterId.substring(0, 8)}`,
+    photoUrl: 'https://via.placeholder.com/50/FFDDC1/000000?text=AD'
+  };
+}
+
+// Enrich chat data with dog and user details
+export async function enrichChatData(rawChats: RawChatData[], userRole: 'adopter' | 'shelter'): Promise<EnrichedChatData[]> {
+  const enrichedChats = await Promise.all(rawChats.map(async (chat) => {
+    try {
+      // Fetch dog details
+      let dogName = `Dog ${chat.dogId.substring(0, 8)}`;
+      let dogPhotoUrl = 'https://via.placeholder.com/50/FFE4B5/000000?text=DOG';
+      
+      try {
+        // We need the dog's created_at for the API call, but we don't have it
+        // For now, we'll use a placeholder. TODO: Store dog created_at in chat record
+        const dogData = await getDogProfileById(chat.dogId, '2024-01-01T00:00:00Z', await getIdToken() || '');
+        dogName = dogData.name || dogName;
+        if (dogData.photoURLs && dogData.photoURLs.length > 0) {
+          dogPhotoUrl = dogData.photoURLs[0];
+        }
+      } catch (error) {
+        console.warn('Failed to fetch dog details for', chat.dogId, error);
+      }
+
+      // Fetch user details
+      let shelterName = 'Unknown Shelter';
+      let adopterName = 'Unknown Adopter';
+      let otherParticipantPhotoUrl = 'https://via.placeholder.com/50/CCCCCC/000000?text=?';
+
+      try {
+        const [shelterDetails, adopterDetails] = await Promise.all([
+          getShelterDetails(chat.shelterId),
+          getAdopterDetails(chat.adopterId)
+        ]);
+        
+        shelterName = shelterDetails.name;
+        adopterName = adopterDetails.name;
+        
+        // Set photo of the other participant
+        otherParticipantPhotoUrl = userRole === 'adopter' 
+          ? (shelterDetails.photoUrl || 'https://via.placeholder.com/50/C1FFDD/000000?text=SH')
+          : (adopterDetails.photoUrl || 'https://via.placeholder.com/50/FFDDC1/000000?text=AD');
+      } catch (error) {
+        console.warn('Failed to fetch user details for chat', chat.chatId, error);
+      }
+
+      return {
+        chatId: chat.chatId,
+        dogId: chat.dogId,
+        dogName,
+        dogPhotoUrl,
+        shelterId: chat.shelterId,
+        shelterName,
+        adopterId: chat.adopterId,
+        adopterName,
+        lastMessageAt: chat.createdAt, // TODO: Replace with actual last message time
+        lastMessagePreview: 'Chat created', // TODO: Replace with actual last message
+        status: chat.status as 'pending_request' | 'active' | 'closed' | 'rejected',
+        unreadCount: 0, // TODO: Implement unread count
+        otherParticipantPhotoUrl
+      };
+    } catch (error) {
+      console.error('Failed to enrich chat data for', chat.chatId, error);
+      // Return minimal data on error
+      return {
+        chatId: chat.chatId,
+        dogId: chat.dogId,
+        dogName: `Dog ${chat.dogId.substring(0, 8)}`,
+        shelterId: chat.shelterId,
+        shelterName: `Shelter ${chat.shelterId.substring(0, 8)}`,
+        adopterId: chat.adopterId,
+        adopterName: `Adopter ${chat.adopterId.substring(0, 8)}`,
+        lastMessageAt: chat.createdAt,
+        lastMessagePreview: 'Chat created',
+        status: chat.status as 'pending_request' | 'active' | 'closed' | 'rejected',
+        unreadCount: 0,
+        otherParticipantPhotoUrl: 'https://via.placeholder.com/50/CCCCCC/000000?text=?'
+      };
+    }
+  }));
+
+  return enrichedChats;
 }
