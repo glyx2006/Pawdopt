@@ -4,7 +4,7 @@ import { getIdToken } from "./CognitoService";
 
 // ================== API ENDPOINT CONSTANTS ==================
 const REQUEST_API_BASE = "https://151hivlwt4.execute-api.eu-west-2.amazonaws.com/default/requestsCRUD"; // Replace with your actual API Gateway base URL
-
+const CHAT_API_BASE = "https://7ng635vzx5.execute-api.eu-west-2.amazonaws.com/default/chatCRUD";
 // ================== INTERFACES ==================
 export interface AdoptionRequest {
   requestId: string;
@@ -91,4 +91,33 @@ export async function deleteAdoptionRequest(requestId: string, createdAt: string
   if (!response.ok) {
     throw new Error(`Failed to delete adoption request: ${await response.text()}`);
   }
+}
+
+export async function createChat(adopterId: string, dogId: string): Promise<string> {
+    const headers = await withAuthHeaders();
+    const response = await fetch(`${CHAT_API_BASE}`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ adopterId, dogId }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to create chat: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.chatId;
+}
+
+export async function updateAdoptionRequestChatId(requestId: string, chatId: string): Promise<void> {
+    const headers = await withAuthHeaders();
+    const response = await fetch(`${REQUEST_API_BASE}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ requestId, chatId, action: 'updateChatId' }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to update request with chat ID: ${await response.text()}`);
+    }
 }

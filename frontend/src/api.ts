@@ -2,7 +2,7 @@ import * as FileSystem from 'expo-file-system';
 import { Buffer } from 'buffer';
 import { Configuration, DogsApi, SwipesApi } from '../generated';
 import { getIdToken, getAccessToken } from '../services/CognitoService';
-import { Dog } from '../App';
+import { Dog, AdopterProfile } from '../App';
 
 global.Buffer = Buffer;
 
@@ -10,6 +10,7 @@ global.Buffer = Buffer;
 const API_ENDPOINTS = {
   PRESIGN_IMAGE_URLS: 'https://1g53nof6f8.execute-api.eu-west-2.amazonaws.com/presignImageUrls',
   DOG_API_BASE: 'https://m4gwfeebyk.execute-api.eu-west-2.amazonaws.com',
+  ADOPTER_API_BASE: 'https://hljqzvnyla.execute-api.eu-west-2.amazonaws.com/default/adoptersCRUD',
 } as const;
 
 // ================== FUNCTIONS ==================
@@ -156,4 +157,23 @@ export async function getDogsByIds(dogsInfo: Array<{ dogId: string; dogCreatedAt
     
     // Filter out any null results from failed fetches
     return results.filter(dog => dog !== null) as Dog[];
+}
+export async function getAdoptersByIds(adopterIds: string[]): Promise<AdopterProfile[]> {
+  const token = await getIdToken();
+  if (!token) throw new Error("Authentication token not found.");
+
+  const response = await fetch(`${API_ENDPOINTS.ADOPTER_API_BASE}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`, // Pass the access token for authorization
+    },
+    body: JSON.stringify({ adopterIds }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch adopter profiles: ${await response.text()}`);
+  }
+
+  return response.json();
 }

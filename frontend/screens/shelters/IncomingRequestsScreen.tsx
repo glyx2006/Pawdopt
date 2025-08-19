@@ -7,44 +7,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import AppHeader from '../components/AppHeader';
-import { RootStackParamList } from '../../App';
+import { Dog, RootStackParamList } from '../../App';
 import BackButton from '../components/BackButton';
 
-// Types for incoming adoption requests from shelter perspective
-interface IncomingAdoptionRequest {
-  requestId: string;
-  dogId: string;
-  adopterId: string;
-  shelterId: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  createdAt: string;
-  respondedAt?: string;
-  chatid?: string;
-  dog_details: {
-    dogId: string;
-    name: string;
-    breed: string;
-    age: number;
-    gender: string;
-    description: string;
-    photoURLs: string[];
-    shelterId: string;
-    status: string;
-    createdAt: string;
-  };
-  adopter_details: {
-    adopterId: string;
-    adopterName: string;
-    email: string;
-    contact: string;
-    address: { formatted: string };
-    postcode: string;
-    iconUrl: string;
-    experience?: string;
-    dateOfBirth?: string;
-    gender?: string;
-  };
+import { AdopterProfile } from '../../App';
+import { AdoptionRequest, createChat, getAdoptionRequests, updateAdoptionRequestChatId, updateAdoptionRequestStatus } from '../../services/RequestService';
+import { getDogsByIds, getAdoptersByIds } from '../../src/api'; // NEW: Import the function to get dog details
+// This type combines the request with the fetched details
+interface IncomingAdoptionRequest extends AdoptionRequest {
+  dog_details: Dog;
+  adopter_details: AdopterProfile;
 }
+
 
 type IncomingRequestsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'IncomingRequests'>;
 type IncomingRequestsScreenRouteProp = RouteProp<RootStackParamList, 'IncomingRequests'>;
@@ -59,8 +33,6 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Mock current shelter ID - REPLACE with actual authentication context
-  const currentShelterId = 'mock-shelter-id-1';
 
   useEffect(() => {
     fetchIncomingRequests();
@@ -70,80 +42,57 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
     setLoading(true);
     setError(null);
     try {
-      // Mock data for incoming requests
-      const mockRequests: IncomingAdoptionRequest[] = [
-        {
-          requestId: 'req1',
-          dogId: 'dog1',
-          adopterId: 'adopter1',
-          shelterId: currentShelterId,
-          status: 'Pending',
-          createdAt: '2025-08-15T10:00:00Z',
-          dog_details: {
-            dogId: 'dog1',
-            name: 'Buddy',
-            breed: 'Golden Retriever',
-            age: 3,
-            gender: 'Male',
-            description: 'Friendly and playful.',
-            photoURLs: ['https://via.placeholder.com/150/FFC107/FFFFFF?text=Buddy'],
-            shelterId: currentShelterId,
-            status: 'Available',
-            createdAt: '2024-01-01T00:00:00Z'
-          },
-          adopter_details: {
-            adopterId: 'adopter1',
-            adopterName: 'John Smith',
-            email: 'john.smith@email.com',
-            contact: '+44 7123 456789',
-            address: { formatted: '123 Main Street, London, UK' },
-            postcode: 'SW1A 1AA',
-            iconUrl: 'https://via.placeholder.com/100/2196F3/FFFFFF?text=JS',
-            experience: 'I have had dogs for over 10 years. Currently have a cat and looking to add a dog to our family.',
-            dateOfBirth: '1985-06-15',
-            gender: 'Male'
-          }
-        },
-        {
-          requestId: 'req2',
-          dogId: 'dog2',
-          adopterId: 'adopter2',
-          shelterId: currentShelterId,
-          status: 'Pending',
-          createdAt: '2025-08-14T15:30:00Z',
-          dog_details: {
-            dogId: 'dog2',
-            name: 'Luna',
-            breed: 'Labrador',
-            age: 2,
-            gender: 'Female',
-            description: 'Loves to run.',
-            photoURLs: ['https://via.placeholder.com/150/4CAF50/FFFFFF?text=Luna'],
-            shelterId: currentShelterId,
-            status: 'Available',
-            createdAt: '2024-02-01T00:00:00Z'
-          },
-          adopter_details: {
-            adopterId: 'adopter2',
-            adopterName: 'Sarah Johnson',
-            email: 'sarah.johnson@email.com',
-            contact: '+44 7987 654321',
-            address: { formatted: '456 Oak Avenue, Manchester, UK' },
-            postcode: 'M1 1AA',
-            iconUrl: 'https://via.placeholder.com/100/E91E63/FFFFFF?text=SJ',
-            experience: 'First-time dog owner but have done extensive research. Have a large garden and work from home.',
-            dateOfBirth: '1990-03-22',
-            gender: 'Female'
-          }
-        }
-      ];
+        // Step 1: Fetch all requests for the CURRENT shelter.
+        // This assumes getAdoptionRequests() is updated to take a role and userId.
+        const requestsFromApi = await getAdoptionRequests();
+        console.log("requestsFromApi: ", requestsFromApi);
 
-      setRequests(mockRequests);
+        if (requestsFromApi.length === 0) {
+            setRequests([]);
+            return;
+        }
+
+        // Step 2: Get unique dog and adopter IDs from the requests.
+        const uniqueAdopterIds = requestsFromApi.map(req => req.adopterId);
+
+        // Step 3: Format dog IDs into required structure and fetch details in parallel
+        const dogsInfo = requestsFromApi.map(req => ({
+            dogId: req.dogId,
+            dogCreatedAt: req.dogCreatedAt
+        }));
+        console.log("dogsInfo: ", dogsInfo);
+        const fetchedDogs = await getDogsByIds(dogsInfo);
+        console.log("fetchedDogs: ", fetchedDogs);
+        
+        // Step 4: Fetch adopter details in parallel
+        console.log("uniqueAdopterIds: ", uniqueAdopterIds);
+        const fetchedAdopters = await getAdoptersByIds(uniqueAdopterIds);
+        console.log("fetchedAdopters: ", fetchedAdopters);
+
+        // Step 4: Combine the requests with the fetched details.
+        const combinedRequests: IncomingAdoptionRequest[] = requestsFromApi.map(req => {
+            const dog_details = fetchedDogs.find(dog => dog.dog_id === req.dogId);
+            const adopter_details = fetchedAdopters.find(adopter => adopter.adopterId === req.adopterId);
+
+            if (!dog_details || !adopter_details) {
+                // Skip requests where details are missing (e.g., deleted profiles).
+                return null;
+            }
+
+            return { 
+                ...req, 
+                dog_details: dog_details, 
+                adopter_details: adopter_details 
+            };
+        }).filter(Boolean) as IncomingAdoptionRequest[]; // Filter out any nulls
+
+        setRequests(combinedRequests);
+
     } catch (err) {
-      console.error("Failed to fetch incoming requests:", err);
-      setError("Failed to load incoming requests. Please try again.");
+        console.error("Failed to fetch incoming requests:", err);
+        setError("Failed to load incoming requests. Please try again.");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
@@ -157,23 +106,19 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
           text: "Approve",
           onPress: async () => {
             try {
-              // TODO: API call to approve request and create chat
-              // const chatId = await approveAdoptionRequest(request.requestId);
-              
-              setRequests(prev =>
-                prev.map(req =>
-                  req.requestId === request.requestId 
-                    ? { 
-                        ...req, 
-                        status: 'Approved', 
-                        respondedAt: new Date().toISOString(),
-                        chatid: `chat_${request.requestId}_${Date.now()}`
-                      } 
-                    : req
-                )
-              );
+              // Step 1: Update request status to 'approved'
+              await updateAdoptionRequestStatus(request.requestId, request.createdAt, 'approved');
+
+              // Step 2: Create a chat and get the chatId
+              const chatId = await createChat(request.adopterId, request.dogId);
+
+              // Step 3: Update the request with the new chatId
+              await updateAdoptionRequestChatId(request.requestId, chatId);
+
               
               Alert.alert("Success", "Request approved! A chat has been created with the adopter.");
+              // Step 4: Re-fetch all data to update the UI
+              await fetchIncomingRequests();
             } catch (error) {
               console.error("Failed to approve request:", error);
               Alert.alert("Error", "Failed to approve request. Please try again.");
@@ -195,21 +140,8 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
           style: "destructive",
           onPress: async () => {
             try {
-              // TODO: API call to reject request
-              // await rejectAdoptionRequest(request.requestId);
-              
-              setRequests(prev =>
-                prev.map(req =>
-                  req.requestId === request.requestId 
-                    ? { 
-                        ...req, 
-                        status: 'Rejected', 
-                        respondedAt: new Date().toISOString()
-                      } 
-                    : req
-                )
-              );
-              
+        
+              updateAdoptionRequestStatus(request.requestId, request.createdAt, 'rejected');              
               Alert.alert("Request rejected", "The adopter has been notified.");
             } catch (error) {
               console.error("Failed to reject request:", error);
@@ -226,7 +158,7 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
   };
 
   const handleOpenChat = (request: IncomingAdoptionRequest) => {
-    if (request.status === 'Approved' && request.chatid) {
+    if (request.status === 'approved' && request.chatid) {
       navigation.navigate('ChatScreen', {
         chatId: request.chatid,
         dogId: request.dogId,
@@ -274,7 +206,7 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
         </TouchableOpacity>
       </View>
 
-      {item.status === 'Pending' && (
+      {item.status === 'pending' && (
         <View style={styles.actionButtons}>
           <TouchableOpacity 
             style={styles.rejectButton}
@@ -296,7 +228,7 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
         </View>
       )}
 
-      {item.status === 'Approved' && item.chatid && (
+      {item.status === 'approved' && item.chatid && (
         <TouchableOpacity 
           style={styles.chatButtonWrapper}
           onPress={() => handleOpenChat(item)}
@@ -480,14 +412,17 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 15,
   },
-  statusPending: {
+  statuspending: {
     backgroundColor: '#FFF3CD',
   },
-  statusApproved: {
+  statusapproved: {
     backgroundColor: '#D4EDDA',
   },
-  statusRejected: {
+  statusrejected: {
     backgroundColor: '#F8D7DA',
+  },
+  statuswithdrawn: {
+    backgroundColor: '#E2E3E5',
   },
   statusText: {
     fontSize: 12,

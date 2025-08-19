@@ -22,13 +22,13 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onChatNow, onWithdra
 
   const getStatusColor = (currentStatus: string) => {
     switch (currentStatus) {
-      case 'Approved':
+      case 'approved':
         return '#4CAF50';
-      case 'Rejected':
+      case 'rejected':
         return '#F44336';
-      case 'Withdrawn':
+      case 'withdrawn':
         return '#9E9E9E';
-      case 'Pending':
+      case 'pending':
       default:
         return '#FFC107';
     }
@@ -50,6 +50,9 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onChatNow, onWithdra
         <Text style={styles.dogName}>{dog_details.name}</Text>
         <Text style={styles.dogInfo}>{dog_details.breed} | {dog_details.gender}</Text>
         <Text style={styles.dogInfo}>Age: {dog_details.age} years</Text>
+        <Text style={styles.dogInfo}>Size: {dog_details.size}</Text>
+        <Text style={styles.dogInfo}>Color: {dog_details.color}</Text>
+        <Text style={styles.dogInfo}>Description: {dog_details.description}</Text>
         <Text style={[styles.statusText, { color: getStatusColor(status) }]}>Status: {status}</Text>
         <View style={styles.actionsContainer}>
           {status === 'approved' && chatid && (
@@ -80,7 +83,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onChatNow, onWithdra
 };
 const styles = StyleSheet.create({
   card: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 15, marginVertical: 10, marginHorizontal: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3, overflow: 'hidden' },
-  imageContainer: { width: 120, height: 120, borderRadius: 15, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' },
+  imageContainer: { width: 120, height: 170, borderRadius: 15, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' },
   dogImage: { width: '100%', height: '100%', resizeMode: 'cover' },
   noImageIcon: { justifyContent: 'center', alignItems: 'center' },
   detailsContainer: { flex: 1, padding: 15, justifyContent: 'space-between' },

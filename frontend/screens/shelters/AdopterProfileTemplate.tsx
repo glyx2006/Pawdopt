@@ -115,8 +115,7 @@ const AdopterProfileTemplate: React.FC<AdopterProfileTemplateProps> = ({ navigat
               <Text style={styles.experienceText}>{adopter.experience}</Text>
             </View>
           </View>
-        )}
-        
+        )}        
       </ScrollView>
     </SafeAreaView>
   );
