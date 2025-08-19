@@ -116,26 +116,7 @@ const AdopterProfileTemplate: React.FC<AdopterProfileTemplateProps> = ({ navigat
             </View>
           </View>
         )}
-
-        {/* Action Buttons */}
-        {/* <View style={styles.actionButtons}>
-          <TouchableOpacity 
-            style={styles.contactButtonWrapper}
-            onPress={() => {
-              // TODO: Implement direct contact (email or phone)
-              // For now, just navigate back
-              navigation.goBack();
-            }}
-          >
-            <LinearGradient
-              colors={['#2196F3', '#1976D2']}
-              style={styles.contactButton}
-            >
-              <Ionicons name="mail-outline" size={20} color="#fff" />
-              <Text style={styles.contactButtonText}>Contact Adopter</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View> */}
+        
       </ScrollView>
     </SafeAreaView>
   );

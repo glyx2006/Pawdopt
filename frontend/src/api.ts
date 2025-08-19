@@ -2,6 +2,7 @@ import * as FileSystem from 'expo-file-system';
 import { Buffer } from 'buffer';
 import { Configuration, DogsApi, SwipesApi } from '../generated';
 import { getIdToken, getAccessToken } from '../services/CognitoService';
+import { Dog } from '../App';
 
 global.Buffer = Buffer;
 
@@ -113,3 +114,46 @@ export const swipeApiConfig = new Configuration({
 })
 
 export const swipesApi = new SwipesApi(swipeApiConfig);
+
+export async function getDogProfileById(dogId: string, dogCreatedAt: string, token: string): Promise<Dog> {
+  const response = await fetch(`${API_ENDPOINTS.DOG_API_BASE}/dog/${dogId}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'x-created-at': dogCreatedAt,
+      'Content-Type': 'application/json'
+    },
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Failed to get dog profile: ${text}`);
+  }
+
+  return response.json();
+}
+
+// NEW: Function to fetch details for multiple dogs by their IDs
+// This will be called from AdoptionRequestsScreen.tsx
+export async function getDogsByIds(dogsInfo: Array<{ dogId: string; dogCreatedAt: string }>): Promise<Dog[]> {
+    const token = await getIdToken(); // Or use getIdToken() as per your backend
+    if (!token) {
+      throw new Error("No token available. Please log in.");
+    }
+
+    // Use Promise.all to fetch all dogs concurrently for better performance
+    const fetchPromises = dogsInfo.map(async ({ dogId, dogCreatedAt }) => {
+        try {
+            return await getDogProfileById(dogId, dogCreatedAt, token);
+        } catch (error) {
+            console.error(`Failed to fetch dog with ID ${dogId}:`, error);
+            // Return null so we can filter out failed requests later
+            return null;
+        }
+    });
+
+    const results = await Promise.all(fetchPromises);
+    
+    // Filter out any null results from failed fetches
+    return results.filter(dog => dog !== null) as Dog[];
+}
