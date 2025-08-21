@@ -117,12 +117,13 @@ export const swipeApiConfig = new Configuration({
 
 export const swipesApi = new SwipesApi(swipeApiConfig);
 
-export async function getDogProfileById(dogId: string, token: string): Promise<Dog> {
+export async function getDogProfileById(dogId: string, dogCreatedAt: string, token: string): Promise<Dog> {
   const response = await fetch(`${API_ENDPOINTS.DOG_API_BASE}/dog/${dogId}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'x-created-at': dogCreatedAt
     },
   });
 
@@ -136,16 +137,16 @@ export async function getDogProfileById(dogId: string, token: string): Promise<D
 
 // NEW: Function to fetch details for multiple dogs by their IDs
 // This will be called from AdoptionRequestsScreen.tsx
-export async function getDogsByIds(dogsInfo: Array<{ dogId: string}>): Promise<Dog[]> {
+export async function getDogsByIds(dogsInfo: Array<{ dogId: string, dogCreatedAt: string }>): Promise<Dog[]> {
     const token = await getIdToken(); // Or use getIdToken() as per your backend
     if (!token) {
       throw new Error("No token available. Please log in.");
     }
 
     // Use Promise.all to fetch all dogs concurrently for better performance
-    const fetchPromises = dogsInfo.map(async ({ dogId }) => {
+    const fetchPromises = dogsInfo.map(async ({ dogId, dogCreatedAt }) => {
         try {
-            return await getDogProfileById(dogId, token);
+            return await getDogProfileById(dogId, dogCreatedAt, token);
         } catch (error) {
             console.error(`Failed to fetch dog with ID ${dogId}:`, error);
             // Return null so we can filter out failed requests later
