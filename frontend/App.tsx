@@ -2,6 +2,8 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { ApolloProvider } from '@apollo/client';
+import { client } from './apolloClient';
 
 // Import all your screen components
 import OnboardingScreen from "./screens/login/OnboardingScreen";
@@ -170,9 +172,10 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Onboarding">
+    <ApolloProvider client={client}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Onboarding">
           <Stack.Screen
             name="Onboarding"
             component={OnboardingScreen}
@@ -295,5 +298,6 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>
+    </ApolloProvider>
   );
 }
