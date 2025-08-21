@@ -80,8 +80,8 @@ export async function deleteDog(dogId: string, dogCreatedAt: string, token: stri
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
       'x-created-at': dogCreatedAt,
+      'Content-Type': 'application/json',
     },
   });
 
