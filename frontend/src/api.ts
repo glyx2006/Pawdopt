@@ -3,6 +3,7 @@ import { Buffer } from 'buffer';
 import { Configuration, DogsApi, SwipesApi } from '../generated';
 import { getIdToken, getAccessToken } from '../services/CognitoService';
 import { Dog, AdopterProfile } from '../App';
+import { gql } from '@apollo/client';
 
 global.Buffer = Buffer;
 
@@ -349,3 +350,60 @@ export async function enrichChatData(rawChats: RawChatData[], userRole: 'adopter
 
   return enrichedChats;
 }
+
+export const GET_MESSAGES = gql`
+  query GetMessages($chatId: ID!) {
+    getMessages(chatId: $chatId) {
+      id
+      text
+      createdAt
+      senderId
+    }
+  }
+`;
+
+export const CREATE_MESSAGE = gql`
+  mutation CreateMessage($input: CreateMessageInput!) {
+    createMessage(input: $input) {
+      messageId: message_id
+      chatId: chat_id
+      senderId: sender_id
+      text
+      sentAt: sent_at
+      readStatus: read_status
+    }
+  }
+`;
+
+
+export const ON_NEW_MESSAGE = gql`
+  subscription OnNewMessage($chatId: ID!) {
+    onCreateMessage(chatId: $chatId) {
+      id
+      text
+      createdAt
+      senderId
+    }
+  }
+`;
+
+
+export const LIST_MESSAGES = gql`
+  query ListMessages(
+    $filter: TableMessageFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listMessages(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        messageId: message_id
+        chatId: chat_id
+        text
+        sentAt: sent_at
+        senderId: sender_id
+        readStatus: read_status
+      }
+      nextToken
+    }
+  }
+`;

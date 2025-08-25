@@ -6,6 +6,9 @@ import { RootStackParamList } from '../../App';
 import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
 import { Ionicons } from '@expo/vector-icons';
+import { client } from '../../apolloClient';
+import { CREATE_MESSAGE, LIST_MESSAGES } from '../../src/api'
+import { useMutation } from '@apollo/client';
 
 const { width } = Dimensions.get('window');
 
@@ -14,42 +17,42 @@ interface Message {
   messageId: string;
   chatId: string;
   senderId: string;
-  receiverId: string;
-  content: string;
+  receiverId?: string;
+  text: string;
   sentAt: string;
-  read: boolean;
+  readStatus: boolean;
 }
 
 // Mock Data for Messages (for chat-2, the pending request)
-const mockMessages: Message[] = [
-  {
-    messageId: 'msg-1',
-    chatId: 'chat-1',
-    senderId: 'mock-adopter-id-1',
-    receiverId: 'mock-shelter-id-1',
-    content: 'Hi Happy Paws, I\'m very interested in Bella!',
-    sentAt: '2025-07-29T09:58:00Z',
-    read: true,
-  },
-  {
-    messageId: 'msg-2',
-    chatId: 'chat-1',
-    senderId: 'mock-shelter-id-1',
-    receiverId: 'mock-adopter-id-1',
-    content: 'Hi Jane! Great to hear. Bella is a lovely dog.',
-    sentAt: '2025-07-29T10:00:00Z',
-    read: false,
-  },
-  {
-    messageId: 'msg-3', // This would be the "system" message for a new request
-    chatId: 'chat-2',
-    senderId: 'system', // Special senderId for system messages
-    receiverId: 'mock-shelter-id-1', // Or the shelterId
-    content: 'John Smith has sent a new adoption request for Buddy. Review their profile to proceed.',
-    sentAt: '2025-07-30T11:30:00Z',
-    read: false,
-  },
-];
+// const mockMessages: Message[] = [
+//   {
+//     messageId: 'msg-1',
+//     chatId: 'chat-1',
+//     senderId: 'mock-adopter-id-1',
+//     receiverId: 'mock-shelter-id-1',
+//     content: 'Hi Happy Paws, I\'m very interested in Bella!',
+//     sentAt: '2025-07-29T09:58:00Z',
+//     read: true,
+//   },
+//   {
+//     messageId: 'msg-2',
+//     chatId: 'chat-1',
+//     senderId: 'mock-shelter-id-1',
+//     receiverId: 'mock-adopter-id-1',
+//     content: 'Hi Jane! Great to hear. Bella is a lovely dog.',
+//     sentAt: '2025-07-29T10:00:00Z',
+//     read: false,
+//   },
+//   {
+//     messageId: 'msg-3', // This would be the "system" message for a new request
+//     chatId: 'chat-2',
+//     senderId: 'system', // Special senderId for system messages
+//     receiverId: 'mock-shelter-id-1', // Or the shelterId
+//     content: 'John Smith has sent a new adoption request for Buddy. Review their profile to proceed.',
+//     sentAt: '2025-07-30T11:30:00Z',
+//     read: false,
+//   },
+// ];
 
 
 type ChatScreenRouteProp = RouteProp<RootStackParamList, 'ChatScreen'>;
@@ -64,44 +67,110 @@ const ChatScreen: React.FC = () => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [chatStatus, setChatStatus] = useState(initialChatStatus); // Mutable chat status
+  const [nextToken, setNextToken] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
   // Mock current user ID (replace with actual Cognito user ID)
-  const currentUserId = role === 'adopter' ? 'mock-adopter-id-1' : 'mock-shelter-id-1';
+  // const currentUserId = role === 'adopter' ? 'mock-adopter-id-1' : 'mock-shelter-id-1';
+  const currentUserId = senderId
 
   // Simulate fetching messages for the current chat
   const fetchMessages = useCallback(async () => {
     setLoading(true);
     await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
-    const filteredMessages = mockMessages.filter(msg => msg.chatId === chatId);
-    // Sort messages chronologically
-    filteredMessages.sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
-    setMessages(filteredMessages);
-    setLoading(false);
-    // Scroll to bottom after messages load
-    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    // const filteredMessages = mockMessages.filter(msg => msg.chatId === chatId);
+
+    try {
+      const { data } = await client.query({
+        query: LIST_MESSAGES,
+        variables: {
+          filter: { chat_id: {eq: chatId} },
+          limit: 50,
+          nextToken: nextToken || null,
+        },
+        fetchPolicy: 'network-only',
+      })
+
+      const filteredMessages = data.listMessages.items;
+      console.log("filteredMessages: ", filteredMessages);
+      console.log("messages:", messages)
+          // Sort messages chronologically
+      filteredMessages.sort((a: any, b: any) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
+      setMessages(prev => {
+        const newMessages = filteredMessages.filter(
+          (fm: Message) => !prev.some(pm => pm.messageId === fm.messageId)
+        );
+        return [...prev, ...newMessages];
+      });
+
+    } catch (error) {
+      console.error('Error fetching message:', error);
+    } finally {
+      setLoading(false);
+      // Scroll to bottom after messages load
+      // setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    }
+
   }, [chatId]);
 
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() === '') return;
+  const [createMessage] = useMutation(CREATE_MESSAGE);
 
-    const messageToSend: Message = {
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+
+    const messageToSend = {
       messageId: `msg-${Date.now()}`,
       chatId: chatId,
       senderId: currentUserId,
-      receiverId: role === 'adopter' ? receipientId : senderId,
-      content: newMessage.trim(),
+      // receiverId: role === 'adopter' ? receipientId : senderId,
+      text: newMessage.trim(),
       sentAt: new Date().toISOString(),
-      read: false, // Will be true when other party reads
+      readStatus: false, // Will be true when other party reads
     };
 
     setMessages(prevMessages => [...prevMessages, messageToSend]);
     setNewMessage('');
     // TODO: Send message to backend (Messages table)
+      try {
+        const { data } = await createMessage({
+          variables: {
+            input: {
+              message_id: messageToSend.messageId,
+              chat_id: messageToSend.chatId,
+              sender_id: messageToSend.senderId,
+              text: messageToSend.text,
+              sent_at: messageToSend.sentAt,
+              read_status: messageToSend.readStatus
+            }
+          },
+        });
+
+        // Apollo will automatically update cache if normalized properly,
+        // but if you want to ensure UI update immediately:
+        if (data?.createMessage) {
+          setMessages(prev => {
+            if (prev.find(msg => msg.messageId === data.createMessage.messageId)) return prev;
+            return [...prev, data.createMessage]
+          });
+        }
+
+        setNewMessage('');
+        setTimeout(
+          () => flatListRef.current?.scrollToEnd({ animated: true }),
+          100
+        );
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
+
+    
+
+
     // TODO: Update Chats table (lastMessageAt, lastMessagePreview)
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
   };
@@ -130,9 +199,9 @@ const ChatScreen: React.FC = () => {
               chatId: chatId,
               senderId: currentUserId, // Shelter sending
               receiverId: role === 'adopter' ? receipientId : senderId, // Adopter receiving
-              content: `Great news! Your adoption request for ${dogName} has been approved. Let's chat!`,
+              text: `Great news! Your adoption request for ${dogName} has been approved. Let's chat!`,
               sentAt: new Date().toISOString(),
-              read: false,
+              readStatus: false,
             };
             setMessages(prevMessages => [...prevMessages, confirmationMessage]);
             setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
@@ -158,9 +227,9 @@ const ChatScreen: React.FC = () => {
               chatId: chatId,
               senderId: currentUserId, // Shelter sending
               receiverId: role === 'adopter' ? receipientId : senderId, // Adopter receiving
-              content: `Your request for ${dogName} has been declined.`,
+              text: `Your request for ${dogName} has been declined.`,
               sentAt: new Date().toISOString(),
-              read: false,
+              readStatus: false,
             };
             setMessages(prevMessages => [...prevMessages, rejectionMessage]);
             setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
@@ -173,18 +242,19 @@ const ChatScreen: React.FC = () => {
   const renderMessage = ({ item }: { item: Message }) => {
     const isMyMessage = item.senderId === currentUserId;
     const isSystemMessage = item.senderId === 'system';
+    console.log('messages: ', messages)
 
     if (isSystemMessage) {
       return (
         <View style={styles.systemMessageContainer}>
-          <Text style={styles.systemMessageText}>{item.content}</Text>
+          <Text style={styles.systemMessageText}>{item.text}</Text>
         </View>
       );
     }
 
     return (
       <View style={[styles.messageBubble, isMyMessage ? styles.myMessage : styles.otherMessage]}>
-        <Text style={styles.messageText}>{item.content}</Text>
+        <Text style={styles.messageText}>{item.text}</Text>
         <Text style={styles.messageTimeSmall}>{new Date(item.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
       </View>
     );
