@@ -66,6 +66,7 @@ const ChatListScreen: React.FC = () => {
       chatId: chat.chatId,
       dogId: chat.dogId,
       dogName: chat.dogName,
+      dogCreatedAt: chat.dogCreatedAt,
       senderId: userRole === 'adopter' ? chat.adopterId : chat.shelterId,
       receipientId: userRole === 'adopter' ? chat.shelterId : chat.adopterId,
       role: userRole,

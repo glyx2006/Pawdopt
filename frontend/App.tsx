@@ -161,6 +161,7 @@ export type RootStackParamList = {
     chatId: string;
     dogId: string; // ID of the dog the chat is about
     dogName: string;
+    dogCreatedAt: string;
     senderId: string; // The ID of the person you're chatting with
     receipientId: string;
     role: 'adopter' | 'shelter'; // Role of the current logged-in user
