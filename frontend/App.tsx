@@ -84,7 +84,7 @@ export type RootStackParamList = {
     latitude: string;
     longitude: string;
   };
-  DogProfileDetail: {dogId: string, dogCreatedAt: string, distance: number};
+  DogProfileDetail: {dogId: string, dogCreatedAt: string, distance: number, role?: 'adopter' | 'shelter', adopterId?: string, fromChat?: boolean};
   AdopterDashboard: undefined; // No parameters expected for the dashboard (for now)
   ShelterDashboard: {
     // When navigating to ShelterDashboard, we might pass a newDog if coming from AddDogScreen
