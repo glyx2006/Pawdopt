@@ -17,7 +17,7 @@ const DogProfileDetailScreen: React.FC<{
   navigation: DogProfileDetailScreenNavigationProp;
   route: DogProfileDetailScreenRouteProp;
 }> = ({ navigation, route }) => {
-  const { dogId, dogCreatedAt, distance } = route.params;
+  const { dogId, dogCreatedAt, distance, role = 'adopter', adopterId, fromChat = false } = route.params;
   const [dog, setDog] = useState<Dog | null>(null);
   const screenWidth = Dimensions.get('window').width;
 
@@ -56,6 +56,24 @@ const DogProfileDetailScreen: React.FC<{
       }
     }
     navigation.navigate('AdopterDashboard');
+  };
+
+  const handleAcceptAdopter = async () => {
+    if (dog && adopterId) {
+      try {
+        // TODO: FOR SHELTER TO ACCEPT ADOPTER
+        // Here you would call an API to accept the adoption request
+        // For now, I'll create a placeholder
+        handleAlert('Adoption Accepted', `You have accepted the adoption request for ${dog.name}!`);
+        
+        // Navigate back to shelter dashboard
+        navigation.navigate('ShelterDashboard', {});
+      } catch (e) {
+        handleAlert('Error', `Failed to accept adoption request: ${e}`);
+      }
+    } else {
+      handleAlert('Error', 'Missing adopter information');
+    }
   };
 
   if (!dog) {
@@ -115,19 +133,26 @@ const DogProfileDetailScreen: React.FC<{
         </View>
       </ScrollView>
 
-      {/* Apply for Adoption Button at the bottom */}
-      <View style={styles.bottomButtonContainer}>
-        <TouchableOpacity onPress={handleApplyForAdoption} style={styles.applyButtonWrapper}>
-          <LinearGradient
-            colors={['#FFD194', '#FFACAC']}
-            style={styles.applyButtonGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+      {/* Apply for Adoption Button at the bottom - only show if not from chat or if shelter */}
+      {(!fromChat || role === 'shelter') && (
+        <View style={styles.bottomButtonContainer}>
+          <TouchableOpacity 
+            onPress={role === 'shelter' ? handleAcceptAdopter : handleApplyForAdoption} 
+            style={styles.applyButtonWrapper}
           >
-            <Text style={styles.applyButtonText}>Request to Chat with {dog.shelterName}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+            <LinearGradient
+              colors={role === 'shelter' ? ['#90EE90', '#32CD32'] : ['#FFD194', '#FFACAC']}
+              style={styles.applyButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={styles.applyButtonText}>
+                {role === 'shelter' ? 'Accept Adopter to Adopt' : `Request to Chat with ${dog.shelterName}`}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 };

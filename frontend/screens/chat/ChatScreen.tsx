@@ -271,7 +271,9 @@ const ChatScreen: React.FC = () => {
       navigation.navigate('DogProfileDetail', {
         dogId: dogId,
         dogCreatedAt: dogCreatedAt,
-        distance: 0 // Default distance since it's not relevant in chat context
+        distance: 0, // Default distance since it's not relevant in chat context
+        role: role,
+        fromChat: true
       });
     }
   };

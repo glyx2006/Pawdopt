@@ -441,7 +441,7 @@ const DogSwipeScreen: React.FC = () => {
   // Navigate to DogProfileDetailScreen (runs on JS thread)
   const goToDogDetailsJS = () => {
     if (currentDog) {
-      navigation.navigate('DogProfileDetail', { dogId: currentDog.id, dogCreatedAt: currentDog.createdAt, distance: currentDog.distance });
+      navigation.navigate('DogProfileDetail', { dogId: currentDog.id, dogCreatedAt: currentDog.createdAt, distance: currentDog.distance, role: 'adopter' });
     }
   };
 
