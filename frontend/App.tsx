@@ -141,7 +141,7 @@ export type RootStackParamList = {
       adopterName: string;
       email: string;
       contact: string;
-      address: { formatted: string };
+      address: string | { formatted: string };
       postcode: string;
       iconUrl: string;
       experience?: string;

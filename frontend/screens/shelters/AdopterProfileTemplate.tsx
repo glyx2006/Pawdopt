@@ -56,10 +56,10 @@ const AdopterProfileTemplate: React.FC<AdopterProfileTemplateProps> = ({ navigat
           <Image source={{ uri: adopter.iconUrl }} style={styles.profileImage} />
           <View style={styles.profileInfo}>
             <Text style={styles.adopterName}>{adopter.adopterName}</Text>
-            <Text style={styles.ageText}>{calculateAge(adopter.dateOfBirth)}</Text>
+            {/* <Text style={styles.ageText}>{calculateAge(adopter.dateOfBirth)}</Text>
             {adopter.gender && (
               <Text style={styles.genderText}>{adopter.gender}</Text>
-            )}
+            )} */}
           </View>
         </View>
 
@@ -79,7 +79,9 @@ const AdopterProfileTemplate: React.FC<AdopterProfileTemplateProps> = ({ navigat
           
           <View style={styles.infoRow}>
             <Ionicons name="location-outline" size={20} color="#666" />
-            <Text style={styles.infoText}>{adopter.address.formatted}</Text>
+            <Text style={styles.infoText}>
+              {typeof adopter.address === 'object' ? adopter.address.formatted : adopter.address}
+            </Text>
           </View>
           
           <View style={styles.infoRow}>
@@ -89,7 +91,7 @@ const AdopterProfileTemplate: React.FC<AdopterProfileTemplateProps> = ({ navigat
         </View>
 
         {/* Personal Information */}
-        <View style={styles.section}>
+        {/* <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
           
           {adopter.dateOfBirth && (
@@ -105,7 +107,7 @@ const AdopterProfileTemplate: React.FC<AdopterProfileTemplateProps> = ({ navigat
               <Text style={styles.infoText}>Gender: {adopter.gender}</Text>
             </View>
           )}
-        </View>
+        </View> */}
 
         {/* Experience with Pets */}
         {adopter.experience && (
