@@ -7,8 +7,10 @@ import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
 import { Ionicons } from '@expo/vector-icons';
 import { client } from '../../apolloClient';
-import { CREATE_MESSAGE, LIST_MESSAGES } from '../../src/api'
+import { CREATE_MESSAGE, LIST_MESSAGES, getDogProfileById } from '../../src/api'
+import { getIdToken } from '../../services/CognitoService'
 import { useMutation } from '@apollo/client';
+import { Dog } from '../../App';
 
 const { width } = Dimensions.get('window');
 
@@ -61,13 +63,15 @@ type ChatScreenNavigationProp = NavigationProp<RootStackParamList, 'ChatScreen'>
 const ChatScreen: React.FC = () => {
   const navigation = useNavigation<ChatScreenNavigationProp>();
   const route = useRoute<ChatScreenRouteProp>();
-  const { chatId, dogId, dogName, senderId, receipientId, role, chatStatus: initialChatStatus } = route.params;
+  const { chatId, dogId, dogName, dogCreatedAt, senderId, receipientId, role, chatStatus: initialChatStatus } = route.params;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [chatStatus, setChatStatus] = useState(initialChatStatus); // Mutable chat status
   const [nextToken, setNextToken] = useState<string | null>(null);
+  const [dogDetails, setDogDetails] = useState<Dog | null>(null);
+  const [dogLoading, setDogLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   // Mock current user ID (replace with actual Cognito user ID)
@@ -116,6 +120,28 @@ const ChatScreen: React.FC = () => {
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
+
+  // Fetch dog details
+  useEffect(() => {
+    const fetchDogDetails = async () => {
+      if (!dogId || !dogCreatedAt) return;
+      
+      setDogLoading(true);
+      try {
+        const token = await getIdToken();
+        if (token) {
+          const dog = await getDogProfileById(dogId, dogCreatedAt, token);
+          setDogDetails(dog);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dog details:', error);
+      } finally {
+        setDogLoading(false);
+      }
+    };
+
+    fetchDogDetails();
+  }, [dogId, dogCreatedAt]);
 
   const [createMessage] = useMutation(CREATE_MESSAGE);
 
@@ -239,6 +265,17 @@ const ChatScreen: React.FC = () => {
     );
   };
 
+  const handleDogProfilePress = () => {
+    if (dogDetails) {
+      // Navigate to dog profile detail screen
+      navigation.navigate('DogProfileDetail', {
+        dogId: dogId,
+        dogCreatedAt: dogCreatedAt,
+        distance: 0 // Default distance since it's not relevant in chat context
+      });
+    }
+  };
+
   const renderMessage = ({ item }: { item: Message }) => {
     const isMyMessage = item.senderId === currentUserId;
     const isSystemMessage = item.senderId === 'system';
@@ -270,6 +307,40 @@ const ChatScreen: React.FC = () => {
           />
         }
       />
+
+      {/* Dog Info Block */}
+      {dogLoading ? (
+        <View style={styles.dogInfoBlock}>
+          <View style={styles.dogInfoContainer}>
+            <View style={[styles.dogInfoImage, styles.dogInfoImagePlaceholder]} />
+            <View style={styles.dogInfoTextContainer}>
+              <View style={[styles.dogInfoNamePlaceholder, styles.placeholder]} />
+              <View style={[styles.dogInfoBreedPlaceholder, styles.placeholder]} />
+              <View style={[styles.dogInfoAgePlaceholder, styles.placeholder]} />
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#ddd" />
+          </View>
+        </View>
+      ) : dogDetails ? (
+        <TouchableOpacity style={styles.dogInfoBlock} onPress={handleDogProfilePress}>
+          <View style={styles.dogInfoContainer}>
+            <Image 
+              source={
+                dogDetails.photoURLs && dogDetails.photoURLs.length > 0 
+                  ? { uri: dogDetails.photoURLs[0] } 
+                  : require('../../assets/pawdopt_logo.png')
+              }
+              style={styles.dogInfoImage}
+            />
+            <View style={styles.dogInfoTextContainer}>
+              <Text style={styles.dogInfoName}>{dogDetails.name}</Text>
+              <Text style={styles.dogInfoBreed}>{dogDetails.breed}</Text>
+              <Text style={styles.dogInfoAge}>{dogDetails.age} years old • {dogDetails.gender}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#666" />
+          </View>
+        </TouchableOpacity>
+      ) : null}
 
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingContainer}
@@ -351,6 +422,69 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#f0f2f5',
+  },
+  dogInfoBlock: {
+    backgroundColor: 'white',
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  dogInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  dogInfoImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 12,
+  },
+  dogInfoTextContainer: {
+    flex: 1,
+  },
+  dogInfoName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+  },
+  dogInfoBreed: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  dogInfoAge: {
+    fontSize: 12,
+    color: '#888',
+  },
+  dogInfoImagePlaceholder: {
+    backgroundColor: '#e0e0e0',
+  },
+  placeholder: {
+    backgroundColor: '#e0e0e0',
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  dogInfoNamePlaceholder: {
+    height: 20,
+    width: '60%',
+  },
+  dogInfoBreedPlaceholder: {
+    height: 16,
+    width: '40%',
+  },
+  dogInfoAgePlaceholder: {
+    height: 14,
+    width: '50%',
   },
   backButton: {
     padding: 8,
