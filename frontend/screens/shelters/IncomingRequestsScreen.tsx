@@ -71,7 +71,7 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
 
         // Step 4: Combine the requests with the fetched details.
         const combinedRequests: IncomingAdoptionRequest[] = requestsFromApi.map(req => {
-            const dog_details = fetchedDogs.find(dog => dog.dog_id === req.dogId);
+            const dog_details = fetchedDogs.find(dog => dog.id === req.dogId);
             const adopter_details = fetchedAdopters.find(adopter => adopter.adopterId === req.adopterId);
 
             if (!dog_details || !adopter_details) {
