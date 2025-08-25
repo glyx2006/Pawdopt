@@ -108,12 +108,15 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
             try {
               // Step 1: Update request status to 'approved'
               await updateAdoptionRequestStatus(request.requestId, request.createdAt, 'approved');
+              console.log("Request approved:", request);
 
               // Step 2: Create a chat and get the chatId
               const chatId = await createChat(request.adopterId, request.dogId, request.dogCreatedAt);
+              console.log("Chat created with ID:", chatId);
 
-              // Step 3: Update the request with the new chatId
-              await updateAdoptionRequestChatId(request.requestId, chatId);
+              // // Step 3: Update the request with the new chatId
+              // await updateAdoptionRequestChatId(request.requestId, chatId);
+              // console.log("Request updated with chatId:", chatId);
 
               
               Alert.alert("Success", "Request approved! A chat has been created with the adopter.");
@@ -143,6 +146,7 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
         
               updateAdoptionRequestStatus(request.requestId, request.createdAt, 'rejected');              
               Alert.alert("Request rejected", "The adopter has been notified.");
+              await fetchIncomingRequests();
             } catch (error) {
               console.error("Failed to reject request:", error);
               Alert.alert("Error", "Failed to reject request. Please try again.");
