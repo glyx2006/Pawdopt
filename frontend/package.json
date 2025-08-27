@@ -51,7 +51,9 @@
     "symbol-observable": "^4.0.0",
     "ts-invariant": "^0.10.3",
     "zen-observable": "^0.8.15",
-    "zen-observable-ts": "^1.2.5"
+    "zen-observable-ts": "^1.2.5",
+    "react-native-maps": "1.20.1",
+    "expo-sharing": "~13.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
