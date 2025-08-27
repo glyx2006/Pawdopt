@@ -167,6 +167,7 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
         chatId: request.chatid,
         dogId: request.dogId,
         dogName: request.dog_details.name,
+        dogCreatedAt: request.dogCreatedAt,
         senderId: request.shelterId,
         receipientId: request.adopterId,
         role: 'shelter',

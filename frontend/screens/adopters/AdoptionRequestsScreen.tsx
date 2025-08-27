@@ -85,6 +85,7 @@ const AdoptionRequestsScreen: React.FC<AdoptionRequestsScreenProps> = ({ navigat
         chatId: request.chatid,
         dogId: request.dogId,
         dogName: request.dog_details.name,
+        dogCreatedAt: request.dogCreatedAt,
         senderId: request.adopterId,
         receipientId: request.shelterId,
         role: 'adopter',

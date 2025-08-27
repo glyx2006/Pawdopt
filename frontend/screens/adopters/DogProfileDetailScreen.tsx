@@ -2,46 +2,96 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions, ScrollView, Alert, Platform } from 'react-native';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context'; 
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../../App';
 import { handleAlert } from '../utils/AlertUtils';
 import { dogsApi } from '../../src/api';
 import { Dog } from '../../generated';
 import { swipe } from './DogSwipeScreen';
+import MapView, { Marker } from 'react-native-maps';
+import { getIdToken } from '../../services/CognitoService';
 
 // Define types (assuming they are correct)
 type DogProfileDetailScreenRouteProp = RouteProp<RootStackParamList, 'DogProfileDetail'>;
 type DogProfileDetailScreenNavigationProp = NavigationProp<RootStackParamList, 'DogProfileDetail'>;
+
+// CORRECTED API_BASE_URL
+const API_BASE_URL = 'https://qka5mqb8xl.execute-api.eu-west-2.amazonaws.com/default/getLocation';
 
 const DogProfileDetailScreen: React.FC<{
   navigation: DogProfileDetailScreenNavigationProp;
   route: DogProfileDetailScreenRouteProp;
 }> = ({ navigation, route }) => {
   const { dogId, dogCreatedAt, distance, role = 'adopter', adopterId, fromChat = false } = route.params;
+  
+  interface Location {
+    latitude: number;
+    longitude: number;
+  }
+  
+  const [adopterLocation, setAdopterLocation] = useState<Location | null>(null);
+  const [dogLocation, setDogLocation] = useState<Location | null>(null);
   const [dog, setDog] = useState<Dog | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // New loading state
   const screenWidth = Dimensions.get('window').width;
 
   useEffect(() => {
-    const fetchDog = async () => {
-      const request = {
-        dogId: dogId,
-        dogCreatedAt: dogCreatedAt,
-      };
+    const fetchDogAndLocations = async () => {
+      console.log("Starting data fetch for Dog ID:", dogId);
+      setIsLoading(true);
 
       try {
-        const foundDog = await dogsApi.getDog(request);
-        if (foundDog) {
-          setDog(foundDog);
-        } else {
-          handleAlert('Error', 'Dog not found!');
-          navigation.goBack();
+        // Fetch JWT token for authentication
+        const token = await getIdToken();
+        if (!token) {
+          throw new Error('No authentication token found. Please log in.');
         }
+
+        // Fetch dog details first
+        const foundDog = await dogsApi.getDog({ dogId, dogCreatedAt });
+        console.log("Successfully fetched dog details:", foundDog.name);
+        setDog(foundDog);
+
+        // Now fetch location data from the new API endpoint
+        // CORRECTED: Passing dogId and dogCreatedAt as query parameters
+        const locationApiUrl = `${API_BASE_URL}?dogId=${dogId}&dogCreatedAt=${dogCreatedAt}`;
+        console.log("Fetching location data from:", locationApiUrl);
+        
+        const response = await fetch(locationApiUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("API call failed with status:", response.status, "and message:", errorData.message);
+          throw new Error(errorData.message || 'Failed to fetch location data');
+        }
+
+        const locationData = await response.json();
+        console.log('Successfully received location data:', locationData);
+        
+        // CRITICAL CHECK: Validate the data before setting state
+        if (locationData && locationData.adopter && locationData.dog) {
+          setAdopterLocation(locationData.adopter);
+          setDogLocation(locationData.dog);
+          console.log("Locations set successfully.");
+        } else {
+          console.warn("Location data is missing 'adopter' or 'dog' properties. Received data:", locationData);
+          handleAlert('Warning', 'Location data is incomplete. Map may not display correctly.');
+        }
+
       } catch (e) {
-        handleAlert('Error', 'Failed to fetch dog data.');
+        console.error("An error occurred during fetchDogAndLocations:", e);
+        handleAlert('Error', `Failed to fetch data`);
         navigation.goBack();
+      } finally {
+        setIsLoading(false); // Set loading to false regardless of success or failure
       }
     };
-    fetchDog();
+    fetchDogAndLocations();
   }, [dogId, dogCreatedAt]);
 
   const handleApplyForAdoption = async () => {
@@ -76,13 +126,20 @@ const DogProfileDetailScreen: React.FC<{
     }
   };
 
-  if (!dog) {
+  if (isLoading || !dog) {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>Loading dog profile...</Text>
       </View>
     );
   }
+  
+  const initialRegion = adopterLocation && dogLocation ? {
+    latitude: (adopterLocation.latitude + dogLocation.latitude) / 2,
+    longitude: (adopterLocation.longitude + dogLocation.longitude) / 2,
+    latitudeDelta: Math.abs(adopterLocation.latitude - dogLocation.latitude) * 2 || 0.0922,
+    longitudeDelta: Math.abs(adopterLocation.longitude - dogLocation.longitude) * 2 || 0.0421,
+  } : null;
 
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
@@ -131,6 +188,45 @@ const DogProfileDetailScreen: React.FC<{
             </View>
           </View>
         </View>
+
+        <View style={styles.mapContainer}>
+          <Text style={styles.sectionTitle}>🗺️ Location</Text>
+          {initialRegion ? (
+            <MapView
+              style={styles.map}
+              initialRegion={initialRegion}
+              onMapReady={() => console.log('Map is ready')}
+            >
+              {/* Adopter Marker */}
+              {adopterLocation && (
+                <Marker
+                  coordinate={{
+                    latitude: adopterLocation.latitude,
+                    longitude: adopterLocation.longitude,
+                  }}
+                  title="You"
+                  description="Your Location"
+                  pinColor="blue"
+                />
+              )}
+              {/* Dog/Shelter Marker */}
+              {dogLocation && (
+                <Marker
+                  coordinate={{
+                    latitude: dogLocation.latitude,
+                    longitude: dogLocation.longitude,
+                  }}
+                  title={dog.name}
+                  description={`Location of ${dog.name}'s shelter`}
+                  pinColor="red"
+                />
+              )}
+            </MapView>
+          ) : (
+            <Text>Loading map...</Text>
+          )}
+        </View>
+
       </ScrollView>
 
       {/* Apply for Adoption Button at the bottom - only show if not from chat or if shelter */}
@@ -174,7 +270,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    paddingBottom: 20, // Add padding at the bottom for the main scroll view
+    paddingBottom: 50, // Add padding at the bottom for the main scroll view
   },
   backButton: {
     position: 'absolute',
@@ -277,6 +373,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  mapContainer: {
+    padding: 20,
+    height: 300,
+  },
+  map: {
+    width: '100%',
+    height: '100%',
   },
 });
 
