@@ -344,6 +344,19 @@ const ChatScreen: React.FC = () => {
         </TouchableOpacity>
       ) : null}
 
+      {/* Dog Adopted Banner - Show when chat is inactive */}
+      {(chatStatus === 'inactive') && (
+        <View style={styles.adoptedBanner}>
+          <View style={styles.adoptedBannerContent}>
+            <Ionicons name="heart" size={24} color="#FF6B6B" style={styles.adoptedIcon} />
+            <Text style={styles.adoptedBannerTitle}>Dog Adopted! 🎉</Text>
+            <Text style={styles.adoptedBannerText}>
+              {dogName} has found a loving home. This chat is now disabled.
+            </Text>
+          </View>
+        </View>
+      )}
+
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -356,7 +369,7 @@ const ChatScreen: React.FC = () => {
         ) : (
           <>
             {/* Conditional "New Adoption Request" Banner for Shelters */}
-            {role === 'shelter' && chatStatus === 'pending_request' && (
+            {role === 'shelter' && initialChatStatus === 'pending_request' && (
               <View style={styles.requestBanner}>
                 <Text style={styles.requestBannerTitle}>New Adoption Request!</Text>
                 <Text style={styles.requestBannerText}>
@@ -386,8 +399,8 @@ const ChatScreen: React.FC = () => {
               onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
 
-            {/* Message Input Area */}
-            {chatStatus === 'active' ? ( // Only show input if chat is active
+            {/* Message Input Area - Only show if chat is active */}
+            {chatStatus === 'active' ? (
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.textInput}
@@ -404,11 +417,11 @@ const ChatScreen: React.FC = () => {
             ) : (
               <View style={styles.chatClosedMessageContainer}>
                 <Text style={styles.chatClosedMessageText}>
-                  {role === 'shelter' && chatStatus === 'pending_request'
-                    ? 'Confirm or Ignore the request to start chatting.'
-                    : chatStatus === 'rejected'
-                    ? 'This chat has been closed.'
-                    : 'Chat is not active.'}
+                  {chatStatus === 'pending_request' 
+                    ? 'Waiting for shelter to respond to your request.'
+                    : chatStatus === 'inactive'
+                    ? 'This chat is disabled because the dog has been adopted.'
+                    : 'This chat is no longer active.'}
                 </Text>
               </View>
             )}
@@ -487,6 +500,42 @@ const styles = StyleSheet.create({
   dogInfoAgePlaceholder: {
     height: 14,
     width: '50%',
+  },
+  adoptedBanner: {
+    backgroundColor: '#FFF0F5', // Light pink background
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFB6C1',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  adoptedBannerContent: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  adoptedIcon: {
+    marginBottom: 8,
+  },
+  adoptedBannerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FF6B6B',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  adoptedBannerText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   backButton: {
     padding: 8,

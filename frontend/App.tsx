@@ -165,7 +165,7 @@ export type RootStackParamList = {
     senderId: string; // The ID of the person you're chatting with
     receipientId: string;
     role: 'adopter' | 'shelter'; // Role of the current logged-in user
-    chatStatus: 'pending_request' | 'active' | 'closed' | 'rejected'; // Status of the chat thread
+    chatStatus: 'pending_request' | 'active' | 'inactive'; // Status of the chat thread
   };
 };
 
