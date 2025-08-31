@@ -10,13 +10,13 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@apollo/client": "^3.14.0",
+    "@apollo/client": "3.13.9",
     "@expo/metro-runtime": "~5.0.4",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-masked-view/masked-view": "^0.3.2",
     "@react-native-picker/picker": "^2.11.1",
-    "@react-navigation/native": "^7.1.14",
+    "@react-navigation/native": "^7.1.17",
     "@react-navigation/native-stack": "^7.3.21",
     "@wry/caches": "^1.0.1",
     "@wry/context": "^0.7.4",
@@ -45,7 +45,7 @@
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
-    "react-native-web": "^0.21.1",
+    "react-native-web": "0.20.0",
     "rehackt": "^0.1.0",
     "rxjs": "^7.8.2",
     "symbol-observable": "^4.0.0",
@@ -56,7 +56,7 @@
     "expo-sharing": "~13.1.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.2",
+    "@babel/core": "7.28.0",
     "@types/jwt-decode": "^3.1.0",
     "@types/react": "~19.0.10",
     "typescript": "~5.8.3"

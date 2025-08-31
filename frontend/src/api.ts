@@ -377,12 +377,13 @@ export const CREATE_MESSAGE = gql`
 
 
 export const ON_NEW_MESSAGE = gql`
-  subscription OnNewMessage($chatId: ID!) {
-    onCreateMessage(chatId: $chatId) {
-      id
+  subscription OnNewMessage($chat_id: ID!) {
+    onCreateMessage(chat_id: $chat_id) {
+      messageId: message_id
+      chatId: chat_id
+      sentAt: sent_at
+      senderId: sender_id
       text
-      createdAt
-      senderId
     }
   }
 `;

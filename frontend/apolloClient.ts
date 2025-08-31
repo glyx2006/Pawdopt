@@ -3,17 +3,20 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { setContext } from '@apollo/client/link/context';
+import { getAccessToken } from './services/CognitoService';
 
 const API_URL = "https://kjjewznlvbb6xfmdwmezado724.appsync-api.eu-west-2.amazonaws.com/graphql";
 const WS_URL = "wss://kjjewznlvbb6xfmdwmezado724.appsync-realtime-api.eu-west-2.amazonaws.com/graphql";
 const API_KEY = "da2-qdj4etsy7fgrhe6td4wciul7ci";
 
 // HTTP link with authentication
-const authLink = setContext((_, { headers }) => {
+const authLink = setContext(async (_, { headers }) => {
+  const token = await getAccessToken();
+  console.log('Allolo', token)
   return {
     headers: {
       ...headers,
-      "x-api-key": API_KEY,
+      Authorization: token,
     }
   }
 });
@@ -26,9 +29,12 @@ const httpLink = new HttpLink({
 const wsLink = new GraphQLWsLink(
   createClient({
     url: WS_URL,
-    connectionParams: {
-      host: "kjjewznlvbb6xfmdwmezado724.appsync-api.eu-west-2.amazonaws.com",
-      "x-api-key": API_KEY,
+    connectionParams: async () => {
+      const token = await getAccessToken;
+      return {
+        host: "kjjewznlvbb6xfmdwmezado724.appsync-api.eu-west-2.amazonaws.com",
+        Authorization: token
+      };
     },
   }),
 );
