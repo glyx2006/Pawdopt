@@ -11,12 +11,23 @@ const API_KEY = "da2-qdj4etsy7fgrhe6td4wciul7ci";
 
 // HTTP link with authentication
 const authLink = setContext(async (_, { headers }) => {
-  const token = await getAccessToken();
-  return {
-    headers: {
-      ...headers,
-      Authorization: token,
-    }
+  try {
+    const token = await getAccessToken();
+    return {
+      headers: {
+        ...headers,
+        "x-api-key": API_KEY,
+        ...(token && { Authorization: `Bearer ${token}` }),
+      }
+    };
+  } catch (error) {
+    console.warn('Could not get access token, using API key only:', error);
+    return {
+      headers: {
+        ...headers,
+        "x-api-key": API_KEY,
+      }
+    };
   }
 });
 
@@ -29,11 +40,20 @@ const wsLink = new GraphQLWsLink(
   createClient({
     url: WS_URL,
     connectionParams: async () => {
-      const token = await getAccessToken();
-      return {
-        host: "kjjewznlvbb6xfmdwmezado724.appsync-api.eu-west-2.amazonaws.com",
-        Authorization: token
-      };
+      try {
+        const token = await getAccessToken();
+        return {
+          host: "kjjewznlvbb6xfmdwmezado724.appsync-api.eu-west-2.amazonaws.com",
+          "x-api-key": API_KEY,
+          ...(token && { Authorization: `Bearer ${token}` }),
+        };
+      } catch (error) {
+        console.warn('Could not get access token for WebSocket, using API key only:', error);
+        return {
+          host: "kjjewznlvbb6xfmdwmezado724.appsync-api.eu-west-2.amazonaws.com",
+          "x-api-key": API_KEY,
+        };
+      }
     },
   }),
 );
