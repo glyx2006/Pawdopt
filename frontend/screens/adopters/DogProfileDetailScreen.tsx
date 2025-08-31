@@ -10,6 +10,7 @@ import { Dog } from '../../generated';
 import { swipe } from './DogSwipeScreen';
 import MapView, { Marker } from 'react-native-maps';
 import { getIdToken } from '../../services/CognitoService';
+import { updateDogProfile } from '../../src/api';
 
 // Define types (assuming they are correct)
 type DogProfileDetailScreenRouteProp = RouteProp<RootStackParamList, 'DogProfileDetail'>;
@@ -114,6 +115,32 @@ const DogProfileDetailScreen: React.FC<{
         // TODO: FOR SHELTER TO ACCEPT ADOPTER
         // Here you would call an API to accept the adoption request
         // For now, I'll create a placeholder
+        try {
+              const token = await getIdToken();
+              if (!token) return alert('Please sign in first');
+        
+              const payload = {
+                dogStatus: 'ADOPTED',
+                adopterId: adopterId
+              };
+
+              let response;
+              
+              response = await updateDogProfile(dog.id, payload, token);
+                
+                if (response.ok) {
+                  alert('Dog updated successfully!');
+                  // Navigate back to dashboard
+                  navigation.navigate('AddDogSuccess');
+                } else {
+                  const text = await response.text();
+                  alert('Update failed: ' + text);
+                }
+            } catch (e) {
+              handleAlert('Error', 'Update dog status error');
+            }
+              
+
         handleAlert('Adoption Accepted', `You have accepted the adoption request for ${dog.name}!`);
         
         // Navigate back to shelter dashboard
