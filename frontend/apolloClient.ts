@@ -12,7 +12,6 @@ const API_KEY = "da2-qdj4etsy7fgrhe6td4wciul7ci";
 // HTTP link with authentication
 const authLink = setContext(async (_, { headers }) => {
   const token = await getAccessToken();
-  console.log('Allolo', token)
   return {
     headers: {
       ...headers,
@@ -30,7 +29,7 @@ const wsLink = new GraphQLWsLink(
   createClient({
     url: WS_URL,
     connectionParams: async () => {
-      const token = await getAccessToken;
+      const token = await getAccessToken();
       return {
         host: "kjjewznlvbb6xfmdwmezado724.appsync-api.eu-west-2.amazonaws.com",
         Authorization: token
