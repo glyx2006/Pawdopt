@@ -7,10 +7,10 @@ import AppHeader from '../components/AppHeader';
 import BackButton from '../components/BackButton';
 import { Ionicons } from '@expo/vector-icons';
 import { client } from '../../apolloClient';
-import { CREATE_MESSAGE, LIST_MESSAGES, getDogProfileById } from '../../src/api'
-import { getIdToken } from '../../services/CognitoService'
-import { useMutation } from '@apollo/client';
+import { CREATE_MESSAGE, LIST_MESSAGES, ON_NEW_MESSAGE, getDogProfileById } from '../../src/api'
+import { useMutation,  useSubscription } from '@apollo/client';
 import { Dog } from '../../App';
+import { getIdToken } from '../../services/CognitoService';
 
 const { width } = Dimensions.get('window');
 
@@ -73,6 +73,20 @@ const ChatScreen: React.FC = () => {
   const [dogDetails, setDogDetails] = useState<Dog | null>(null);
   const [dogLoading, setDogLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+  const { data: subData, error: subError } = useSubscription(ON_NEW_MESSAGE, {
+    variables: { chat_id: chatId },
+  });
+
+  // Whenever a new message arrives via subscription, push it into state
+  useEffect(() => {
+    if (subData?.onCreateMessage) {
+      setMessages(prev => {
+        const incoming = subData.onCreateMessage;
+        const exists = prev.some(msg => msg.messageId === incoming.messageId);
+        return exists ? prev : [...prev, incoming];
+      });
+    }
+  }, [subData]);
 
   // Mock current user ID (replace with actual Cognito user ID)
   // const currentUserId = role === 'adopter' ? 'mock-adopter-id-1' : 'mock-shelter-id-1';
@@ -194,9 +208,6 @@ const ChatScreen: React.FC = () => {
         console.error("Error sending message:", error);
       }
 
-    
-
-
     // TODO: Update Chats table (lastMessageAt, lastMessagePreview)
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
   };
@@ -244,7 +255,7 @@ const ChatScreen: React.FC = () => {
       [
         { text: "Cancel", style: "cancel" },
         { text: "Ignore", onPress: () => {
-            setChatStatus('rejected'); // Update local state
+            setChatStatus('inactive'); // Update local state
             // TODO: Call backend API to update Request status to 'rejected' and Chat status to 'rejected'/'closed'
             Alert.alert('Request Ignored', 'This chat has been closed.');
             // Optionally, send a system message or navigate back
@@ -281,7 +292,7 @@ const ChatScreen: React.FC = () => {
   const renderMessage = ({ item }: { item: Message }) => {
     const isMyMessage = item.senderId === currentUserId;
     const isSystemMessage = item.senderId === 'system';
-    console.log('messages: ', messages)
+    // console.log('messages: ', messages)
 
     if (isSystemMessage) {
       return (
