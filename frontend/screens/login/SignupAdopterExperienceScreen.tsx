@@ -19,7 +19,7 @@ import {
 import { RootStackParamList } from "../../App";
 import { signUp } from "../../services/CognitoService";
 import AppHeader from "../components/AppHeader";
-import BackButton from "../components/BackButton";
+import { BackButton } from "../components/Buttons";
 import { handleAlert } from "../utils/AlertUtils";
 
 // Define the type for the route parameters for this screen

@@ -15,7 +15,7 @@ import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navig
 import { RootStackParamList } from '../../App';
 import { Dropdown } from 'react-native-element-dropdown';
 import AppHeader from '../components/AppHeader';
-import BackButton from '../components/BackButton';
+import { BackButton } from '../components/Buttons';
 import { handleAlert } from '../utils/AlertUtils';
 
 type SignupAdopterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupAdopterDetails'>;

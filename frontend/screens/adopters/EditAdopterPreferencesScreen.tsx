@@ -18,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
 import { getAccessToken } from '../../services/CognitoService';
 import AppHeader from '../components/AppHeader';
-import BackButton from '../components/BackButton';
+import { BackButton } from '../components/Buttons';
 
 // =====================
 // Constants

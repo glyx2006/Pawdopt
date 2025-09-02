@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient"; 
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../App'; 
+import { colors } from "../components/GlobalStyles";
 
 // Define the type for the navigation prop for this screen
 type OnboardingScreenProps = NavigationProp<RootStackParamList, 'Onboarding'>; 
@@ -11,7 +12,7 @@ const OnboardingScreen: React.FC = () => {
   const navigation = useNavigation<OnboardingScreenProps>();
   return (
     <LinearGradient // Use LinearGradient for the background
-      colors={["#F9E286", "#F48B7B"]} 
+      colors={[colors.yellow, colors.red]} 
       style={styles.gradient}
     >
       <View style={styles.container}>
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 48, 
     fontWeight: "bold",
-    color: "#fff", 
+    color: "white", 
     marginBottom: 50, 
   },
   button: {
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#F5A27E", 
+    color: colors.orange, 
   },
   loginContainer: {
     flexDirection: "row", // Align text and link horizontally
@@ -100,11 +101,11 @@ const styles = StyleSheet.create({
     alignItems: "center", // Center the text and link
   },
   loginText: {
-    color: "#fff", // White text for "Already have an account?"
+    color: "white", // White text for "Already have an account?"
     fontSize: 16,
   },
   loginLink: {
-    color: "#fff", 
+    color: "white", 
     fontSize: 16,
     fontWeight: "bold",
     textDecorationLine: "underline", 

@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { RootStackParamList } from '../../App';
 import AppHeader from '../components/AppHeader';
-import BackButton from '../components/BackButton';
+import { BackButton } from '../components/Buttons';
 
 type AdopterProfileTemplateRouteProp = RouteProp<RootStackParamList, 'AdopterProfileTemplate'>;
 type AdopterProfileTemplateNavigationProp = NavigationProp<RootStackParamList, 'AdopterProfileTemplate'>;

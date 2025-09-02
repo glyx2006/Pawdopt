@@ -8,7 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import AppHeader from '../components/AppHeader';
 import { Dog, RootStackParamList } from '../../App';
-import BackButton from '../components/BackButton';
+import { BackButton } from '../components/Buttons';
 
 import { AdopterProfile } from '../../App';
 import { AdoptionRequest, createChat, getAdoptionRequests, updateAdoptionRequestChatId, updateAdoptionRequestStatus } from '../../services/RequestService';

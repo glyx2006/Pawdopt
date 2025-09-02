@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient'; 
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../../App';
 import { handleAlert } from '../utils/AlertUtils'; 
 import { signIn } from '../../services/CognitoService';
 import { jwtDecode } from 'jwt-decode';
+import { colors } from '../components/GlobalStyles';
+import { Ionicons } from '@expo/vector-icons';
+import { GradientButton } from '../components/Buttons';
 
 type LoginScreenProps = NavigationProp<RootStackParamList, 'Login'>;
 
@@ -59,14 +61,13 @@ const LoginScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* "Log in" and "Hi! Welcome to" Text */}
       <Text style={styles.greetingTitle}>Log in</Text>
       <Text style={styles.greetingSubtitle}>Hi! Welcome to</Text>
 
       {/* Pawdopt Logo and Name */}
       <View style={styles.logoContainer}>
         <Image
-          source={require('../../assets/pawdopt_logo.png')} // Make sure you have your logo in the assets folder
+          source={require('../../assets/pawdopt_logo.png')} 
           style={styles.logo}
         />
         <Text style={styles.appName}>Pawdopt</Text>
@@ -77,7 +78,7 @@ const LoginScreen: React.FC = () => {
       <TextInput
         style={styles.input}
         placeholder="Enter Your Email"
-        placeholderTextColor="#999"
+        placeholderTextColor={colors.grey}
         keyboardType="email-address"
         autoCapitalize="none"
         value={email}
@@ -90,7 +91,7 @@ const LoginScreen: React.FC = () => {
         <TextInput
           style={styles.passwordInput}
           placeholder="Enter Your Password"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.grey}
           secureTextEntry={!showPassword} // Toggle based on showPassword state
           value={password}
           onChangeText={setPassword}
@@ -99,22 +100,27 @@ const LoginScreen: React.FC = () => {
           style={styles.passwordToggle}
           onPress={() => setShowPassword(!showPassword)}
         >
-          {/* Simple eye icon placeholder. You can use an actual icon library like react-native-vector-icons */}
-          <Text style={styles.passwordToggleText}>{showPassword ? '👁️' : '🔒'}</Text>
+          <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={24} color={colors.grey} />
         </TouchableOpacity>
       </View>
 
       {/* Login Button */}
-      <TouchableOpacity onPress={handleLogin} style={styles.loginButtonWrapper}>
+      {/* <TouchableOpacity onPress={handleLogin} style={styles.loginButtonWrapper}>
         <LinearGradient
-          colors={['#F9E286', '#F48B7B']} // Matching your Onboarding gradient
+          colors={[colors.yellow, colors.red]}
           style={styles.loginButtonGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
+          start={gradient.start}
+          end={gradient.end}
         >
           <Text style={styles.loginButtonText}>Log In</Text>
         </LinearGradient>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
+
+      <GradientButton 
+        onPress={handleLogin} 
+        title="Log In"
+        style={styles.loginButtonWrapper}
+      />
 
       {/* "Forgotten your password?" - Skipping for MVP */}
       {/* <TouchableOpacity style={styles.forgotPasswordButton}>
@@ -135,7 +141,7 @@ const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff', 
+    backgroundColor: 'white', 
     alignItems: 'center',
     paddingHorizontal: 30, 
     paddingTop: 80, 
@@ -143,12 +149,12 @@ const styles = StyleSheet.create({
   greetingTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#F7B781',
+    color: colors.orange,
     marginBottom: 5,
   },
   greetingSubtitle: {
     fontSize: 20,
-    color: '#aaa',
+    color: colors.grey,
     marginBottom: 20,
   },
   logoContainer: {
@@ -165,29 +171,29 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#F7B781', 
+    color: colors.orange, 
   },
   inputLabel: {
     alignSelf: 'flex-start', // Align label to the left
     fontSize: 16,
-    color: '#F7B781',
+    color: colors.orange,
     marginBottom: 5,
     marginTop: 15, // Space between inputs
   },
   input: {
     width: '100%',
     height: 50,
-    borderColor: '#ddd',
-    borderBottomWidth: 1, // Only bottom border 
+    borderColor: colors.lightGrey,
+    borderBottomWidth: 1, // Only bottom border
     paddingHorizontal: 0, // No horizontal padding for input text
     fontSize: 18,
-    color: '#333',
+    color: colors.darkGrey,
   },
   passwordInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    borderColor: '#ddd',
+    borderColor: colors.lightGrey,
     borderBottomWidth: 1, // Only bottom border
     marginBottom: 20, // Space below password input
   },
@@ -205,25 +211,13 @@ const styles = StyleSheet.create({
     fontSize: 20, // Adjust icon size
   },
   loginButtonWrapper: {
-    width: '100%',
     marginTop: 30, // Space above the button
-    borderRadius: 50, // Make button wrapper rounded
-    overflow: 'hidden', // Clip gradient to rounded corners
-  },
-  loginButtonGradient: {
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  loginButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff', // White text on gradient button
   },
   forgotPasswordButton: {
     marginTop: 15,
   },
   forgotPasswordText: {
-    color: '#FF7B7B', // Reddish color for forgotten password link
+    color: colors.red, // Reddish color for forgotten password link
     fontSize: 16,
     textDecorationLine: 'underline',
   },
@@ -234,11 +228,11 @@ const styles = StyleSheet.create({
     // Use position: 'absolute' and bottom: X if you want it fixed at the very bottom
   },
   createAccountText: {
-    color: '#999', // Greyish color for "Don't have an account?"
+    color: colors.grey, // Greyish color for "Don't have an account?"
     fontSize: 16,
   },
   createAccountLink: {
-    color: '#F7B781', // Reddish color for "Create an Account" link
+    color: colors.orange, // Reddish color for "Create an Account" link
     fontSize: 16,
     fontWeight: 'bold',
     textDecorationLine: 'underline',

@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AppHeader from '../components/AppHeader';
 import RequestCard from '../components/RequestCard';
 import { Dog, RootStackParamList } from '../../App';
-import BackButton from '../components/BackButton';
+import BackButton from '../components/Buttons';
 import { AdoptionRequest, getAdoptionRequests } from '../../services/RequestService';
 import { getDogsByIds } from '../../src/api'; // NEW: Import the function to get dog details
 

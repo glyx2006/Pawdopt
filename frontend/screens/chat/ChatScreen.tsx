@@ -4,7 +4,7 @@ import { useNavigation, NavigationProp, useRoute, RouteProp } from '@react-navig
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../../App';
 import AppHeader from '../components/AppHeader';
-import BackButton from '../components/BackButton';
+import BackButton from '../components/Buttons';
 import { Ionicons } from '@expo/vector-icons';
 import { client } from '../../apolloClient';
 import { CREATE_MESSAGE, LIST_MESSAGES, ON_NEW_MESSAGE, getDogProfileById } from '../../src/api'
