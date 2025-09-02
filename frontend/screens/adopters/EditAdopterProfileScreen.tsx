@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Image, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { updateUserAttributes, getAccessToken } from '../../services/CognitoService';
-import { BackButton } from '../components/Buttons';
-import AppHeader from '../components/AppHeader';
-import UploadModal from '../shelters/UploadModal';
 import { RootStackParamList } from '../../App';
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { AppHeader } from '../../components/layout';
+import { LoadingSpinner, Button, Input, Card } from '../../components/ui';
+import { colors } from '../../components/styles/GlobalStyles';
+import UploadModal from '../shelters/UploadModal';
+import { BackButton } from '../components/Buttons';
 
 // ==========================
 // Constants
@@ -77,14 +79,22 @@ const EditAdopterProfileScreen: React.FC = () => {
   const route = useRoute<EditAdopterProfileScreenRouteProp>();
   const { profile } = route.params;
 
-  const [AdopterName, setAdopterName] = useState('');
+  const [adopterName, setAdopterName] = useState('');
   const [contact, setContact] = useState('');
   const [address, setAddress] = useState('');
   const [postcode, setPostcode] = useState('');
+  const [latitude, setLatitude] = useState<string>('');
+  const [longitude, setLongitude] = useState<string>('');
   const [iconUrl, setIconUrl] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Validation errors
+  const [nameError, setNameError] = useState('');
+  const [contactError, setContactError] = useState('');
+  const [addressError, setAddressError] = useState('');
+  const [postcodeError, setPostcodeError] = useState('');
 
   // Holds local image URI before saving
   const [imageFileUri, setImageFileUri] = useState<string | null>(null);
@@ -98,7 +108,102 @@ const EditAdopterProfileScreen: React.FC = () => {
     setIsLoading(false);
   }, [profile]);
 
+  // Validation functions
+  const validateName = (nameString: string): boolean => {
+    setNameError('');
+    if (nameString.trim().length < 2) {
+      setNameError('Name must be at least 2 characters.');
+      return false;
+    }
+    if (!/^[a-zA-Z\s]+$/.test(nameString)) {
+      setNameError('Name can only contain letters and spaces.');
+      return false;
+    }
+    return true;
+  };
+
+  const validatePhoneNo = (phoneString: string): boolean => {
+    setContactError('');
+    if (phoneString.trim().length === 0) {
+      setContactError('Phone number is required.');
+      return false;
+    }
+    if (!phoneString.startsWith('+')) {
+      setContactError('Phone number must start with a country code (e.g., +44).');
+      return false;
+    }
+    if (phoneString.length < 10 || phoneString.length > 15) {
+      setContactError('Phone number must be between 10 and 15 characters.');
+      return false;
+    }
+    return true;
+  };
+
+  const validateAddress = (addressString: string): boolean => {
+    setAddressError('');
+    if (addressString.trim().length < 5) {
+      setAddressError('Address must be at least 5 characters.');
+      return false;
+    }
+    return true;
+  };
+
+  const validatePostcode = (postcodeString: string): boolean => {
+    setPostcodeError('');
+    if (postcodeString.trim().length === 0) {
+      setPostcodeError('Postcode is required.');
+      return false;
+    }
+    // UK postcode validation
+    const postcodeRegex = /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i;
+    if (!postcodeRegex.test(postcodeString.trim())) {
+      setPostcodeError('Please enter a valid UK postcode.');
+      return false;
+    }
+    return true;
+  };
+
+  const handlePostcodeChange = async (text: string) => {
+    setPostcode(text);
+    const isValid = validatePostcode(text);
+    
+    // If postcode is valid, fetch coordinates
+    if (isValid && text.trim().length > 0) {
+      try {
+        const response = await fetch(`https://api.postcodes.io/postcodes/${text.trim()}`);
+        const data = await response.json();
+        if (data.result && data.result.latitude && data.result.longitude) {
+          console.log('Fetched coordinates for adopter:', data.result.latitude, data.result.longitude);
+          setLatitude(data.result.latitude.toString());
+          setLongitude(data.result.longitude.toString());
+        }
+      } catch (error) {
+        console.error('Failed to fetch coordinates:', error);
+      }
+    }
+  };
+
+  const formatPhoneNo = (text: string) => {
+    if (!text.startsWith('+')) {
+      setContact('+' + text.replace(/\D/g, ''));
+    } else {
+      const cleaned = '+' + text.substring(1).replace(/\D/g, '');
+      setContact(cleaned);
+    }
+  };
+
   const handleSave = async () => {
+    // Validate all fields
+    const isNameValid = validateName(adopterName);
+    const isContactValid = validatePhoneNo(contact);
+    const isAddressValid = validateAddress(address);
+    const isPostcodeValid = validatePostcode(postcode);
+
+    if (!isNameValid || !isContactValid || !isAddressValid || !isPostcodeValid) {
+      Alert.alert('Validation Error', 'Please fix the errors before saving.');
+      return;
+    }
+
     setIsUploading(true);
     let newIconUrl = iconUrl;
 
@@ -118,11 +223,13 @@ const EditAdopterProfileScreen: React.FC = () => {
 
       const attributesToUpdate = {
         email: profile.email,
-        name: AdopterName,
+        name: adopterName,
         phone_number: contact,
         address: JSON.stringify({ formatted: address }),
         'custom:postcode': postcode,
         'custom:iconURL': newIconUrl,
+        'custom:latitude': latitude,
+        'custom:longitude': longitude,
       };
 
       await updateUserAttributes(attributesToUpdate);
@@ -193,7 +300,7 @@ const EditAdopterProfileScreen: React.FC = () => {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF6F61" />
+        <LoadingSpinner size="large" color={colors.red} />
         <Text style={styles.loadingText}>Loading profile data...</Text>
       </SafeAreaView>
     );
@@ -201,7 +308,11 @@ const EditAdopterProfileScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <AppHeader leftComponent={<BackButton onPress={() => navigation.goBack()} />} />
+      <AppHeader 
+        leftComponent={
+          <BackButton onPress={() => navigation.goBack()} />
+        }
+      />
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -212,49 +323,64 @@ const EditAdopterProfileScreen: React.FC = () => {
           <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.imageContainer}>
             {isUploading ? (
               <View style={[styles.profilePic, styles.uploadingOverlay]}>
-                <ActivityIndicator size="large" color="#fff" />
+                <LoadingSpinner size="large" color={colors.white} />
               </View>
             ) : (
               <Image source={{ uri: displayImageUrl }} style={styles.profilePic} />
             )}
             <View style={styles.changeIconOverlay}>
-              <Ionicons name="camera" size={30} color="#fff" />
+              <Ionicons name="camera" size={30} color={colors.white} />
             </View>
           </TouchableOpacity>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Adopter Name</Text>
-            <TextInput style={styles.input} value={AdopterName} onChangeText={setAdopterName} />
-          </View>
+          <Card style={styles.formCard}>
+            <Input
+              label="Adopter Name"
+              value={adopterName}
+              onChangeText={(text) => {
+                setAdopterName(text);
+                validateName(text);
+              }}
+              error={nameError}
+            />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Contact Number</Text>
-            <TextInput
-              style={styles.input}
+            <Input
+              label="Contact Number"
               value={contact}
-              onChangeText={setContact}
+              onChangeText={(text) => {
+                formatPhoneNo(text);
+                validatePhoneNo(contact);
+              }}
               keyboardType="phone-pad"
+              error={contactError}
             />
-          </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Address</Text>
-            <TextInput
-              style={styles.input}
+            <Input
+              label="Address"
               value={address}
-              onChangeText={setAddress}
+              onChangeText={(text) => {
+                setAddress(text);
+                validateAddress(text);
+              }}
               multiline
+              error={addressError}
             />
-          </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Postcode</Text>
-            <TextInput style={styles.input} value={postcode} onChangeText={setPostcode} />
-          </View>
+            <Input
+              label="Postcode"
+              value={postcode}
+              onChangeText={handlePostcodeChange}
+              error={postcodeError}
+            />
+          </Card>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={isUploading}>
-            {isUploading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Save Changes</Text>}
-          </TouchableOpacity>
+          <Button
+            title={isUploading ? 'Saving...' : 'Save Changes'}
+            onPress={handleSave}
+            disabled={isUploading}
+            variant="primary"
+            style={styles.saveButton}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -273,20 +399,75 @@ const EditAdopterProfileScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   keyboardAvoidingContainer: { flex: 1 },
-  safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8f8f8' },
-  loadingText: { marginTop: 10, fontSize: 16, color: '#555' },
-  container: { flexGrow: 1, padding: 20, paddingBottom: 80, alignItems: 'center' },
-  sectionTitle: { fontSize: 22, fontWeight: 'bold', color: '#333', marginBottom: 20 },
-  imageContainer: { marginBottom: 20, position: 'relative' },
-  profilePic: { width: 150, height: 150, borderRadius: 75, borderWidth: 3, borderColor: '#FF6F61', backgroundColor: '#eee' },
-  uploadingOverlay: { justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  changeIconOverlay: { position: 'absolute', bottom: 0, right: 0, backgroundColor: 'rgba(255, 111, 97, 0.8)', borderRadius: 25, width: 50, height: 50, justifyContent: 'center', alignItems: 'center', borderColor: '#fff', borderWidth: 2 },
-  inputGroup: { width: '100%', marginBottom: 15 },
-  label: { fontSize: 16, color: '#555', marginBottom: 5 },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 16, color: '#333' },
-  saveButton: { backgroundColor: '#FF6F61', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20, width: '100%' },
-  saveButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: colors.white 
+  },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: colors.white 
+  },
+  loadingText: { 
+    marginTop: 16, 
+    fontSize: 16, 
+    color: colors.grey 
+  },
+  container: { 
+    flexGrow: 1, 
+    padding: 20, 
+    paddingBottom: 80, 
+    alignItems: 'center' 
+  },
+  sectionTitle: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    color: colors.darkGrey, 
+    marginBottom: 20 
+  },
+  backButton: {
+    padding: 8,
+  },
+  imageContainer: { 
+    marginBottom: 20, 
+    position: 'relative' 
+  },
+  profilePic: { 
+    width: 150, 
+    height: 150, 
+    borderRadius: 75, 
+    borderWidth: 3, 
+    borderColor: colors.red, 
+    backgroundColor: colors.lightGrey 
+  },
+  uploadingOverlay: { 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(0,0,0,0.5)' 
+  },
+  changeIconOverlay: { 
+    position: 'absolute', 
+    bottom: 0, 
+    right: 0, 
+    backgroundColor: colors.red, 
+    borderRadius: 25, 
+    width: 50, 
+    height: 50, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    borderColor: colors.white, 
+    borderWidth: 2 
+  },
+  formCard: {
+    width: '100%',
+    marginBottom: 20,
+    padding: 20,
+  },
+  saveButton: {
+    width: '100%',
+    marginTop: 20,
+  },
 });
 
 export default EditAdopterProfileScreen;

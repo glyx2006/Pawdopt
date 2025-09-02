@@ -6,8 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  ActivityIndicator,
-  TextInput,
   Platform,
   KeyboardAvoidingView,
   Modal,
@@ -17,7 +15,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
 import { getAccessToken } from '../../services/CognitoService';
-import AppHeader from '../components/AppHeader';
+import { AppHeader } from '../../components/layout';
+import { LoadingSpinner, Button, Input, Card } from '../../components/ui';
+import { colors } from '../../components/styles/GlobalStyles';
 import { BackButton } from '../components/Buttons';
 
 // =====================
@@ -291,7 +291,7 @@ const EditAdopterPreferencesScreen: React.FC = () => {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF6F61" />
+        <LoadingSpinner size="large" color={colors.red} />
         <Text style={styles.loadingText}>Loading preferences...</Text>
       </SafeAreaView>
     );
@@ -300,7 +300,11 @@ const EditAdopterPreferencesScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <AppHeader
-        leftComponent={<BackButton onPress={() => navigation.goBack()} />}
+        leftComponent={
+          <BackButton
+            onPress={() => navigation.goBack()}
+          />
+        }
       />
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingContainer}
@@ -309,92 +313,98 @@ const EditAdopterPreferencesScreen: React.FC = () => {
         <ScrollView contentContainerStyle={styles.container}>
           <Text style={styles.title}>Edit Pet Preferences</Text>
 
-          {/* Min Age */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Minimum Age (years)</Text>
-            <TextInput
-              style={styles.input}
-              value={preferences.minAge}
-              onChangeText={(text) =>
-                setPreferences({ ...preferences, minAge: text })
-              }
-              keyboardType="numeric"
-              placeholder="e.g., 1"
-              placeholderTextColor="#999"
-            />
-          </View>
+          <Card style={styles.formCard}>
+            {/* Age Preferences */}
+            <View style={styles.ageSection}>
+              <View style={styles.sectionTitleContainer}>
+                <Ionicons name="time" size={20} color={colors.red} />
+                <Text style={styles.sectionTitle}>Age Range</Text>
+              </View>
+              
+              <View style={styles.ageRow}>
+                <Input
+                  label="Min Age (years)"
+                  value={preferences.minAge}
+                  onChangeText={(text: string) =>
+                    setPreferences({ ...preferences, minAge: text })
+                  }
+                  keyboardType="numeric"
+                  placeholder="e.g., 1"
+                  style={styles.ageInput}
+                />
+                
+                <Input
+                  label="Max Age (years)"
+                  value={preferences.maxAge}
+                  onChangeText={(text: string) =>
+                    setPreferences({ ...preferences, maxAge: text })
+                  }
+                  keyboardType="numeric"
+                  placeholder="e.g., 5"
+                  style={styles.ageInput}
+                />
+              </View>
+            </View>
 
-          {/* Max Age */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Maximum Age (years)</Text>
-            <TextInput
-              style={styles.input}
-              value={preferences.maxAge}
-              onChangeText={(text) =>
-                setPreferences({ ...preferences, maxAge: text })
-              }
-              keyboardType="numeric"
-              placeholder="e.g., 5"
-              placeholderTextColor="#999"
-            />
-          </View>
+            {/* Size Preferences */}
+            <View style={styles.preferenceSection}>
+              <View style={styles.sectionTitleContainer}>
+                <Ionicons name="resize" size={20} color={colors.red} />
+                <Text style={styles.sectionTitle}>Size Preference</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.dropdownButton}
+                onPress={() => handleModalOpen('size')}
+              >
+                <Text style={styles.dropdownText}>
+                  {preferences.size.join(', ') || 'Select one or more sizes'}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color={colors.grey} />
+              </TouchableOpacity>
+            </View>
 
-          {/* Size Dropdown */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Size</Text>
-            <TouchableOpacity
-              style={styles.dropdownButton}
-              onPress={() => handleModalOpen('size')}
-            >
-              <Text style={styles.dropdownText}>
-                {preferences.size.join(', ') ||
-                  'Select one or more sizes'}
-              </Text>
-              <Ionicons name="chevron-down" size={20} color="#999" />
-            </TouchableOpacity>
-          </View>
+            {/* Color Preferences */}
+            <View style={styles.preferenceSection}>
+              <View style={styles.sectionTitleContainer}>
+                <Ionicons name="color-palette" size={20} color={colors.red} />
+                <Text style={styles.sectionTitle}>Color Preference</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.dropdownButton}
+                onPress={() => handleModalOpen('color')}
+              >
+                <Text style={styles.dropdownText}>
+                  {preferences.color.join(', ') || 'Select one or more colors'}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color={colors.grey} />
+              </TouchableOpacity>
+            </View>
 
-          {/* Color Dropdown */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Color</Text>
-            <TouchableOpacity
-              style={styles.dropdownButton}
-              onPress={() => handleModalOpen('color')}
-            >
-              <Text style={styles.dropdownText}>
-                {preferences.color.join(', ') ||
-                  'Select one or more colors'}
-              </Text>
-              <Ionicons name="chevron-down" size={20} color="#999" />
-            </TouchableOpacity>
-          </View>
+            {/* Breed Preferences */}
+            <View style={styles.preferenceSection}>
+              <View style={styles.sectionTitleContainer}>
+                <Ionicons name="paw" size={20} color={colors.red} />
+                <Text style={styles.sectionTitle}>Breed Preference</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.dropdownButton}
+                onPress={() => handleModalOpen('preferredBreeds')}
+              >
+                <Text style={styles.dropdownText}>
+                  {preferences.preferredBreeds.join(', ') || 'Select one or more breeds'}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color={colors.grey} />
+              </TouchableOpacity>
+            </View>
+          </Card>
 
-          {/* Preferred Breeds Dropdown */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Preferred Breeds</Text>
-            <TouchableOpacity
-              style={styles.dropdownButton}
-              onPress={() => handleModalOpen('preferredBreeds')}
-            >
-              <Text style={styles.dropdownText}>
-                {preferences.preferredBreeds.join(', ') ||
-                  'Select one or more breeds'}
-              </Text>
-              <Ionicons name="chevron-down" size={20} color="#999" />
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity
-            style={styles.saveButton}
+          <Button
+            title={isSaving ? 'Saving...' : 'Save Preferences'}
             onPress={handleSave}
             disabled={isSaving}
-          >
-            {isSaving ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.saveButtonText}>Save Preferences</Text>
-            )}
-          </TouchableOpacity>
+            variant="primary"
+            style={styles.saveButton}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
       {renderDropdownModal()}
@@ -403,47 +413,88 @@ const EditAdopterPreferencesScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-  keyboardAvoidingContainer: { flex: 1 },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { marginTop: 10, fontSize: 16, color: '#555' },
-  container: { flexGrow: 1, padding: 20, paddingBottom: 80 },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#333', marginBottom: 20 },
-  inputGroup: { width: '100%', marginBottom: 15 },
-  label: { fontSize: 16, color: '#555', marginBottom: 5 },
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: '#333',
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: colors.white 
+  },
+  keyboardAvoidingContainer: { 
+    flex: 1 
+  },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  loadingText: { 
+    marginTop: 16, 
+    fontSize: 16, 
+    color: colors.grey 
+  },
+  container: { 
+    flexGrow: 1, 
+    padding: 20, 
+    paddingBottom: 80 
+  },
+  title: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    color: colors.darkGrey, 
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  backButton: {
+    padding: 8,
+  },
+  formCard: {
+    width: '100%',
+    marginBottom: 20,
+    padding: 20,
+  },
+  ageSection: {
+    marginBottom: 24,
+  },
+  preferenceSection: {
+    marginBottom: 24,
+  },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.darkGrey,
+    marginLeft: 8,
+  },
+  ageRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  ageInput: {
+    flex: 1,
   },
   dropdownButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.lightGrey,
     borderRadius: 8,
     padding: 12,
+    minHeight: 50,
   },
   dropdownText: {
     fontSize: 16,
-    color: '#333',
+    color: colors.darkGrey,
     flex: 1,
   },
   saveButton: {
-    backgroundColor: '#FF6F61',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
     width: '100%',
+    marginTop: 20,
   },
-  saveButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',

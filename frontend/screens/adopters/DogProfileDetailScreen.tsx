@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions, ScrollView, Alert, Platform } from 'react-native';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
 import { handleAlert } from '../utils/AlertUtils';
 import { dogsApi } from '../../src/api';
@@ -11,6 +11,8 @@ import { swipe } from './DogSwipeScreen';
 import MapView, { Marker } from 'react-native-maps';
 import { getIdToken } from '../../services/CognitoService';
 import { updateDogProfile } from '../../src/api';
+import { LoadingSpinner, GradientButton, Card } from '../../components/ui';
+import { colors } from '../../components/styles/GlobalStyles';
 
 // Define types (assuming they are correct)
 type DogProfileDetailScreenRouteProp = RouteProp<RootStackParamList, 'DogProfileDetail'>;
@@ -156,6 +158,7 @@ const DogProfileDetailScreen: React.FC<{
   if (isLoading || !dog) {
     return (
       <View style={styles.loadingContainer}>
+        <LoadingSpinner size="large" color={colors.red} />
         <Text style={styles.loadingText}>Loading dog profile...</Text>
       </View>
     );
@@ -173,7 +176,7 @@ const DogProfileDetailScreen: React.FC<{
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         {/* Back Button */}
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>{'<'}</Text>
+          <Ionicons name="arrow-back" size={28} color={colors.red} />
         </TouchableOpacity>
 
         {/* Horizontal Image Gallery */}
@@ -200,24 +203,46 @@ const DogProfileDetailScreen: React.FC<{
             <Text style={styles.dogGender}> ({dog.gender})</Text>
           </View>
           <Text style={styles.dogBreed}>{dog.breed}</Text>
-          <View style={{ flexDirection: "column", justifyContent: "space-between", alignItems: "baseline" }}>
-            <View>
-              <Text style={styles.sectionTitle}>About {dog.name}</Text>
-              <Text style={styles.dogDescription}>{dog.description}</Text>
-            </View>
-            <View style={styles.shelterCard}>
-              <Text style={styles.shelterTitle}>🏠 Shelter Information</Text>
-              <Text style={styles.shelterDetail}>📍 {dog.shelterName}</Text>
-              <Text style={styles.shelterDetail}>🛣️ {dog.shelterAddress} {dog.shelterPostcode}</Text>
-              <Text style={styles.shelterDetail}>📏 Distance: {distance} km</Text>
-              <Text style={styles.shelterDetail}>📧 {dog.shelterEmail}</Text>
-              <Text style={styles.shelterDetail}>📞 {dog.shelterContact}</Text>
-            </View>
+          
+          <Card style={styles.aboutCard}>
+            <Text style={styles.sectionTitle}>About {dog.name}</Text>
+            <Text style={styles.dogDescription}>{dog.description}</Text>
+          </Card>
+          
+          <Card style={styles.shelterCard}>
+              <View style={styles.shelterTitleContainer}>
+                <Ionicons name="home" size={20} color={colors.red} />
+                <Text style={styles.shelterTitle}>Shelter Information</Text>
+              </View>
+              <View style={styles.shelterDetailRow}>
+                <Ionicons name="location" size={16} color={colors.grey} />
+                <Text style={styles.shelterDetail}>{dog.shelterName}</Text>
+              </View>
+              <View style={styles.shelterDetailRow}>
+                <Ionicons name="map" size={16} color={colors.grey} />
+                <Text style={styles.shelterDetail}>{dog.shelterAddress} {dog.shelterPostcode}</Text>
+              </View>
+              <View style={styles.shelterDetailRow}>
+                <Ionicons name="resize" size={16} color={colors.grey} />
+                <Text style={styles.shelterDetail}>Distance: {distance} km</Text>
+              </View>
+              <View style={styles.shelterDetailRow}>
+                <Ionicons name="mail" size={16} color={colors.grey} />
+                <Text style={styles.shelterDetail}>{dog.shelterEmail}</Text>
+              </View>
+              <View style={styles.shelterDetailRow}>
+                <Ionicons name="call" size={16} color={colors.grey} />
+                <Text style={styles.shelterDetail}>{dog.shelterContact}</Text>
+              </View>
+            </Card>
           </View>
-        </View>
+        
 
         <View style={styles.mapContainer}>
-          <Text style={styles.sectionTitle}>🗺️ Location</Text>
+          <View style={styles.sectionTitleContainer}>
+            <Ionicons name="globe" size={22} color={colors.darkGrey} />
+            <Text style={styles.sectionTitle}> Location</Text>
+          </View>
           {initialRegion ? (
             <MapView
               style={styles.map}
@@ -259,21 +284,10 @@ const DogProfileDetailScreen: React.FC<{
       {/* Apply for Adoption Button at the bottom - only show if not from chat or if shelter */}
       {(!fromChat || role === 'shelter') && (
         <View style={styles.bottomButtonContainer}>
-          <TouchableOpacity 
-            onPress={role === 'shelter' ? handleAcceptAdopter : handleApplyForAdoption} 
-            style={styles.applyButtonWrapper}
-          >
-            <LinearGradient
-              colors={role === 'shelter' ? ['#90EE90', '#32CD32'] : ['#FFD194', '#FFACAC']}
-              style={styles.applyButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <Text style={styles.applyButtonText}>
-                {role === 'shelter' ? 'Accept Adopter to Adopt' : `Request to Chat with ${dog.shelterName}`}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          <GradientButton
+            title={role === 'shelter' ? 'Accept Adopter to Adopt' : `Request to Chat with ${dog.shelterName}`}
+            onPress={role === 'shelter' ? handleAcceptAdopter : handleApplyForAdoption}
+          />
         </View>
       )}
     </SafeAreaView>
@@ -283,17 +297,18 @@ const DogProfileDetailScreen: React.FC<{
 const styles = StyleSheet.create({
   safeAreaContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   loadingText: {
     fontSize: 18,
-    color: '#666',
+    color: colors.grey,
+    marginTop: 16,
   },
   scrollViewContent: {
     flexGrow: 1,
@@ -305,11 +320,13 @@ const styles = StyleSheet.create({
     left: 20,
     zIndex: 10,
     padding: 10,
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: '#FF7B7B',
-    fontWeight: 'bold',
+    backgroundColor: colors.white,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   imageGallery: {
     height: Dimensions.get('window').height * 0.5, // Use a percentage of the screen height
@@ -329,77 +346,73 @@ const styles = StyleSheet.create({
   dogName: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.darkGrey,
   },
   dogAge: {
     fontSize: 24,
-    color: '#666',
+    color: colors.grey,
     marginLeft: 5,
   },
   dogGender: {
     fontSize: 20,
-    color: '#888',
+    color: colors.grey,
     marginLeft: 5,
   },
   dogBreed: {
     fontSize: 20,
-    color: '#888',
+    color: colors.grey,
     marginBottom: 20,
   },
   shelterCard: {
     marginTop: 20,
     padding: 15,
-    borderRadius: 12,
-    backgroundColor: "#f9f9f9",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 3,
+  },
+  shelterTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   shelterTitle: {
     fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 10,
+    fontWeight: 'bold',
+    color: colors.darkGrey,
+    marginLeft: 8,
+  },
+  shelterDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   shelterDetail: {
     fontSize: 16,
-    color: "#555",
-    marginBottom: 6,
+    color: colors.grey,
+    marginLeft: 8,
+    flex: 1,
+  },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
-    marginTop: 20,
-    marginBottom: 10,
+    color: colors.darkGrey,
   },
   dogDescription: {
     fontSize: 16,
-    color: '#555',
+    color: colors.grey,
     lineHeight: 24,
   },
+  aboutCard: {
+    marginTop: 20,
+    padding: 16,
+  },
   bottomButtonContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  applyButtonWrapper: {
-    width: '100%',
-    borderRadius: 50,
-    overflow: 'hidden',
-    alignSelf: 'center',
-  },
-  applyButtonGradient: {
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  applyButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
+    borderTopColor: colors.lightGrey,
   },
   mapContainer: {
     padding: 20,

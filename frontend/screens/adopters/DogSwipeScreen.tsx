@@ -4,16 +4,13 @@ import {
   Text,
   StyleSheet,
   Image,
-  TouchableOpacity, // Still useful for header buttons
+  TouchableOpacity,
   Dimensions,
   Alert,
   Platform,
-  InteractionManagerStatic,
 } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../App'; // Import RootStackParamList
-import AppHeader from '../components/AppHeader';
-import AppFooter from '../components/AppFooter';
+import { RootStackParamList } from '../../App';
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -24,19 +21,20 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
-  runOnJS, // To run JS functions from Reanimated worklets
+  runOnJS,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import MaskedView from '@react-native-masked-view/masked-view'; // <-- Import MaskedView
-import AdopterProfileScreen from './AdopterProfileScreen';
+import MaskedView from '@react-native-masked-view/masked-view';
 import { handleAlert } from '../utils/AlertUtils';
 
 import { getAccessToken } from '../../services/CognitoService';
 import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest, SwipeCreateDirectionEnum, SwipeCreateToJSON } from '../../generated';
 import { swipesApi } from '../../src/api';
 import { DogsApi, DogPage } from '../../generated';
-import { CookieStorage } from 'amazon-cognito-identity-js';
-import { clearScreenDown } from 'readline';
+
+// Import the new modular components
+import { AppHeader, AppFooter, Card, LoadingSpinner } from '../../components';
+import { colors } from '../../components/styles/GlobalStyles';
 
 const { width } = Dimensions.get('window'); // Get screen width for responsive sizing
 
@@ -268,59 +266,6 @@ async function fetchDogs(): Promise<Dog[]> {
   }
 }
 
-
-// Mock Data for Dogs (replace with actual API calls later)
-const mockDogs: Dog[] = [
-  {
-    id: 'dog1',
-    name: 'Cooper',
-    breed: 'Samoyed',
-    age: 2,
-    gender: 'Male',
-    description: 'A fluffy, friendly, and playful Samoyed looking for a loving home. Loves belly rubs and long walks!',
-    createdAt: 'today',
-    shelterId: 'shelterId',
-    photoURLs: ['https://placehold.co/600x400/FFD194/FFF?text=Cooper'], // Placeholder image
-    distance: 3
-  },
-  {
-    id: 'dog2',
-    name: 'Luna',
-    breed: 'Labradoodle',
-    age: 1,
-    gender: 'Female',
-    description: 'Energetic and loves playing fetch. Great with kids and other pets.',
-    createdAt: 'today',
-    shelterId: 'shelterId',
-    photoURLs: ['https://placehold.co/600x400/FFACAC/FFF?text=Luna'], // Placeholder image
-    distance: 3
-  },
-  {
-    id: 'dog3',
-    name: 'Max',
-    breed: 'German Shepherd',
-    age: 3,
-    gender: 'Male',
-    description: 'Loyal and intelligent, Max is looking for an active family.',
-    createdAt: 'today',
-    shelterId: 'shelterId',
-    photoURLs: ['https://placehold.co/600x400/94D1FF/FFF?text=Max'],
-    distance: 3
-  },
-  {
-    id: 'dog4',
-    name: 'Daisy',
-    breed: 'Beagle',
-    age: 4,
-    gender: 'Female',
-    description: 'Sweet and curious, Daisy loves to explore and cuddle.',
-    createdAt: 'today',
-    shelterId: 'shelterId',
-    photoURLs: ['https://placehold.co/600x400/94FFD1/FFF?text=Daisy'],
-    distance: 3
-  },
-];
-
 // Threshold for a successful swipe (e.g., move 1/4 of screen width)
 const SWIPE_THRESHOLD = width * 0.25;
 const SWIPE_OUT_DURATION = 250; // milliseconds
@@ -367,15 +312,13 @@ const DogSwipeScreen: React.FC = () => {
         console.log('🐕 Fetched dogs result:', fetchedDogs);
         console.log('🐕 Fetched dogs length:', fetchedDogs ? fetchedDogs.length : 'null/undefined');
         
-        const finalDogs = fetchedDogs || mockDogs;
+        const finalDogs = fetchedDogs;
         console.log('🐕 Final dogs to set:', finalDogs);
         console.log('🐕 Final dogs length:', finalDogs.length);
         
-        setDogs(finalDogs); // Fallback to mock data if API fails
+        setDogs(finalDogs);
       } catch (error) {
         console.error('❌ Failed to fetch dogs:', error);
-        console.log('🐕 Using mock data due to error. Mock dogs length:', mockDogs.length);
-        setDogs(mockDogs); // Use mock data as fallback
         handleAlert('Error', 'Failed to load dogs. Using sample data.');
       } finally {
         setIsLoading(false);
@@ -532,19 +475,12 @@ const DogSwipeScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeader></AppHeader>
+      <AppHeader />
 
-      {/* Dog Card Area */}
+      {/* Dog Card Area - Fixed positioning to center properly */}
       <View style={styles.cardContainer}>
-        {/*
-          Moved GestureDetector outside the conditional rendering.
-          It now always wraps a single Animated.View.
-          The content inside Animated.View is conditionally rendered.
-        */}
         <GestureDetector gesture={composedGesture}>
           <Animated.View
-            // Key is still important here if you want the card to reset its animation
-            // when a new dog appears, but it's on the Animated.View, not GestureDetector.
             key={currentDog ? currentDog.id : 'no-dog'}
             style={[styles.dogCard, animatedCardStyle]}
           >
@@ -565,6 +501,7 @@ const DogSwipeScreen: React.FC = () => {
               </>
             ) : isLoading ? (
               <View style={styles.noDogsContent}>
+                <LoadingSpinner size="large" color={colors.red} />
                 <Text style={styles.noDogsText}>Loading dogs near you...</Text>
               </View>
             ) : (
@@ -575,6 +512,7 @@ const DogSwipeScreen: React.FC = () => {
           </Animated.View>
         </GestureDetector>
       </View>
+
       {/* Footer */}
       <AppFooter
         onPressHome={goToHome}
@@ -589,82 +527,35 @@ const DogSwipeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f2f5',
-    alignItems: 'center',
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    backgroundColor: colors.white,
+    paddingTop: Platform.OS === 'ios' ? 60 : 0,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '90%',
-    marginTop: 30,
-    backgroundColor: '#fff',
-  },
-  logoTitleContainer: {
-    flexDirection: 'row', // Arrange logo and text horizontally
-    alignItems: 'center', // Align them vertically in the middle
-    flex: 1, // Allow this container to take up available space
-    justifyContent: 'center', // Center the logo and text within this container
-  },
-  headerTitle: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    width: '100%',
-  },
-   headerTitleMaskedView: {
-    width: 150,
-    height: 40, // Adjust height to fit the text size
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitleGradientBackground: {
-    flex: 1,
-    width: '100%', // Ensure gradient covers the mask area
-  },
-  headerIcon: {
-    padding: 15,
-  },
-  iconText: {
-    fontSize: 30,
-  },
-  logo: {
-    width: 40, // Adjust size as needed
-    height: 40, // Adjust size as needed
-    resizeMode: 'contain',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    width: '90%',
-    marginBottom: 50,
-  },
+  // Fixed card container positioning - center vertically between header and footer
   cardContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
   },
   dogCard: {
-    width: width * 1,
-    height: width * 1.4,
+    width: width * 0.9, // Slightly smaller for better margins
+    height: width * 1.2, // Better aspect ratio
     borderRadius: 15,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    backgroundColor: colors.white,
+    borderWidth: 2,
+    borderColor: colors.lightGrey, // More visible border with your color
+    shadowColor: colors.darkGrey, // Use dark grey shadow instead of black
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
     overflow: 'hidden',
-    position: 'absolute', // Important for stacking cards if you add more
   },
-  noDogsContent: { // New style for the "No dogs available" message inside the card
-    flex: 1,
+  noDogsContent: {
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20, // Add padding to prevent text from touching edges
+    padding: 20,
   },
   dogImage: {
     width: '100%',
@@ -684,27 +575,23 @@ const styles = StyleSheet.create({
   dogName: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.darkGrey,
   },
   dogAge: {
     fontSize: 22,
-    color: '#666',
+    color: colors.grey,
     marginLeft: 5,
   },
   dogBreed: {
     fontSize: 18,
-    color: '#888',
+    color: colors.grey,
     marginBottom: 5,
   },
-  noDogsContainer: { // This style is now redundant, but keeping for reference if needed elsewhere
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   noDogsText: {
-    fontSize: 20,
-    color: '#666',
+    fontSize: 18,
+    color: colors.grey,
     textAlign: 'center',
+    marginTop: 10,
   },
   likeLabel: {
     position: 'absolute',
@@ -712,10 +599,10 @@ const styles = StyleSheet.create({
     left: 40,
     fontSize: 35,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: colors.brightGreen,
     zIndex: 1,
     borderWidth: 4,
-    borderColor: '#4CAF50',
+    borderColor: colors.brightGreen,
     padding: 10,
     borderRadius: 5,
   },
@@ -725,10 +612,10 @@ const styles = StyleSheet.create({
     right: 40,
     fontSize: 35,
     fontWeight: 'bold',
-    color: '#F44336',
+    color: colors.brightRed,
     zIndex: 1,
     borderWidth: 4,
-    borderColor: '#F44336',
+    borderColor: colors.brightRed,
     padding: 10,
     borderRadius: 5,
   },
