@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient'; 
-import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native'; // Import hooks for navigation and route params
-import { RootStackParamList } from '../../App'; // Import RootStackParamList type
-import AppHeader from '../components/AppHeader';
-import { BackButton } from '../components/Buttons';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../../App';
 import { handleAlert } from '../utils/AlertUtils';
-import { colors } from '../components/GlobalStyles';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
+
+// Import the new modular components
+import { Input, GradientButton, AppHeader, BackButton } from '../../components';
+import { colors } from '../../components/styles/GlobalStyles';
 
 // Define the type for the route and navigation parameters for this screen
 type UniversalCreateAccountScreenNavigationProp = NavigationProp<RootStackParamList, 'UniversalCreateAccount'>;
@@ -37,8 +37,6 @@ const UniversalCreateAccountScreen: React.FC = () => {
       handleAlert('Error', 'Password must be at least 6 characters long.');
       return;
     }
-    // Add more complex regex for email/password strength if needed
-
     console.log(`Universal Account creation for ${role}:`, { email, password });
 
     // Navigate to the next specific screen based on the role
@@ -65,62 +63,57 @@ const UniversalCreateAccountScreen: React.FC = () => {
       <Text style={styles.title}>Create Account</Text>
 
       <View style={styles.miniContainer}> 
-         {/* Email Input */}
-      <Text style={styles.inputLabel}>Email Address</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your email"
-        placeholderTextColor={colors.grey}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      {/* Password Input */}
-      <Text style={styles.inputLabel}>Password</Text>
-      <View style={styles.passwordInputContainer}>
-        <TextInput
-          style={styles.passwordInput}
-          placeholder="Enter your password"
+        {/* Email Input */}
+        <Input
+          label="Email Address"
+          placeholder="Enter your email"
           placeholderTextColor={colors.grey}
-          secureTextEntry={!showPassword}
-          value={password}
-          onChangeText={setPassword}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
+          style={styles.customInput}
         />
-        <TouchableOpacity
-          style={styles.passwordToggle}
-          onPress={() => setShowPassword(!showPassword)}
-        >
-          <Text style={styles.passwordToggleText}>
-            <Ionicons name={showPassword ? 'eye-off' : 'eye'} 
-            size={24} 
-            color={colors.grey} />
-          </Text>
-        </TouchableOpacity>
-      </View>
 
-      {/* Re-enter Password Input */}
-      <Text style={styles.inputLabel}>Re-enter password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Re-enter your password"
-        placeholderTextColor={colors.grey}
-        secureTextEntry={true} // Always secure for re-entry
-        value={rePassword}
-        onChangeText={setRePassword}
-      />
-      {/* Next Button */}
-      <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
-        <LinearGradient
-          colors={[colors.yellow, colors.red]} 
-          style={styles.nextButtonGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
-          <Text style={styles.nextButtonText}>Next</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+        {/* Password Input with toggle */}
+        <View style={styles.passwordWrapper}>
+          <Input
+            label="Password"
+            placeholder="Enter your password"
+            placeholderTextColor={colors.grey}
+            secureTextEntry={!showPassword}
+            value={password}
+            onChangeText={setPassword}
+            style={styles.customInput}
+            containerStyle={styles.passwordInputStyle}
+          />
+          <TouchableOpacity
+            style={styles.passwordToggle}
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            <Ionicons name={showPassword ? 'eye-off' : 'eye'} 
+              size={24} 
+              color={colors.grey} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Re-enter Password Input */}
+        <Input
+          label="Re-enter password"
+          placeholder="Re-enter your password"
+          placeholderTextColor={colors.grey}
+          secureTextEntry={true}
+          value={rePassword}
+          onChangeText={setRePassword}
+          style={styles.customInput}
+        />
+
+        {/* Next Button */}
+        <GradientButton 
+          onPress={handleNext} 
+          title="Next"
+          style={styles.nextButtonWrapper}
+        />
       </View> 
     </View>
   );
@@ -129,86 +122,50 @@ const UniversalCreateAccountScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     paddingHorizontal: 0,
-    paddingTop: Platform.OS === 'ios' ? 60 : 0, // Adjust for top bar content
+    paddingTop: Platform.OS === 'ios' ? 60 : 0,
   },
   miniContainer: {
     paddingHorizontal: 30,
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: colors.white,
     marginBottom: 20,
-  },
-  backButton: {
-    alignSelf: 'flex-start', // Align to top-left
-    marginBottom: 30,
-    padding: 5, // Make it easier to tap
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: '#F7B781', // Matching your app's accent color
-    fontWeight: 'bold',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#F7B781',
-    marginTop: 15, // Space from top
-    marginBottom: 40, // Space below title
-    alignSelf: 'center', // Align to left
-  },
-  inputLabel: {
-    alignSelf: 'flex-start',
-    fontSize: 16,
-    color: '#F7B781',
-    marginBottom: 5,
+    color: colors.orange,
     marginTop: 15,
+    marginBottom: 40,
+    alignSelf: 'center',
   },
-  input: {
-    width: '100%',
-    height: 50,
-    borderColor: '#ddd',
+  // Custom input styling to match your original design
+  customInput: {
+    borderWidth: 0,
     borderBottomWidth: 1,
+    borderColor: colors.lightGrey,
+    borderRadius: 0,
     paddingHorizontal: 0,
     fontSize: 18,
-    color: '#333',
-    marginBottom: 10, // Space below input
-  },
-  passwordInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    borderColor: '#ddd',
-    borderBottomWidth: 1,
     marginBottom: 10,
   },
-  passwordInput: {
-    flex: 1,
-    height: 50,
-    paddingHorizontal: 0,
-    fontSize: 18,
-    color: '#333',
+  // Password input wrapper for the icon
+  passwordWrapper: {
+    width: '100%',
+    position: 'relative',
+  },
+  passwordInputStyle: {
+    marginBottom: 20, // Remove margin from Input component for password
   },
   passwordToggle: {
+    position: 'absolute',
+    right: 0,
+    top: 35, // Adjust based on label height
     padding: 10,
   },
-  passwordToggleText: {
-    fontSize: 20,
-  },
   nextButtonWrapper: {
+    marginTop: 50,
     width: '100%',
-    marginTop: 50, // Space above the button
-    borderRadius: 50,
-    overflow: 'hidden',
-  },
-  nextButtonGradient: {
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  nextButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
   },
 });
 

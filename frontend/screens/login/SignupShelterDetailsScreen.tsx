@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
 import { signUp } from '../../services/CognitoService';
-import AppHeader from '../components/AppHeader';
-import { BackButton } from '../components/Buttons';
 import { handleAlert } from '../utils/AlertUtils';
+
+// Import the new modular components
+import { Input, GradientButton, AppHeader, BackButton } from '../../components';
+import { colors } from '../../components/styles/GlobalStyles';
 
 // Define the type for the route parameters for this screen
 type SignupShelterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupShelterDetails'>;
@@ -186,63 +187,56 @@ const SignupShelterDetailsScreen: React.FC = () => {
         <Text style={styles.title}>Create Account</Text>
 
         {/* Shelter Name Input */}
-        <Text style={styles.inputLabel}>Shelter Name</Text>
-        <TextInput
-          style={[styles.input, nameError ? styles.inputError : null]}
+        <Input
+          label="Shelter Name"
           placeholder="Enter Shelter Name"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.grey}
           value={shelterName}
           onChangeText={handleNameChange}
+          style={styles.customInput}
+          error={nameError}
         />
-        {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null} {/* <-- Used here to display the message */}
-        
 
         {/* Address Input */}
-        <Text style={styles.inputLabel}>Address</Text>
-        <TextInput
-          style={[styles.input, addressError ? styles.inputError : null]}
+        <Input
+          label="Address"
           placeholder="Enter Your Location"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.grey}
           value={address}
           onChangeText={handleAddressChange}
+          style={styles.customInput}
+          error={addressError}
         />
-        {addressError ? <Text style={styles.errorText}>{addressError}</Text> : null}
 
         {/* Postcode Input */}
-        <Text style={styles.inputLabel}>Postcode</Text>
-        <TextInput
-          style={[styles.input, postcodeError ? styles.inputError : null]}
+        <Input
+          label="Postcode"
           placeholder="Enter Your Postcode"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.grey}
           value={postcode}
           onChangeText={handlePostcodeChange}
+          style={styles.customInput}
+          error={postcodeError}
         />
-        {postcodeError ? <Text style={styles.errorText}>{postcodeError}</Text> : null}
 
         {/* Phone No. Input */}
-        <Text style={styles.inputLabel}>Phone No.</Text>
-        <TextInput
-          style={[styles.input, phoneNoError ? styles.inputError : null]}
+        <Input
+          label="Phone No."
           placeholder="+44-"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.grey}
           keyboardType="phone-pad"
           value={phoneNo}
           onChangeText={handlePhoneNoChange}
+          style={styles.customInput}
+          error={phoneNoError}
         />
-        {phoneNoError ? <Text style={styles.errorText}>{phoneNoError}</Text> : null}
-
 
         {/* Next Button */}
-        <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
-          <LinearGradient
-            colors={['#F48B7B', '#F9E286']}
-            style={styles.nextButtonGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Text style={styles.nextButtonText}>Next</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        <GradientButton 
+          onPress={handleNext} 
+          title="Next"
+          style={styles.nextButtonWrapper}
+        />
       </View>
     </ScrollView>
             
@@ -258,64 +252,36 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'ios' ? 60 : 0, // Adjust for iOS
+    backgroundColor: colors.white,
+    paddingTop: Platform.OS === 'ios' ? 60 : 0,
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     paddingHorizontal: 30,
     paddingTop: 15,
     paddingBottom: 40,
-    alignItems: 'center',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#F7B781',
+    color: colors.orange,
     marginBottom: 40,
     alignSelf: 'center',
   },
-  inputLabel: {
-    alignSelf: 'flex-start',
-    fontSize: 16,
-    color: '#F7B781',
-    marginBottom: 5,
-    marginTop: 15,
-  },
-  input: {
-    width: '100%',
-    height: 50,
-    borderColor: '#ddd',
+  // Custom input styling to match your original design
+  customInput: {
+    borderWidth: 0,
     borderBottomWidth: 1,
+    borderColor: colors.lightGrey,
+    borderRadius: 0,
     paddingHorizontal: 0,
     fontSize: 18,
-    color: '#333',
     marginBottom: 10,
   },
   nextButtonWrapper: {
     width: '100%',
     marginTop: 50,
-    borderRadius: 50,
-    overflow: 'hidden',
-  },
-  nextButtonGradient: {
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  nextButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  inputError: {
-    borderColor: '#FF6F61', 
-  },
-  errorText: {
-    color: '#FF6F61',
-    fontSize: 14,
-    marginBottom: 5,
-    alignSelf: 'flex-start',
   },
 });
 

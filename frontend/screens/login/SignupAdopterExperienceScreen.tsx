@@ -3,13 +3,10 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
-  TouchableOpacity,
   ScrollView,
   Platform,
   KeyboardAvoidingView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import {
   useNavigation,
   useRoute,
@@ -18,9 +15,11 @@ import {
 } from "@react-navigation/native";
 import { RootStackParamList } from "../../App";
 import { signUp } from "../../services/CognitoService";
-import AppHeader from "../components/AppHeader";
-import { BackButton } from "../components/Buttons";
 import { handleAlert } from "../utils/AlertUtils";
+
+// Import the new modular components
+import { Input, GradientButton, AppHeader, BackButton } from '../../components';
+import { colors } from '../../components/styles/GlobalStyles';
 
 // Define the type for the route parameters for this screen
 type SignupAdopterExperienceScreenRouteProp = RouteProp<
@@ -101,32 +100,24 @@ const SignupAdopterExperienceScreen: React.FC = () => {
           <Text style={styles.title}>Experience with pets</Text>
 
           {/* Experience Input */}
-          <Text style={styles.inputLabel}>Experience</Text>
-          <TextInput
-            style={styles.textAreaInput}
+          <Input
+            label="Experience"
             placeholder="Enter your experience with pets&#10;(e.g. Any current pets? Have you ever had a dog?)"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.grey}
             multiline={true}
             numberOfLines={6}
             textAlignVertical="top"
             value={experience}
             onChangeText={setExperience}
+            style={styles.textAreaInput}
           />
 
           {/* Continue Button */}
-          <TouchableOpacity
-            onPress={handleContinue}
+          <GradientButton 
+            onPress={handleContinue} 
+            title="CONTINUE"
             style={styles.continueButtonWrapper}
-          >
-            <LinearGradient
-              colors={["#F48B7B", "#F9E286"]}
-              style={styles.continueButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <Text style={styles.continueButtonText}>CONTINUE</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -140,57 +131,38 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     justifyContent: "center",
-    backgroundColor: "#fff",
-    paddingBottom: 40, // Added padding to bottom to prevent cutoff
-    paddingTop: Platform.OS === "ios" ? 60 : 0, // Adjust for iOS
+    backgroundColor: colors.white,
+    paddingBottom: 40,
+    paddingTop: Platform.OS === "ios" ? 60 : 0,
   },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     paddingHorizontal: 30,
     paddingTop: 15,
-    alignItems: "center",
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#F7B781",
+    color: colors.orange,
     marginBottom: 50,
     alignSelf: "center",
-  },
-  inputLabel: {
-    alignSelf: "flex-start",
-    fontSize: 16,
-    color: "#F7B781",
-    marginBottom: 5,
-    marginTop: 15,
   },
   textAreaInput: {
     width: "100%",
     height: 370,
-    borderColor: "#ddd",
+    borderColor: colors.lightGrey,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: 10,
     fontSize: 18,
-    color: "#333",
+    color: colors.darkGrey,
     marginBottom: 10,
   },
   continueButtonWrapper: {
     width: "100%",
     marginTop: 50,
-    borderRadius: 50,
-    overflow: "hidden",
-  },
-  continueButtonGradient: {
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  continueButtonText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
   },
 });
 
