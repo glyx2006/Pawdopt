@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { updateUserAttributes, getAccessToken } from '../../services/CognitoService';
-import BackButton from '../components/BackButton';
+import { BackButton } from '../components/Buttons';
 import AppHeader from '../components/AppHeader';
 import UploadModal from '../shelters/UploadModal';
 import { RootStackParamList } from '../../App';

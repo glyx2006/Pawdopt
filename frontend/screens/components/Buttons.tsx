@@ -1,7 +1,8 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-// If you ever decide to use icons, you'll need to install this: `npx expo install @expo/vector-icons`
-// import { Ionicons } from '@expo/vector-icons'; 
+import { Ionicons } from '@expo/vector-icons'; 
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors } from './GlobalStyles';
 
 interface BackButtonProps {
   onPress: () => void; // Function to call when the button is pressed (e.g., navigation.goBack())
@@ -11,9 +12,9 @@ interface BackButtonProps {
   textStyle?: TextStyle; // Optional: Custom styles specifically for the '<' Text component.
 }
 
-const BackButton: React.FC<BackButtonProps> = ({
+export const BackButton: React.FC<BackButtonProps> = ({
   onPress,
-  color = '#F7B781',  // Default color to match your design
+  color = colors.orange,  // Default color to match your design
   size = 24,           // Default font size to match your design
   style,
   textStyle,
@@ -28,8 +29,32 @@ const BackButton: React.FC<BackButtonProps> = ({
         // Apply base text styles, dynamic size/color, and any custom text styles
         style={[styles.buttonText, { fontSize: size, color: color }, textStyle]}
       >
-        {'<'} {/* This is the hardcoded '<' character */}
+        <Ionicons name="chevron-back" size={size} color={color} />
       </Text>
+    </TouchableOpacity>
+  );
+};
+
+
+
+interface GradientButtonProps {
+  onPress: () => void;
+  title: string;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
+}
+
+export const GradientButton: React.FC<GradientButtonProps> = ({ onPress, title, style, textStyle }) => {
+  return (
+    <TouchableOpacity onPress={onPress} style={[styles.buttonWrapper, style]}>
+      <LinearGradient
+        colors={[colors.yellow, colors.red]}
+        style={styles.gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+      >
+        <Text style={[styles.buttonText, textStyle]}>{title}</Text>
+      </LinearGradient>
     </TouchableOpacity>
   );
 };
@@ -41,8 +66,17 @@ const styles = StyleSheet.create({
     // Add other common container styles here if you want them to apply to all BackButtons by default
   },
   buttonText: {
-    // Base styles for the text ('<')
     fontWeight: 'bold',
+    fontSize: 20,
+    color: colors.white,
+  },
+  buttonWrapper: {
+    width: '100%',
+    borderRadius: 50, // Make button wrapper rounded
+    overflow: 'hidden', // Clip gradient to rounded corners
+  },
+  gradient: {
+    paddingVertical: 15,
+    alignItems: 'center',
   },
 });
-export default BackButton;

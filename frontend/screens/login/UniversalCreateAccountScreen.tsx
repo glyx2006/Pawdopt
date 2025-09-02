@@ -4,8 +4,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native'; // Import hooks for navigation and route params
 import { RootStackParamList } from '../../App'; // Import RootStackParamList type
 import AppHeader from '../components/AppHeader';
-import BackButton from '../components/BackButton';
+import { BackButton } from '../components/Buttons';
 import { handleAlert } from '../utils/AlertUtils';
+import { colors } from '../components/GlobalStyles';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 // Define the type for the route and navigation parameters for this screen
 type UniversalCreateAccountScreenNavigationProp = NavigationProp<RootStackParamList, 'UniversalCreateAccount'>;
@@ -68,7 +70,7 @@ const UniversalCreateAccountScreen: React.FC = () => {
       <TextInput
         style={styles.input}
         placeholder="Enter your email"
-        placeholderTextColor="#999"
+        placeholderTextColor={colors.grey}
         keyboardType="email-address"
         autoCapitalize="none"
         value={email}
@@ -81,7 +83,7 @@ const UniversalCreateAccountScreen: React.FC = () => {
         <TextInput
           style={styles.passwordInput}
           placeholder="Enter your password"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.grey}
           secureTextEntry={!showPassword}
           value={password}
           onChangeText={setPassword}
@@ -90,7 +92,11 @@ const UniversalCreateAccountScreen: React.FC = () => {
           style={styles.passwordToggle}
           onPress={() => setShowPassword(!showPassword)}
         >
-          <Text style={styles.passwordToggleText}>{showPassword ? '👁️' : '🔒'}</Text>
+          <Text style={styles.passwordToggleText}>
+            <Ionicons name={showPassword ? 'eye-off' : 'eye'} 
+            size={24} 
+            color={colors.grey} />
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -99,7 +105,7 @@ const UniversalCreateAccountScreen: React.FC = () => {
       <TextInput
         style={styles.input}
         placeholder="Re-enter your password"
-        placeholderTextColor="#999"
+        placeholderTextColor={colors.grey}
         secureTextEntry={true} // Always secure for re-entry
         value={rePassword}
         onChangeText={setRePassword}
@@ -107,7 +113,7 @@ const UniversalCreateAccountScreen: React.FC = () => {
       {/* Next Button */}
       <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
         <LinearGradient
-          colors={['#F48B7B', '#F9E286']} // Matching your Figma gradient
+          colors={[colors.yellow, colors.red]} 
           style={styles.nextButtonGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
