@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../../App';
 import { handleAlert } from '../utils/AlertUtils'; 
 import { signIn } from '../../services/CognitoService';
 import { jwtDecode } from 'jwt-decode';
-import { colors } from '../components/GlobalStyles';
 import { Ionicons } from '@expo/vector-icons';
-import { GradientButton } from '../components/Buttons';
+
+// Import the new modular components
+import { Input, GradientButton } from '../../components';
+import { colors } from '../../components/styles/GlobalStyles';
 
 type LoginScreenProps = NavigationProp<RootStackParamList, 'Login'>;
 
@@ -74,27 +76,30 @@ const LoginScreen: React.FC = () => {
       </View>
 
       {/* Email Input */}
-      <Text style={styles.inputLabel}>Email Address</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Your Email"
-        placeholderTextColor={colors.grey}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
+      <View style={styles.emailInputWrapper}>
+        <Input
+          label="Email Address"
+          placeholder="Enter Your Email"
+          placeholderTextColor={colors.grey}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
+          style={styles.customInput}
+        />
+      </View>
 
       {/* Password Input */}
-      <Text style={styles.inputLabel}>Password</Text>
-      <View style={styles.passwordInputContainer}>
-        <TextInput
-          style={styles.passwordInput}
+      <View style={styles.passwordInputWrapper}>
+        <Input
+          label="Password"
           placeholder="Enter Your Password"
           placeholderTextColor={colors.grey}
-          secureTextEntry={!showPassword} // Toggle based on showPassword state
+          secureTextEntry={!showPassword}
           value={password}
           onChangeText={setPassword}
+          style={styles.customInput}
+          containerStyle={styles.passwordInputStyle}
         />
         <TouchableOpacity
           style={styles.passwordToggle}
@@ -104,18 +109,7 @@ const LoginScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Login Button */}
-      {/* <TouchableOpacity onPress={handleLogin} style={styles.loginButtonWrapper}>
-        <LinearGradient
-          colors={[colors.yellow, colors.red]}
-          style={styles.loginButtonGradient}
-          start={gradient.start}
-          end={gradient.end}
-        >
-          <Text style={styles.loginButtonText}>Log In</Text>
-        </LinearGradient>
-      </TouchableOpacity> */}
-
+      {/* Login Button - Using the new modular GradientButton */}
       <GradientButton 
         onPress={handleLogin} 
         title="Log In"
@@ -141,7 +135,7 @@ const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white', 
+    backgroundColor: colors.white, 
     alignItems: 'center',
     paddingHorizontal: 30, 
     paddingTop: 80, 
@@ -158,7 +152,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   logoContainer: {
-    flexDirection: 'row', // Align logo and text horizontally
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 40,
   },
@@ -173,66 +167,49 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.orange, 
   },
-  inputLabel: {
-    alignSelf: 'flex-start', // Align label to the left
-    fontSize: 16,
-    color: colors.orange,
-    marginBottom: 5,
-    marginTop: 15, // Space between inputs
-  },
-  input: {
-    width: '100%',
-    height: 50,
+  // Custom input styling to match your original design
+  customInput: {
+    borderWidth: 0,
+    borderBottomWidth: 1,
     borderColor: colors.lightGrey,
-    borderBottomWidth: 1, // Only bottom border
-    paddingHorizontal: 0, // No horizontal padding for input text
-    fontSize: 18,
-    color: colors.darkGrey,
-  },
-  passwordInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    borderColor: colors.lightGrey,
-    borderBottomWidth: 1, // Only bottom border
-    marginBottom: 20, // Space below password input
-  },
-  passwordInput: {
-    flex: 1, // Take up remaining space
-    height: 50,
+    borderRadius: 0,
     paddingHorizontal: 0,
     fontSize: 18,
-    color: '#333',
+  },
+  emailInputWrapper: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  // Password input wrapper for the icon
+  passwordInputWrapper: {
+    width: '100%',
+    position: 'relative',
+    marginBottom: 20,
+  },
+  passwordInputStyle: {
+    marginBottom: 0, // Remove margin from Input component for password
   },
   passwordToggle: {
+    position: 'absolute',
+    right: 0,
+    top: 35, // Adjust based on label height
     padding: 10,
   },
-  passwordToggleText: {
-    fontSize: 20, // Adjust icon size
-  },
   loginButtonWrapper: {
-    marginTop: 30, // Space above the button
-  },
-  forgotPasswordButton: {
-    marginTop: 15,
-  },
-  forgotPasswordText: {
-    color: colors.red, // Reddish color for forgotten password link
-    fontSize: 16,
-    textDecorationLine: 'underline',
+    marginTop: 30,
+    width: '100%',
   },
   createAccountContainer: {
     flexDirection: 'column',
     alignItems: 'center',
-    marginTop: 150, // Large space to push it to bottom as per Figma
-    // Use position: 'absolute' and bottom: X if you want it fixed at the very bottom
+    marginTop: 150,
   },
   createAccountText: {
-    color: colors.grey, // Greyish color for "Don't have an account?"
+    color: colors.grey,
     fontSize: 16,
   },
   createAccountLink: {
-    color: colors.orange, // Reddish color for "Create an Account" link
+    color: colors.orange,
     fontSize: 16,
     fontWeight: 'bold',
     textDecorationLine: 'underline',

@@ -3,20 +3,18 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
-  TouchableOpacity,
   ScrollView,
   Platform,
   KeyboardAvoidingView
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
-
 import { RootStackParamList } from '../../App';
 import { Dropdown } from 'react-native-element-dropdown';
-import AppHeader from '../components/AppHeader';
-import { BackButton } from '../components/Buttons';
 import { handleAlert } from '../utils/AlertUtils';
+
+// Import the new modular components
+import { Input, GradientButton, AppHeader, BackButton } from '../../components';
+import { colors } from '../../components/styles/GlobalStyles';
 
 type SignupAdopterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupAdopterDetails'>;
 type SignupAdopterDetailsScreenNavigationProp = NavigationProp<RootStackParamList, 'SignupAdopterDetails'>;
@@ -271,35 +269,33 @@ const SignupAdopterDetailsScreen: React.FC = () => {
           <Text style={styles.title}>Create Account</Text>
 
           {/* Name Input */}
-          <Text style={styles.inputLabel}>Name</Text>
-          <TextInput
-            style={[styles.input, nameError ? styles.inputError : null]}
+          <Input
+            label="Name"
             placeholder="Enter Your Name"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.grey}
             value={name}
             onChangeText={handleNameChange}
+            style={styles.customInput}
+            error={nameError}
           />
-          {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null} {/* <-- Used here to display the message */}
-
 
           {/* Date of Birth Input */}
-          <Text style={styles.inputLabel}>Date of Birth</Text>
-          <TextInput
-            style={[styles.input, dobError ? styles.inputError : null]}
+          <Input
+            label="Date of Birth"
             placeholder="YYYY/MM/DD"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.grey}
             keyboardType="numeric"
             value={dob}
             onChangeText={handleDobChange}
-            maxLength={10} 
+            maxLength={10}
+            style={styles.customInput}
+            error={dobError}
           />
-          {dobError ? <Text style={styles.errorText}>{dobError}</Text> : null} {/* <-- Used here to display the message */}
-
 
           {/* Gender Input (Dropdown) */}
           <Text style={styles.inputLabel}>Gender</Text>
           <Dropdown
-            style={styles.input}
+            style={styles.dropdown}
             data={[
               { label: 'Male', value: 'Male' },
               { label: 'Female', value: 'Female' },
@@ -309,60 +305,55 @@ const SignupAdopterDetailsScreen: React.FC = () => {
             labelField="label"
             valueField="value"
             placeholder="Select Gender"
-            placeholderStyle={{ color: '#999', fontSize: 18}}
+            placeholderStyle={{ color: colors.grey, fontSize: 18}}
             value={gender}
             onChange={(item: { value: React.SetStateAction<string>; }) => setGender(item.value)}
-            selectedTextStyle={{ color: '#333', fontSize: 18 }}
-            itemTextStyle={{ color: '#333', fontSize: 18 }}
+            selectedTextStyle={{ color: colors.darkGrey, fontSize: 18 }}
+            itemTextStyle={{ color: colors.darkGrey, fontSize: 18 }}
             containerStyle={{ borderRadius: 8 }}
-            activeColor="#F7B781"
+            activeColor={colors.orange}
           />
 
           {/* Address Input */}
-          <Text style={styles.inputLabel}>Address</Text>
-          <TextInput
-            style={[styles.input, addressError ? styles.inputError : null]}
+          <Input
+            label="Address"
             placeholder="Enter Your Location"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.grey}
             value={address}
             onChangeText={handleAddressChange}
+            style={styles.customInput}
+            error={addressError}
           />
-          {addressError ? <Text style={styles.errorText}>{addressError}</Text> : null}
 
           {/* Postcode Input */}
-          <Text style={styles.inputLabel}>Postcode</Text>
-          <TextInput
-            style={[styles.input, postcodeError ? styles.inputError : null]}
+          <Input
+            label="Postcode"
             placeholder="Enter Your Postcode"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.grey}
             value={postcode}
             onChangeText={handlePostcodeChange}
+            style={styles.customInput}
+            error={postcodeError}
           />
-          {postcodeError ? <Text style={styles.errorText}>{postcodeError}</Text> : null}
 
           {/* Phone No. Input */}
-          <Text style={styles.inputLabel}>Phone No.</Text>
-          <TextInput
-            style={[styles.input, phoneNoError ? styles.inputError : null]}
+          <Input
+            label="Phone No."
             placeholder="+44-"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.grey}
             keyboardType="phone-pad"
             value={phoneNo}
             onChangeText={handlePhoneNoChange}
+            style={styles.customInput}
+            error={phoneNoError}
           />
-          {phoneNoError ? <Text style={styles.errorText}>{phoneNoError}</Text> : null}
 
           {/* Next Button */}
-          <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
-            <LinearGradient
-              colors={['#F48B7B', '#F9E286']}
-              style={styles.nextButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <Text style={styles.nextButtonText}>Next</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          <GradientButton 
+            onPress={handleNext} 
+            title="Next"
+            style={styles.nextButtonWrapper}
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -377,63 +368,55 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingTop: Platform.OS === 'ios' ? 60 : 0,
     paddingBottom: 100,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     paddingHorizontal: 30,
     paddingTop: 15,
-    alignItems: 'center',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#F7B781',
+    color: colors.orange,
     marginBottom: 40,
     alignSelf: 'center',
   },
   inputLabel: {
     alignSelf: 'flex-start',
     fontSize: 16,
-    color: '#F7B781',
+    fontWeight: '500',
+    color: colors.orange,
     marginBottom: 5,
-    marginTop: 15,
+    marginTop: 0,
   },
-  input: {
+  // Custom input styling to match your original design
+  customInput: {
+    borderWidth: 0,
+    borderBottomWidth: 1,
+    borderColor: colors.lightGrey,
+    borderRadius: 0,
+    paddingHorizontal: 0,
+    fontSize: 18,
+    marginBottom: 10,
+   
+  },
+  // Dropdown styling
+  dropdown: {
     width: '100%',
     height: 50,
-    borderColor: '#ddd',
+    borderColor: colors.lightGrey,
     borderBottomWidth: 1,
     paddingHorizontal: 0,
     fontSize: 18,
-    color: '#333',
-    marginBottom: 10,
+    color: colors.darkGrey,
+    marginBottom: 20,
   },
   nextButtonWrapper: {
     width: '100%',
     marginTop: 50,
     marginBottom: 100,
-    borderRadius: 50,
-    overflow: 'hidden',
-  },
-  nextButtonGradient: {
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  nextButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  inputError: {
-    borderColor: '#FF6F61', 
-  },
-  errorText: {
-    color: '#FF6F61',
-    fontSize: 14,
-    marginBottom: 5,
-    alignSelf: 'flex-start',
   },
 });
 
