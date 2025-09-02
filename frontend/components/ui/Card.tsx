@@ -6,15 +6,17 @@ interface CardProps {
   children: React.ReactNode;
   style?: ViewStyle;
   padding?: number;
+  backgroundColor?: string;
 }
 
 export const Card: React.FC<CardProps> = ({
   children,
   style,
   padding = 16,
+  backgroundColor = colors.white,
 }) => {
   return (
-    <View style={[styles.card, { padding }, style]}>
+    <View style={[styles.card, { padding, backgroundColor }, style]}>
       {children}
     </View>
   );

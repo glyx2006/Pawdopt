@@ -4,9 +4,10 @@ import { useNavigation, useFocusEffect, NavigationProp } from '@react-navigation
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
-import AppHeader from '../components/AppHeader';
-import AppFooter from '../components/AppFooter';
 import { signOut, getCurrentUserAttributes, getAccessToken } from '../../services/CognitoService';
+import { AppHeader, AppFooter } from '../../components/layout';
+import { LoadingSpinner, Button, Card } from '../../components/ui';
+import { colors } from '../../components/styles/GlobalStyles';
 
 // ===== CONSTANTS =====
 const INITIAL_PROFILE_STATE = {
@@ -180,7 +181,7 @@ const AdopterProfileScreen: React.FC = () => {
       <SafeAreaView style={styles.safeArea}>
         <AppHeader />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FF6F61" />
+          <LoadingSpinner size="large" color={colors.red} />
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
       </SafeAreaView>
@@ -193,9 +194,11 @@ const AdopterProfileScreen: React.FC = () => {
         <AppHeader />
         <View style={styles.loadingContainer}>
           <Text style={styles.noAuthText}>You are not logged in.</Text>
-          <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.loginButtonText}>Go to Login</Text>
-          </TouchableOpacity>
+          <Button
+            title="Go to Login"
+            onPress={() => navigation.navigate('Login')}
+            variant="primary"
+          />
         </View>
       </SafeAreaView>
     );
@@ -221,60 +224,94 @@ const AdopterProfileScreen: React.FC = () => {
         </View>
 
         {/* Contact info */}
-        <View style={styles.infoSection}>
+        <Card style={styles.infoSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Contact Information</Text>
+            <View style={styles.sectionTitleContainer}>
+              <Ionicons name="person" size={20} color={colors.red} />
+              <Text style={styles.sectionTitle}>Contact Information</Text>
+            </View>
             <TouchableOpacity onPress={handleEditProfile} style={styles.editIcon}>
-              <Ionicons name="create-outline" size={24} color="#555" />
+              <Ionicons name="create-outline" size={24} color={colors.grey} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.infoText}>
-            <Text style={styles.infoLabel}>Email:</Text> {profile.email}
-          </Text>
-          <Text style={styles.infoText}>
-            <Text style={styles.infoLabel}>Contact:</Text> {profile.contact}
-          </Text>
-          <Text style={styles.infoText}>
-            <Text style={styles.infoLabel}>Address:</Text> {profile.address.formatted}
-          </Text>
-          <Text style={styles.infoText}>
-            <Text style={styles.infoLabel}>Postcode:</Text> {profile.postcode}
-          </Text>
-        </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="mail" size={16} color={colors.grey} />
+            <Text style={styles.infoText}>
+              <Text style={styles.infoLabel}>Email:</Text> {profile.email}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="call" size={16} color={colors.grey} />
+            <Text style={styles.infoText}>
+              <Text style={styles.infoLabel}>Contact:</Text> {profile.contact}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="location" size={16} color={colors.grey} />
+            <Text style={styles.infoText}>
+              <Text style={styles.infoLabel}>Address:</Text> {profile.address.formatted}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="map" size={16} color={colors.grey} />
+            <Text style={styles.infoText}>
+              <Text style={styles.infoLabel}>Postcode:</Text> {profile.postcode}
+            </Text>
+          </View>
+        </Card>
 
         {/* Preferences */}
-        <View style={styles.infoSection}>
+        <Card style={styles.infoSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>My Preferences</Text>
+            <View style={styles.sectionTitleContainer}>
+              <Ionicons name="heart" size={20} color={colors.red} />
+              <Text style={styles.sectionTitle}>My Preferences</Text>
+            </View>
             <TouchableOpacity onPress={handleEditPreferences} style={styles.editIcon}>
-              <Ionicons name="create-outline" size={24} color="#555" />
+              <Ionicons name="create-outline" size={24} color={colors.grey} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.infoText}>
-            <Text style={styles.infoLabel}>Age Range:</Text> {preferences.minAge || 'Any'} -{' '}
-            {preferences.maxAge || 'Any'} years
-          </Text>
-          <Text style={styles.infoText}>
-            <Text style={styles.infoLabel}>Size:</Text> {preferences.size.join(', ') || 'Any'}
-          </Text>
-          <Text style={styles.infoText}>
-            <Text style={styles.infoLabel}>Color:</Text> {preferences.color.join(', ') || 'Any'}
-          </Text>
-          <Text style={styles.infoText}>
-            <Text style={styles.infoLabel}>Breeds:</Text> {preferences.preferredBreeds.join(', ') || 'Any'}
-          </Text>
-        </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="time" size={16} color={colors.grey} />
+            <Text style={styles.infoText}>
+              <Text style={styles.infoLabel}>Age Range:</Text> {preferences.minAge || 'Any'} -{' '}
+              {preferences.maxAge || 'Any'} years
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="resize" size={16} color={colors.grey} />
+            <Text style={styles.infoText}>
+              <Text style={styles.infoLabel}>Size:</Text> {preferences.size.join(', ') || 'Any'}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="color-palette" size={16} color={colors.grey} />
+            <Text style={styles.infoText}>
+              <Text style={styles.infoLabel}>Color:</Text> {preferences.color.join(', ') || 'Any'}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="paw" size={16} color={colors.grey} />
+            <Text style={styles.infoText}>
+              <Text style={styles.infoLabel}>Breeds:</Text> {preferences.preferredBreeds.join(', ') || 'Any'}
+            </Text>
+          </View>
+        </Card>
 
         {/* Actions */}
-        <TouchableOpacity style={styles.actionButton} onPress={handleMyRequests}>
-          <Ionicons name="list-circle-outline" size={20} color="#333" />
-          <Text style={styles.actionButtonText}>Incoming Adoption Requests</Text>
-        </TouchableOpacity>
+        <Card style={styles.actionCard}>
+          <TouchableOpacity style={styles.actionButton} onPress={handleMyRequests}>
+            <Ionicons name="list-circle-outline" size={20} color={colors.darkGrey} />
+            <Text style={styles.actionButtonText}>Incoming Adoption Requests</Text>
+          </TouchableOpacity>
+        </Card>
 
-        <TouchableOpacity style={[styles.actionButton, styles.logoutButton]} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color="#fff" />
-          <Text style={[styles.actionButtonText, { color: '#fff' }]}>Logout</Text>
-        </TouchableOpacity>
+        <Card style={styles.actionCard} backgroundColor={colors.red}>
+          <TouchableOpacity style={styles.actionButton} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={20} color={colors.white} />
+            <Text style={[styles.actionButtonText, { color: colors.white }]}>Logout</Text>
+          </TouchableOpacity>
+        </Card>
       </ScrollView>
 
       <AppFooter
@@ -289,68 +326,123 @@ const AdopterProfileScreen: React.FC = () => {
 
 // ===== STYLES =====
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-  container: { flexGrow: 1, padding: 20, alignItems: 'center', paddingBottom: 80 },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { fontSize: 18, color: '#555', marginTop: 10 },
-  noAuthText: { fontSize: 18, color: '#FF6F61', textAlign: 'center', marginBottom: 20 },
-  loginButton: { backgroundColor: '#FF6F61', padding: 15, borderRadius: 10 },
-  loginButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  profilePicContainer: { alignItems: 'center', marginBottom: 30, marginTop: 20 },
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: colors.white 
+  },
+  container: { 
+    flexGrow: 1, 
+    padding: 20, 
+    alignItems: 'center', 
+    paddingBottom: 80 
+  },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  loadingText: { 
+    fontSize: 18, 
+    color: colors.grey, 
+    marginTop: 16 
+  },
+  noAuthText: { 
+    fontSize: 18, 
+    color: colors.red, 
+    textAlign: 'center', 
+    marginBottom: 20 
+  },
+  profilePicContainer: { 
+    alignItems: 'center', 
+    marginBottom: 30, 
+    marginTop: 20 
+  },
   profilePicWrapper: {
     width: 150,
     height: 150,
     borderRadius: 100,
     borderWidth: 3,
-    borderColor: '#FF6F61',
+    borderColor: colors.red,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#eee',
+    backgroundColor: colors.lightGrey,
   },
-  profilePic: { width: '100%', height: '100%', borderRadius: 100 },
-  name: { fontSize: 28, fontWeight: 'bold', color: '#333', textAlign: 'center', marginTop: 10 },
+  profilePic: { 
+    width: '100%', 
+    height: '100%', 
+    borderRadius: 100 
+  },
+  name: { 
+    fontSize: 28, 
+    fontWeight: 'bold', 
+    color: colors.darkGrey, 
+    textAlign: 'center', 
+    marginTop: 10 
+  },
   infoSection: {
     width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 15,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3.84,
-    elevation: 5,
+    padding: 16,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 5,
+    borderBottomColor: colors.lightGrey,
+    paddingBottom: 8,
   },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#FF6F61' },
-  editIcon: { padding: 5 },
-  infoText: { fontSize: 16, color: '#555', marginBottom: 5 },
-  infoLabel: { fontWeight: 'bold', color: '#333' },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sectionTitle: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    color: colors.darkGrey,
+    marginLeft: 8,
+  },
+  editIcon: { 
+    padding: 5 
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  infoText: { 
+    fontSize: 16, 
+    color: colors.grey, 
+    marginLeft: 8,
+    flex: 1,
+  },
+  infoLabel: { 
+    fontWeight: 'bold', 
+    color: colors.darkGrey 
+  },
+  actionCard: {
+    width: '100%',
+    marginBottom: 15,
+    padding: 0,
+  },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     paddingVertical: 15,
     paddingHorizontal: 20,
-    borderRadius: 10,
     width: '100%',
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
-  actionButtonText: { fontSize: 18, fontWeight: '600', color: '#333', marginLeft: 10 },
-  logoutButton: { backgroundColor: '#FF6F61' },
+  actionButtonText: { 
+    fontSize: 18, 
+    fontWeight: '600', 
+    color: colors.darkGrey, 
+    marginLeft: 10 
+  },
+  logoutButtonStyle: {
+    width: '100%',
+    marginTop: 10,
+  },
 });
 
 export default AdopterProfileScreen;
