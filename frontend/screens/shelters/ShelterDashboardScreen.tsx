@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { AppHeader, AppFooter } from '../../components/layout';
 import { LoadingSpinner, Button, Card } from '../../components/ui';
-import { colors } from '../../components/styles/GlobalStyles';
+import { colors, globalStyles } from '../../components/styles/GlobalStyles';
 import DogProfileModal from '../shelters/DogProfileModal';
 import { handleAlert } from '../utils/AlertUtils';
 import { deleteDog } from '../../src/api';
@@ -243,6 +243,7 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     paddingBottom: 20,
+    ...globalStyles.shadowStyle,
   },
   addDogButton: {
     marginBottom: 25,
@@ -271,9 +272,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 15,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.lightGrey,
+    // borderWidth: 1,
+    // borderColor: colors.lightGrey,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 10, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   dogImage: {
     width: 120,

@@ -11,8 +11,8 @@ import { getDogsByIds } from '../../src/api';
 import { AppHeader } from '../../components/layout';
 import { LoadingSpinner, Button } from '../../components/ui';
 import { RequestCard } from '../../components/domain';
-import { colors } from '../../components/styles/GlobalStyles';
-import { BackButton } from '../components/Buttons';
+import { colors, globalStyles } from '../../components/styles/GlobalStyles';
+import { BackButton } from '../../components/ui/Button';
 
 // Define the new interface for a combined request and dog object
 interface FullAdoptionRequest extends AdoptionRequest {
@@ -232,7 +232,8 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   flatListContent: { 
-    paddingBottom: 20 
+    paddingBottom: 20,
+    ...globalStyles.shadowStyle,
   },
   flatListEmptyContent: { 
     flexGrow: 1, 
