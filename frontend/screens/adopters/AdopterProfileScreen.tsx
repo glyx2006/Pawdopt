@@ -302,7 +302,7 @@ const AdopterProfileScreen: React.FC = () => {
         <Card style={styles.actionCard}>
           <TouchableOpacity style={styles.actionButton} onPress={handleMyRequests}>
             <Ionicons name="list-circle-outline" size={20} color={colors.darkGrey} />
-            <Text style={styles.actionButtonText}>Incoming Adoption Requests</Text>
+            <Text style={styles.actionButtonText}>My Adoption Requests</Text>
           </TouchableOpacity>
         </Card>
 
