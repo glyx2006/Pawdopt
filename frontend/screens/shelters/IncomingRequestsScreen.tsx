@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AppHeader } from '../../components';
 import { Dog, RootStackParamList } from '../../App';
 import { BackButton } from '../../components/ui/Button';
+import { colors } from '../../components/styles/GlobalStyles';
 
 import { AdopterProfile } from '../../App';
 import { AdoptionRequest, createChat, getAdoptionRequests, updateAdoptionRequestChatId, updateAdoptionRequestStatus } from '../../services/RequestService';
@@ -297,7 +298,7 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f0f2f5',
+    backgroundColor: colors.white,
   },
   loadingContainer: {
     flex: 1,
@@ -371,7 +372,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 8,
     elevation: 3,
   },
   cardHeader: {

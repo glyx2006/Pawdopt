@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Dog } from '../../App';
 import { AdoptionRequest } from '../../services/RequestService';
 import { Button, Card } from '../ui';
-import { colors } from '../styles/GlobalStyles';
+import { colors, globalStyles } from '../styles/GlobalStyles';
 
 // Use the AdoptionRequest type from RequestService
 interface FullAdoptionRequest extends AdoptionRequest {
@@ -92,14 +92,8 @@ const styles = StyleSheet.create({
     borderRadius: 15, 
     marginVertical: 10, 
     marginHorizontal: 20, 
-    borderWidth: 1,
-    borderColor: colors.lightGrey,
-    shadowColor: colors.darkGrey, 
-    shadowOffset: { width: 0, height: 2 }, 
-    shadowOpacity: 0.1, 
-    shadowRadius: 4, 
-    elevation: 3, 
-    overflow: 'hidden' 
+    overflow: 'hidden', 
+    alignItems: 'center',
   },
   imageContainer: { 
     width: 120, 

@@ -10,6 +10,7 @@ export const colors = {
     grey: '#999',
     darkGrey: '#333',
     white: '#fff',
+    black: '#000',
 };
 
 export const globalStyles = StyleSheet.create({

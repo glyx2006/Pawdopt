@@ -6,8 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { RootStackParamList } from '../../App';
-import AppHeader from '../components/AppHeader';
-import { BackButton } from '../components/Buttons';
+import { AppHeader, BackButton } from '../../components';
 
 type AdopterProfileTemplateRouteProp = RouteProp<RootStackParamList, 'AdopterProfileTemplate'>;
 type AdopterProfileTemplateNavigationProp = NavigationProp<RootStackParamList, 'AdopterProfileTemplate'>;

@@ -4,8 +4,7 @@ import { useNavigation, NavigationProp, useFocusEffect, useRoute, RouteProp } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useSubscription } from '@apollo/client';
 import { RootStackParamList } from '../../App';
-import AppHeader from '../components/AppHeader';
-import AppFooter from '../components/AppFooter';
+import { AppHeader, AppFooter } from '../../components';
 import { LIST_ALL_MESSAGES, ON_CREATE_MESSAGE, ON_UPDATE_MESSAGE } from './graphql/queries';
 import { fetchUserChats, enrichChatData, EnrichedChatData } from '../../src/api';
 
