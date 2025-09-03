@@ -1,51 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert, TouchableOpacity, Image, RefreshControl, Platform } from 'react-native'; // Removed Modal and ScrollView
+import { View, Text, StyleSheet, FlatList, Alert, TouchableOpacity, Image, RefreshControl } from 'react-native';
 import { useNavigation, NavigationProp, useFocusEffect } from '@react-navigation/native';
-import { RootStackParamList, Dog } from '../../App'; // Import Dog interface and RootStackParamList
-import { SafeAreaView } from 'react-native-safe-area-context'; // Import SafeAreaView
+import { RootStackParamList, Dog } from '../../App';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
-type ShelterDashboardScreenNavigationProp = NavigationProp<RootStackParamList, 'ShelterDashboard'>;
-type AddDogScreenNavigationProp = NavigationProp<RootStackParamList, 'AddDog'>;
-
-import AppHeader from '../components/AppHeader';
-import AppFooter from '../components/AppFooter';
+import { AppHeader, AppFooter } from '../../components/layout';
+import { LoadingSpinner, Button, Card } from '../../components/ui';
+import { colors } from '../../components/styles/GlobalStyles';
 import DogProfileModal from '../shelters/DogProfileModal';
 import { handleAlert } from '../utils/AlertUtils';
 import { deleteDog } from '../../src/api';
 
 import { DogsApi } from '../../generated/apis';
 import { DogPage } from '../../generated/models';
-import { Configuration } from '../../generated';
-import { getAccessToken, getIdToken } from '../../services/CognitoService';
+import { getIdToken } from '../../services/CognitoService';
 import { dogApiConfig } from '../../src/api';
 
-// Mock data for initial display
-// const initialMockDogs: Dog[] = [
-//   {
-//     id: 'mock-dog-1',
-//     name: 'Bella',
-//     breed: 'Labrador',
-//     age: 2,
-//     gender: 'Female',
-//     description: 'A playful and friendly Labrador, loves fetching!',
-//     photoURLs: ['https://placehold.co/120x120/FFD700/FFFFFF?text=Bella'],
-//     shelterId: 'mock-shelter-id-1', // This will be replaced by actual shelter ID
-//     status: 'Available',
-//     createdAt: new Date().toISOString(),
-//   },
-//   {
-//     id: 'mock-dog-2',
-//     name: 'Charlie',
-//     breed: 'German Shepherd',
-//     age: 4,
-//     gender: 'Male',
-//     description: 'Loyal and intelligent, needs an active family.',
-//     photoURLs: ['https://placehold.co/120x120/87CEEB/FFFFFF?text=Charlie'],
-//     shelterId: 'mock-shelter-id-1',
-//     status: 'Available',
-//     createdAt: new Date().toISOString(),
-//   },
-// ];
+type ShelterDashboardScreenNavigationProp = NavigationProp<RootStackParamList, 'ShelterDashboard'>;
+type AddDogScreenNavigationProp = NavigationProp<RootStackParamList, 'AddDog'>;
 
 const ShelterDashboardScreen: React.FC = () => {
   const navigation = useNavigation<ShelterDashboardScreenNavigationProp>();
@@ -54,8 +27,8 @@ const ShelterDashboardScreen: React.FC = () => {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [shelterId, setShelterId] = useState<string>('mock-shelter-id-1'); // Mock shelter ID for now
-  const [shelterPostcode, setShelterPostcode] = useState<string>('SW1A 0AA'); // Mock shelter postcode
+  const [shelterId, setShelterId] = useState<string>(''); 
+  const [shelterPostcode, setShelterPostcode] = useState<string>(''); 
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null); // For modal
   const [isModalVisible, setIsModalVisible] = useState(false); // For modal visibility
 
@@ -114,18 +87,18 @@ const ShelterDashboardScreen: React.FC = () => {
   };
 
   const renderDogItem = ({ item }: { item: Dog }) => (
-    <TouchableOpacity style={styles.dogCard} onPress={() => handleDogPress(item)}>
-      {item.photoURLs && item.photoURLs.length > 0 && (
-        <Image source={{ uri: item.photoURLs[0] }} style={styles.dogImage} />
-      )}
-      <View style={styles.dogInfo}>
-        <Text style={styles.dogName}>{item.name}</Text>
-        <Text style={styles.dogBreedAge}>{item.breed}, {item.age} years old</Text>
-        <Text style={styles.dogStatus}>Status: {item.status}</Text>
-        {/* Check if description exists before trying to substring */}
-        {item.description && <Text style={styles.dogDescription}>{item.description.substring(0, 70)}...</Text>}
-      </View>
-      {/* Add Edit/Delete buttons here later */}
+    <TouchableOpacity onPress={() => handleDogPress(item)}>
+      <Card style={styles.dogCard}>
+        {item.photoURLs && item.photoURLs.length > 0 && (
+          <Image source={{ uri: item.photoURLs[0] }} style={styles.dogImage} />
+        )}
+        <View style={styles.dogInfo}>
+          <Text style={styles.dogName}>{item.name}</Text>
+          <Text style={styles.dogBreedAge}>{item.breed}, {item.age} years old</Text>
+          <Text style={styles.dogStatus}>Status: {item.status}</Text>
+          {item.description && <Text style={styles.dogDescription}>{item.description.substring(0, 70)}...</Text>}
+        </View>
+      </Card>
     </TouchableOpacity>
   );
 
@@ -192,8 +165,8 @@ const ShelterDashboardScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}> {/* New container for loading spinner */}
-        <ActivityIndicator size="large" color="#F7B781" />
+      <View style={styles.loadingContainer}>
+        <LoadingSpinner size="large" />
       </View>
     );
   }
@@ -203,17 +176,20 @@ const ShelterDashboardScreen: React.FC = () => {
     <SafeAreaView style={styles.safeArea}>
       <AppHeader /> {/* AppHeader will now automatically avoid the safe area */}
 
-      <View style={styles.contentContainer}> {/* Scrollable content area */}
-        <TouchableOpacity // Changed from Pressable to TouchableOpacity
+      <View style={styles.contentContainer}>
+        <Button
+          title="Add New Dog"
+          variant="primary"
           onPress={navigateToAddDog}
-          style={styles.addDogButton} // Simplified style application
-          activeOpacity={0.8} // Added activeOpacity for feedback
-        >
-          <Text style={styles.addDogButtonText}>+ Add New Dog</Text>
-        </TouchableOpacity>
+          style={styles.addDogButton}
+        />
 
         {dogs.length === 0 ? (
-          <Text style={styles.noDogsText}>You haven't added any dogs yet. Tap 'Add New Dog' to get started!</Text>
+          <View style={styles.emptyContainer}>
+            <Ionicons name="paw-outline" size={80} color={colors.grey} />
+            <Text style={styles.noDogsText}>You haven't added any dogs yet.</Text>
+            <Text style={styles.emptySubtext}>Tap 'Add New Dog' to get started!</Text>
+          </View>
         ) : (
           <FlatList
             data={dogs}
@@ -252,87 +228,84 @@ const ShelterDashboardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f0f2f5', // Background color for the whole screen
+    backgroundColor: colors.white,
   },
-  loadingContainer: { // Style for loading state
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f2f5',
+    backgroundColor: colors.white,
   },
   contentContainer: {
-    flex: 1, // Takes up remaining space between header and footer
-    paddingHorizontal: 20, // Apply horizontal padding here for the main content
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 100, // Add padding to push content away from footer
   },
   flatListContent: {
-    paddingBottom: 20, // Add padding at the bottom of the list for better scrolling above footer
+    paddingBottom: 20,
   },
   addDogButton: {
-    backgroundColor: '#F7B781',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 30,
-    alignSelf: 'center',
     marginBottom: 25,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 5,
+    alignSelf: 'center',
   },
-  addDogButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 40,
   },
   noDogsText: {
     textAlign: 'center',
-    marginTop: 30,
+    marginTop: 20,
     fontSize: 18,
-    color: '#777',
+    fontWeight: 'bold',
+    color: colors.darkGrey,
+  },
+  emptySubtext: {
+    textAlign: 'center',
+    marginTop: 10,
+    fontSize: 16,
+    color: colors.grey,
   },
   dogCard: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 15,
     marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 5,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.lightGrey,
+    alignItems: 'center',
   },
   dogImage: {
     width: 120,
     height: 120,
-    borderTopLeftRadius: 15,
-    borderBottomLeftRadius: 15,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
     resizeMode: 'cover',
   },
   dogInfo: {
     flex: 1,
     padding: 15,
+    justifyContent: 'center', 
   },
   dogName: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.darkGrey,
     marginBottom: 5,
   },
   dogBreedAge: {
     fontSize: 16,
-    color: '#666',
+    color: colors.grey,
     marginBottom: 5,
   },
   dogStatus: {
     fontSize: 14,
-    color: '#888',
+    color: colors.grey,
     marginBottom: 5,
   },
   dogDescription: {
     fontSize: 14,
-    color: '#555',
+    color: colors.grey,
     lineHeight: 20,
   },
 });

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../styles/GlobalStyles';
 
 // Define props for navigation
 interface AppFooterProps {
@@ -17,7 +18,7 @@ const AppFooter: React.FC<AppFooterProps> = ({
   activeScreen,
 }) => {
   const getIconColor = (screen: string) =>
-    activeScreen === screen ? '#FF6F61' : '#888'; // Active vs inactive color
+    activeScreen === screen ? colors.red : colors.grey;
 
   return (
     <View style={styles.footer}>
@@ -46,13 +47,13 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
-    // position: 'absolute', // Make it stick to the bottom
+    borderTopColor: colors.lightGrey,
+    backgroundColor: colors.white,
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingBottom: 20, // Add padding for iPhone safe area
+    paddingBottom: 20,
   },
   footerIcon: {
     alignItems: 'center',
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
   iconText: {
     fontSize: 12,
     marginTop: 2,
-    color: '#888',
+    color: colors.grey,
   },
 });
 
