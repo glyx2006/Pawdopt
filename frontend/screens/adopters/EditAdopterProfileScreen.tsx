@@ -10,7 +10,7 @@ import { AppHeader } from '../../components/layout';
 import { LoadingSpinner, Button, Input, Card } from '../../components/ui';
 import { colors } from '../../components/styles/GlobalStyles';
 import UploadModal from '../shelters/UploadModal';
-import { BackButton } from '../components/Buttons';
+import { BackButton } from '../../components/ui/Button';
 
 // ==========================
 // Constants

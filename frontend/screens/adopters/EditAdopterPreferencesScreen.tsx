@@ -18,7 +18,7 @@ import { getAccessToken } from '../../services/CognitoService';
 import { AppHeader } from '../../components/layout';
 import { LoadingSpinner, Button, Input, Card } from '../../components/ui';
 import { colors } from '../../components/styles/GlobalStyles';
-import { BackButton } from '../components/Buttons';
+import { BackButton } from '../../components/ui/Button';
 
 // =====================
 // Constants

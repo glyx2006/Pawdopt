@@ -5,10 +5,9 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-
-import AppHeader from '../components/AppHeader';
+import { AppHeader } from '../../components';
 import { Dog, RootStackParamList } from '../../App';
-import { BackButton } from '../components/Buttons';
+import { BackButton } from '../../components/ui/Button';
 
 import { AdopterProfile } from '../../App';
 import { AdoptionRequest, createChat, getAdoptionRequests, updateAdoptionRequestChatId, updateAdoptionRequestStatus } from '../../services/RequestService';

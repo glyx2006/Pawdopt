@@ -62,7 +62,7 @@ export class SwipesApi extends runtime.BaseAPI {
 
         let urlPath = `/swipe`;
 
-        const method: HTTPMethod = 'POST'
+        const method: runtime.HTTPMethod = 'POST'
         const tosend = {
             path: urlPath,
             method: method,
