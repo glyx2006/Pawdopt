@@ -45,10 +45,18 @@ const ChatListScreen: React.FC = () => {
     fetchPolicy: 'cache-first', // Use cache for faster navigation
     errorPolicy: 'all',
     notifyOnNetworkStatusChange: true,
-    onCompleted: () => {
+    onCompleted: (data) => {
+      console.log('📤 Messages query completed successfully:', data?.listMessages?.items?.length || 0, 'messages');
       setLoading(false); // Stop loading when query completes
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('❌ Messages query failed:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        graphQLErrors: error.graphQLErrors,
+        networkError: error.networkError,
+        extraInfo: error.extraInfo
+      });
       setLoading(false); // Stop loading even on error
     },
   });
@@ -352,9 +360,24 @@ const ChatListScreen: React.FC = () => {
       <View style={styles.contentContainer}>
         <Text style={styles.title}>Your Chats</Text>
         {messagesError && (
-          <Text style={styles.errorText}>
-            Failed to load messages. Pull to refresh.
-          </Text>
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>
+              Failed to load messages. Pull to refresh.
+            </Text>
+            <Text style={styles.errorDetails}>
+              Error: {messagesError.message}
+            </Text>
+            {messagesError.graphQLErrors?.length > 0 && (
+              <Text style={styles.errorDetails}>
+                GraphQL: {messagesError.graphQLErrors[0].message}
+              </Text>
+            )}
+            {messagesError.networkError && (
+              <Text style={styles.errorDetails}>
+                Network: {messagesError.networkError.message}
+              </Text>
+            )}
+          </View>
         )}
         <FlatList
           data={chats}
@@ -409,14 +432,27 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-  errorText: {
-    textAlign: 'center',
-    marginBottom: 20,
-    fontSize: 16,
-    color: '#e74c3c',
-    backgroundColor: '#fdf2f2',
-    padding: 10,
+  errorContainer: {
+    backgroundColor: '#fff5f5',
+    padding: 15,
+    marginHorizontal: 10,
+    marginBottom: 10,
     borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#e74c3c',
+  },
+  errorText: {
+    color: '#e74c3c',
+    textAlign: 'center',
+    marginBottom: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  errorDetails: {
+    color: '#c0392b',
+    fontSize: 12,
+    marginTop: 5,
+    fontStyle: 'italic',
   },
   noChatsText: {
     textAlign: 'center',
