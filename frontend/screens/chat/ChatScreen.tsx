@@ -81,8 +81,20 @@ const ChatScreen: React.FC = () => {
     if (subData?.onCreateMessage) {
       setMessages(prev => {
         const incoming = subData.onCreateMessage;
-        const exists = prev.some(msg => msg.messageId === incoming.messageId);
-        return exists ? prev : [...prev, incoming];
+        
+        // Create a new object to avoid read-only property issues
+        const newMessage: Message = {
+          messageId: incoming.messageId,
+          chatId: incoming.chatId,
+          senderId: incoming.senderId,
+          receiverId: incoming.receiverId,
+          text: incoming.text,
+          sentAt: incoming.sentAt,
+          readStatus: incoming.readStatus
+        };
+        
+        const exists = prev.some(msg => msg.messageId === newMessage.messageId);
+        return exists ? prev : [...prev, newMessage];
       });
     }
   }, [subData]);
@@ -111,10 +123,23 @@ const ChatScreen: React.FC = () => {
       const filteredMessages = data.listMessages.items;
       console.log("filteredMessages: ", filteredMessages);
       console.log("messages:", messages)
-          // Sort messages chronologically
-      filteredMessages.sort((a: any, b: any) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
+      
+      // Create new objects to avoid read-only property issues
+      const mappedMessages = filteredMessages.map((msg: any) => ({
+        messageId: msg.messageId,
+        chatId: msg.chatId,
+        senderId: msg.senderId,
+        receiverId: msg.receiverId,
+        text: msg.text,
+        sentAt: msg.sentAt,
+        readStatus: msg.readStatus
+      }));
+      
+      // Sort messages chronologically
+      mappedMessages.sort((a: any, b: any) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
+      
       setMessages(prev => {
-        const newMessages = filteredMessages.filter(
+        const newMessages = mappedMessages.filter(
           (fm: Message) => !prev.some(pm => pm.messageId === fm.messageId)
         );
         return [...prev, ...newMessages];
@@ -192,9 +217,19 @@ const ChatScreen: React.FC = () => {
         // Apollo will automatically update cache if normalized properly,
         // but if you want to ensure UI update immediately:
         if (data?.createMessage) {
+          const responseMessage: Message = {
+            messageId: data.createMessage.messageId,
+            chatId: data.createMessage.chatId,
+            senderId: data.createMessage.senderId,
+            receiverId: data.createMessage.receiverId,
+            text: data.createMessage.text,
+            sentAt: data.createMessage.sentAt,
+            readStatus: data.createMessage.readStatus
+          };
+          
           setMessages(prev => {
-            if (prev.find(msg => msg.messageId === data.createMessage.messageId)) return prev;
-            return [...prev, data.createMessage]
+            if (prev.find(msg => msg.messageId === responseMessage.messageId)) return prev;
+            return [...prev, responseMessage]
           });
         }
 
