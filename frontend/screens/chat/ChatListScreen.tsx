@@ -325,14 +325,24 @@ const ChatListScreen: React.FC = () => {
     // Already on chat list screen
   };
 
-  // Show loading only during initial data fetch
-  const shouldShowLoading = (messagesLoading || loading) && chats.length === 0;
+  // Show loading during initial data fetch or when we don't have any chats yet
+  const shouldShowLoading = chats.length === 0 && !messagesError;
 
   if (shouldShowLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#F7B781" />
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <AppHeader />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#F7B781" />
+          <Text style={styles.loadingText}>Loading your chats...</Text>
+        </View>
+        <AppFooter
+          onPressProfile={goToProfile}
+          onPressHome={goToHome}
+          onPressChat={goToChat}
+          activeScreen="chat"
+        />
+      </SafeAreaView>
     );
   }
 
@@ -346,25 +356,19 @@ const ChatListScreen: React.FC = () => {
             Failed to load messages. Pull to refresh.
           </Text>
         )}
-        {chats.length === 0 ? (
-          <Text style={styles.noChatsText}>
-            No active chats yet. Check back later!
-          </Text>
-        ) : (
-          <FlatList
-            data={chats}
-            keyExtractor={(item) => item.chatId}
-            renderItem={renderChatItem}
-            refreshControl={
-              <RefreshControl 
-                refreshing={isRefreshing} 
-                onRefresh={fetchChats}
-                colors={['#F7B781']}
-              />
-            }
-            contentContainerStyle={styles.flatListContent}
-          />
-        )}
+        <FlatList
+          data={chats}
+          keyExtractor={(item) => item.chatId}
+          renderItem={renderChatItem}
+          refreshControl={
+            <RefreshControl 
+              refreshing={isRefreshing} 
+              onRefresh={fetchChats}
+              colors={['#F7B781']}
+            />
+          }
+          contentContainerStyle={styles.flatListContent}
+        />
       </View>
       <AppFooter
         onPressProfile={goToProfile}
@@ -386,6 +390,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f0f2f5',
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
   contentContainer: {
     flex: 1,
