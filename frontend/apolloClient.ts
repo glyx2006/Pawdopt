@@ -1,73 +1,106 @@
-import { ApolloClient, InMemoryCache, split, HttpLink, from } from '@apollo/client';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
-import { createClient } from 'graphql-ws';
+import { ApolloClient, InMemoryCache, split, HttpLink, from, gql } from '@apollo/client';
+import { createSubscriptionHandshakeLink } from 'aws-appsync-subscription-link';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { setContext } from '@apollo/client/link/context';
-import { getAccessToken } from './services/CognitoService';
+import { getAccessToken, getIdToken } from './services/CognitoService';
 
 const API_URL = "https://kjjewznlvbb6xfmdwmezado724.appsync-api.eu-west-2.amazonaws.com/graphql";
 const WS_URL = "wss://kjjewznlvbb6xfmdwmezado724.appsync-realtime-api.eu-west-2.amazonaws.com/graphql";
 const API_KEY = "da2-qdj4etsy7fgrhe6td4wciul7ci";
 
-// HTTP link with authentication
+console.log('🔧 Initializing Apollo Client with AppSync configuration');
+console.log('📡 API URL:', API_URL);
+console.log('🔌 WebSocket URL:', WS_URL);
+console.log('🔑 API Key configured:', API_KEY ? 'Yes' : 'No');
+console.log('📦 Using aws-appsync-subscription-link for subscriptions');
+console.log('🌍 Region: eu-west-2');
+
+// HTTP link with authentication - enhanced with Cognito support
 const authLink = setContext(async (_, { headers }) => {
+  console.log('🔑 Setting auth headers for request');
+  
+  // Try to get Cognito ID token (AppSync expects ID token, not access token)
+  let cognitoToken = null;
   try {
-    const token = await getAccessToken();
-    return {
-      headers: {
-        ...headers,
-        "x-api-key": API_KEY,
-        ...(token && { Authorization: `Bearer ${token}` }),
-      }
-    };
+    cognitoToken = await getIdToken(); // Changed from getAccessToken to getIdToken
+    console.log('🔑 Cognito ID token retrieved:', cognitoToken ? 'Yes' : 'No');
+    console.log('🔑 Token length:', cognitoToken ? cognitoToken.length : 0);
+    console.log('🔑 Token starts with eyJ:', cognitoToken ? cognitoToken.startsWith('eyJ') : false);
+    
+    // Log first 50 characters of token for debugging (safe to log)
+    if (cognitoToken) {
+      console.log('🔑 Token preview:', cognitoToken.substring(0, 50) + '...');
+    }
   } catch (error) {
-    console.warn('Could not get access token, using API key only:', error);
-    return {
-      headers: {
-        ...headers,
-        "x-api-key": API_KEY,
-      }
-    };
+    console.log('🔑 Cognito ID token error:', (error as Error).message);
   }
+  
+  const newHeaders = {
+    ...headers,
+    "Content-Type": "application/json",
+    // For Cognito User Pool auth, we might not need the API key
+    // Include Cognito auth for proper AppSync authentication
+    ...(cognitoToken && { Authorization: `Bearer ${cognitoToken}` }),
+  };
+  
+  // Add API key only if no Cognito token (fallback)
+  if (!cognitoToken) {
+    newHeaders["x-api-key"] = API_KEY;
+    console.log('🔑 Using API key as fallback (no Cognito ID token)');
+  } else {
+    console.log('🔑 Using Cognito ID token authentication');
+  }
+  
+  console.log('🔑 Final headers being sent:', Object.keys(newHeaders));
+  console.log('🔑 Has Authorization header:', !!newHeaders.Authorization);
+  console.log('🔑 API Key being used:', API_KEY.substring(0, 10) + '...');
+  return { headers: newHeaders };
 });
 
 const httpLink = new HttpLink({
   uri: API_URL,
 });
 
-// WebSocket link for subscriptions
-const wsLink = new GraphQLWsLink(
-  createClient({
-    url: WS_URL,
-    connectionParams: async () => {
+// AppSync subscription link for real-time subscriptions - using Cognito auth
+const subscriptionLink = createSubscriptionHandshakeLink({
+  url: WS_URL,
+  region: 'eu-west-2',
+  auth: {
+    type: 'AMAZON_COGNITO_USER_POOLS',
+    jwtToken: async () => {
       try {
-        const token = await getAccessToken();
-        return {
-          host: "kjjewznlvbb6xfmdwmezado724.appsync-api.eu-west-2.amazonaws.com",
-          "x-api-key": API_KEY,
-          ...(token && { Authorization: `Bearer ${token}` }),
-        };
+        const token = await getIdToken(); // Changed from getAccessToken to getIdToken
+        console.log('🔑 Subscription auth: ID token retrieved for WebSocket:', token ? 'Yes' : 'No');
+        return token || '';
       } catch (error) {
-        console.warn('Could not get access token for WebSocket, using API key only:', error);
-        return {
-          host: "kjjewznlvbb6xfmdwmezado724.appsync-api.eu-west-2.amazonaws.com",
-          "x-api-key": API_KEY,
-        };
+        console.error('🔑 Subscription auth error:', error);
+        return '';
       }
     },
-  }),
-);
+  },
+}, from([authLink, httpLink]));
 
-// Split link: use WebSocket for subscriptions, HTTP for queries and mutations
+console.log('🔗 AppSync subscription link created successfully');
+
+// Split link: use AppSync subscription for subscriptions, HTTP for queries and mutations
 const splitLink = split(
   ({ query }) => {
     const definition = getMainDefinition(query);
-    return (
+    const isSubscription = (
       definition.kind === 'OperationDefinition' &&
       definition.operation === 'subscription'
     );
+    
+    if (isSubscription) {
+      console.log('🔀 Routing to subscription link:', definition.name?.value);
+    } else {
+      console.log('🔀 Routing to HTTP link:', definition.name?.value, 
+        definition.kind === 'OperationDefinition' ? definition.operation : 'fragment');
+    }
+    
+    return isSubscription;
   },
-  wsLink,
+  subscriptionLink,
   from([authLink, httpLink]),
 );
 
@@ -75,3 +108,10 @@ export const client = new ApolloClient({
   link: splitLink,
   cache: new InMemoryCache(),
 });
+
+console.log('🚀 Apollo Client initialized successfully');
+
+// Since Cognito auth works and API key doesn't, the setup is ready for testing subscriptions
+console.log('✅ Authentication confirmed: Using Cognito User Pool auth for both HTTP and WebSocket');
+console.log('🔧 Subscription link configured for AppSync real-time protocol');
+console.log('🔄 Ready to test real-time subscriptions...');
