@@ -1,6 +1,4 @@
-// src/services/RequestService.ts
-import { Configuration } from "../generated";
-import { getIdToken } from "./CognitoService";
+import { getIdToken } from "./AuthService";
 
 // ================== API ENDPOINT CONSTANTS ==================
 const REQUEST_API_BASE = "https://151hivlwt4.execute-api.eu-west-2.amazonaws.com/default/requestsCRUD"; // Replace with your actual API Gateway base URL
@@ -121,3 +119,13 @@ export async function updateAdoptionRequestChatId(requestId: string, chatId: str
         throw new Error(`Failed to update request with chat ID: ${await response.text()}`);
     }
 }
+
+// Export default for easy importing
+export default {
+  createAdoptionRequest,
+  getAdoptionRequests,
+  updateAdoptionRequestStatus,
+  deleteAdoptionRequest,
+  createChat,
+  updateAdoptionRequestChatId,
+};

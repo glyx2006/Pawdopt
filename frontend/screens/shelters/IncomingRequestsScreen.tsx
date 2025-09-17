@@ -12,7 +12,8 @@ import { colors } from '../../components/styles/GlobalStyles';
 
 import { AdopterProfile } from '../../App';
 import { AdoptionRequest, createChat, getAdoptionRequests, updateAdoptionRequestChatId, updateAdoptionRequestStatus } from '../../services/RequestService';
-import { getDogsByIds, getAdoptersByIds } from '../../src/api'; // NEW: Import the function to get dog details
+import { getDogsByIds } from '../../services/DogService';
+import { getAdoptersByIds } from '../../services/UserService';
 // This type combines the request with the fetched details
 interface IncomingAdoptionRequest extends AdoptionRequest {
   dog_details: Dog;
@@ -71,7 +72,7 @@ const IncomingRequestsScreen: React.FC<IncomingRequestsScreenProps> = ({ navigat
 
         // Step 4: Combine the requests with the fetched details.
         const combinedRequests: IncomingAdoptionRequest[] = requestsFromApi.map(req => {
-            const dog_details = fetchedDogs.find(dog => dog.dog_id === req.dogId);
+            const dog_details = fetchedDogs.find(dog => dog.id === req.dogId);
             const adopter_details = fetchedAdopters.find(adopter => adopter.adopterId === req.adopterId);
 
             if (!dog_details || !adopter_details) {
@@ -372,7 +373,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowRadius: 4,
     elevation: 3,
   },
   cardHeader: {

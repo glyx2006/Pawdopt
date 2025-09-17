@@ -5,12 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
 import { handleAlert } from '../utils/AlertUtils';
-import { dogsApi } from '../../src/api';
+import { dogsApi} from '../../services/DogService';
 import { Dog } from '../../generated';
 import { swipe } from './DogSwipeScreen';
 import MapView, { Marker } from 'react-native-maps';
-import { getIdToken } from '../../services/CognitoService';
-import { updateDogProfile } from '../../src/api';
+import { getIdToken } from '../../services/AuthService';
+import { updateDogProfile } from '../../services/DogService';
 import { LoadingSpinner, GradientButton, Card } from '../../components/ui';
 import { colors } from '../../components/styles/GlobalStyles';
 

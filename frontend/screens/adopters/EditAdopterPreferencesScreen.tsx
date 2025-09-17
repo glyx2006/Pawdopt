@@ -14,7 +14,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
-import { getAccessToken } from '../../services/CognitoService';
+import { getAccessToken } from '../../services/AuthService';
 import { AppHeader } from '../../components/layout';
 import { LoadingSpinner, Button, Input, Card } from '../../components/ui';
 import { colors } from '../../components/styles/GlobalStyles';

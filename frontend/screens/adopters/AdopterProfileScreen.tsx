@@ -4,7 +4,7 @@ import { useNavigation, useFocusEffect, NavigationProp } from '@react-navigation
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
-import { signOut, getCurrentUserAttributes, getAccessToken } from '../../services/CognitoService';
+import { signOut, getCurrentUserAttributes, getAccessToken } from '../../services/AuthService';
 import { AppHeader, AppFooter } from '../../components/layout';
 import { LoadingSpinner, Button, Card } from '../../components/ui';
 import { colors } from '../../components/styles/GlobalStyles';

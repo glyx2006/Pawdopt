@@ -2,12 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 // ================== API ENDPOINT CONSTANTS ==================
-const COGNITO_API_BASE_URL = 'https://pj0r2r59y5.execute-api.eu-west-2.amazonaws.com/default';
-const SIGNUP_URL = `${COGNITO_API_BASE_URL}/signup`;
-const LOGIN_URL = `${COGNITO_API_BASE_URL}/login`;
-const PREFERENCES_URL = 'https://y2wy5m6frb.execute-api.eu-west-2.amazonaws.com/default/preferences';
-const REFRESH_SESSION_URL = `${COGNITO_API_BASE_URL}/refresh`;
-const UPDATE_USER_ATTRIBUTES_URL = `${COGNITO_API_BASE_URL}/update`;
+const AUTH_API_BASE = 'https://pj0r2r59y5.execute-api.eu-west-2.amazonaws.com/default';
+const PREFERENCES_API = 'https://y2wy5m6frb.execute-api.eu-west-2.amazonaws.com/default/preferences';
+
 // ================== INTERFACES ==================
 interface StructuredAddress {
   formatted: string;
@@ -35,7 +32,23 @@ export interface UserAttributes {
   'custom:role': 'shelter' | 'adopter' | '';
 }
 
-// ================== UTILITIES ==================
+export interface SignUpParams {
+  email: string;
+  password: string;
+  name: string;
+  dob: string;
+  gender: string;
+  address: string;
+  postcode: string;
+  phoneNo: string;
+  role: string;
+  experience?: string;
+  shelterName?: string;
+  latitude?: string;
+  longitude?: string;
+}
+
+// ================== UTILITY FUNCTIONS ==================
 const safeJsonParse = (value: string): any => {
   try {
     const parsed = JSON.parse(value);
@@ -58,7 +71,26 @@ const isTokenExpired = (token: string): boolean => {
   }
 };
 
-// ================== AUTH FUNCTIONS ==================
+// ================== TOKEN MANAGEMENT ==================
+export const getIdToken = async (): Promise<string | null> => {
+  const token = await AsyncStorage.getItem('idToken');
+  if (!token || isTokenExpired(token)) {
+    const refreshedTokens = await refreshSession();
+    return refreshedTokens ? refreshedTokens.idToken : null;
+  }
+  return token;
+};
+
+export const getAccessToken = async (): Promise<string | null> => {
+  const token = await AsyncStorage.getItem('accessToken');
+  if (!token || isTokenExpired(token)) {
+    const refreshedTokens = await refreshSession();
+    return refreshedTokens ? refreshedTokens.accessToken : null;
+  }
+  return token;
+};
+
+// ================== USER INFO ==================
 export const getCurrentUserAttributes = async (): Promise<UserAttributes | null> => {
   try {
     let idToken = await AsyncStorage.getItem('idToken');
@@ -104,45 +136,20 @@ export const getCurrentUserAttributes = async (): Promise<UserAttributes | null>
   }
 };
 
-export const getIdToken = async (): Promise<string | null> => {
-  const token = await AsyncStorage.getItem('idToken');
-  if (!token || isTokenExpired(token)) {
-    const refreshedTokens = await refreshSession();
-    return refreshedTokens ? refreshedTokens.idToken : null;
-  }
-  return token;
+export const getUserRole = async (): Promise<'shelter' | 'adopter' | null> => {
+  const userAttributes = await getCurrentUserAttributes();
+  return userAttributes?.['custom:role'] || null;
 };
 
-export const getAccessToken = async (): Promise<string | null> => {
-  const token = await AsyncStorage.getItem('accessToken');
-  if (!token || isTokenExpired(token)) {
-    const refreshedTokens = await refreshSession();
-    return refreshedTokens ? refreshedTokens.accessToken : null;
-  }
-  return token;
+export const isAuthenticated = async (): Promise<boolean> => {
+  const token = await getAccessToken();
+  return !!token;
 };
 
-export const signOut = async (): Promise<void> => {
-  await AsyncStorage.multiRemove(['idToken', 'accessToken', 'refreshToken']);
-};
-
-export async function signUp(params: {
-  email: string;
-  password: string;
-  name: string;
-  dob: string;
-  gender: string;
-  address: string;
-  postcode: string;
-  phoneNo: string;
-  role: string;
-  experience?: string;
-  shelterName?: string;
-  latitude?: string;
-  longitude?: string;
-}): Promise<{ idToken?: string; accessToken?: string; refreshToken?: string }> {
+// ================== AUTHENTICATION ACTIONS ==================
+export const signUp = async (params: SignUpParams): Promise<{ idToken?: string; accessToken?: string; refreshToken?: string }> => {
   try {
-    const response = await fetch(SIGNUP_URL, {
+    const response = await fetch(`${AUTH_API_BASE}/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify(params),
@@ -164,11 +171,11 @@ export async function signUp(params: {
   } catch (error) {
     throw error;
   }
-}
+};
 
-export async function signIn(email: string, password: string): Promise<{ idToken: string; accessToken: string; refreshToken?: string }> {
+export const signIn = async (email: string, password: string): Promise<{ idToken: string; accessToken: string; refreshToken?: string }> => {
   try {
-    const response = await fetch(LOGIN_URL, {
+    const response = await fetch(`${AUTH_API_BASE}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -182,9 +189,10 @@ export async function signIn(email: string, password: string): Promise<{ idToken
     await AsyncStorage.setItem('accessToken', accessToken);
     if (refreshToken) await AsyncStorage.setItem('refreshToken', refreshToken);
 
+    // Handle adopter preferences (legacy behavior)
     const decodedToken: CustomJwtPayload = jwtDecode(idToken);
     if (decodedToken['custom:role'] === 'adopter') {
-      const getResponse = await fetch(PREFERENCES_URL, {
+      const getResponse = await fetch(PREFERENCES_API, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
       });
@@ -203,14 +211,18 @@ export async function signIn(email: string, password: string): Promise<{ idToken
   } catch (error) {
     throw error;
   }
-}
+};
 
-export async function refreshSession(): Promise<{ idToken: string; accessToken: string } | null> {
+export const signOut = async (): Promise<void> => {
+  await AsyncStorage.multiRemove(['idToken', 'accessToken', 'refreshToken']);
+};
+
+export const refreshSession = async (): Promise<{ idToken: string; accessToken: string } | null> => {
   const refreshToken = await AsyncStorage.getItem('refreshToken');
   if (!refreshToken) return null;
 
   try {
-    const response = await fetch(REFRESH_SESSION_URL, {
+    const response = await fetch(`${AUTH_API_BASE}/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
@@ -230,13 +242,14 @@ export async function refreshSession(): Promise<{ idToken: string; accessToken: 
     await signOut();
     return null;
   }
-}
+};
 
-export async function updateUserAttributes(attributes: Record<string, string>): Promise<void> {
+// ================== USER MANAGEMENT ==================
+export const updateUserAttributes = async (attributes: Record<string, string>): Promise<void> => {
   const token = await getAccessToken();
   if (!token) throw new Error('No access token available. Please log in.');
 
-  const response = await fetch(UPDATE_USER_ATTRIBUTES_URL, {
+  const response = await fetch(`${AUTH_API_BASE}/update`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify(attributes),
@@ -246,9 +259,10 @@ export async function updateUserAttributes(attributes: Record<string, string>): 
     throw new Error(`Failed to update user attributes: ${await response.text()}`);
   }
   await refreshSession();
-}
+};
 
-export async function createAdopterPreferences(token: string): Promise<void> {
+// ================== ADOPTER PREFERENCES ==================
+export const createAdopterPreferences = async (token: string): Promise<void> => {
   const defaultPreferences = {
     minAge: null,
     maxAge: null,
@@ -257,7 +271,7 @@ export async function createAdopterPreferences(token: string): Promise<void> {
     preferredBreeds: ['Any'],
   };
 
-  const response = await fetch(PREFERENCES_URL, {
+  const response = await fetch(PREFERENCES_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify(defaultPreferences),
@@ -266,4 +280,26 @@ export async function createAdopterPreferences(token: string): Promise<void> {
   if (!response.ok) {
     throw new Error(`Failed to create adopter preferences: ${await response.text()}`);
   }
-}
+};
+
+// Export default for easy importing
+export default {
+  // Token management
+  getIdToken,
+  getAccessToken,
+  
+  // User info
+  getCurrentUserAttributes,
+  getUserRole,
+  isAuthenticated,
+  
+  // Authentication actions
+  signUp,
+  signIn,
+  signOut,
+  refreshSession,
+  
+  // User management
+  updateUserAttributes,
+  createAdopterPreferences,
+};

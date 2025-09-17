@@ -1,7 +1,7 @@
 import * as FileSystem from 'expo-file-system';
 import { Buffer } from 'buffer';
 import { Configuration, DogsApi, SwipesApi } from '../generated';
-import { getIdToken, getAccessToken } from '../services/CognitoService';
+import { getIdToken, getAccessToken } from './CognitoService';
 import { Dog, AdopterProfile } from '../App';
 import { gql } from '@apollo/client';
 

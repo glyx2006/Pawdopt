@@ -27,9 +27,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { handleAlert } from '../utils/AlertUtils';
 
-import { getAccessToken } from '../../services/CognitoService';
+import { getAccessToken } from '../../services/AuthService';
 import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest, SwipeCreateDirectionEnum, SwipeCreateToJSON } from '../../generated';
-import { swipesApi } from '../../src/api';
+import { createSwipe } from '../../services/SwipeService';
 import { DogsApi, DogPage } from '../../generated';
 
 // Import the new modular components
@@ -286,7 +286,8 @@ export async function swipe(dogId: string, dogCreatedAt: string, direction: Swip
     console.log("swipedate:", swipeData)
     console.log("swipecreatetojson output:", SwipeCreateToJSON(swipeData))
 
-    const res = await swipesApi.createSwipe(swipeReq);
+    // const res = await swipesApi.createSwipe(swipeReq);
+    const res = await createSwipe(dogId, dogCreatedAt, shelterId, direction);
 
     return !!res;
   }

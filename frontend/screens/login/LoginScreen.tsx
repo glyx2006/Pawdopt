@@ -4,7 +4,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../../App';
 import { handleAlert } from '../utils/AlertUtils'; 
-import { signIn } from '../../services/CognitoService';
+import { signIn } from '../../services/AuthService';
 import { jwtDecode } from 'jwt-decode';
 import { Ionicons } from '@expo/vector-icons';
 

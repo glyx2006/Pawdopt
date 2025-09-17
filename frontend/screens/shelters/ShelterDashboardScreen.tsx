@@ -10,12 +10,12 @@ import { LoadingSpinner, Button, Card } from '../../components/ui';
 import { colors, globalStyles } from '../../components/styles/GlobalStyles';
 import DogProfileModal from '../shelters/DogProfileModal';
 import { handleAlert } from '../utils/AlertUtils';
-import { deleteDog } from '../../src/api';
+import { deleteDog } from '../../services/DogService';
 
 import { DogsApi } from '../../generated/apis';
 import { DogPage } from '../../generated/models';
-import { getIdToken } from '../../services/CognitoService';
-import { dogApiConfig } from '../../src/api';
+import { getIdToken } from '../../services/AuthService';
+import { dogApiConfig } from '../../services/DogService';
 
 type ShelterDashboardScreenNavigationProp = NavigationProp<RootStackParamList, 'ShelterDashboard'>;
 type AddDogScreenNavigationProp = NavigationProp<RootStackParamList, 'AddDog'>;

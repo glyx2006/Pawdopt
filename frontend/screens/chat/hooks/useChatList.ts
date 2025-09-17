@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useSubscription } from '@apollo/client';
 import { LIST_ALL_MESSAGES, ON_CREATE_MESSAGE, ON_UPDATE_MESSAGE } from '../graphql/queries';
-import { EnrichedChatData } from '../../../src/api';
+import { EnrichedChatData } from '../../../services/api';
 
 interface Message {
   chat_id: string;

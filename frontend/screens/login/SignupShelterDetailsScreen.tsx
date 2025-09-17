@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
-import { signUp } from '../../services/CognitoService';
+import { signUp } from '../../services/AuthService';
 import { handleAlert } from '../utils/AlertUtils';
 
 // Import the new modular components

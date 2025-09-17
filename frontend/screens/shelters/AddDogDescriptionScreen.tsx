@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { RootStackParamList, Dog } from '../../App';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
-import { getAccessToken } from '../../services/CognitoService';
-import { uploadDogProfile, updateDogProfile } from '../../src/api';
+import { getAccessToken } from '../../services/AuthService';
+import { uploadDogProfile, updateDogProfile } from '../../services/DogService';
 
 type AddDogDescriptionRouteProp = RouteProp<RootStackParamList, 'AddDogDescription'>;
 

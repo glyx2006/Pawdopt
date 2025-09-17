@@ -6,7 +6,7 @@ import { useQuery, useSubscription } from '@apollo/client';
 import { RootStackParamList } from '../../App';
 import { AppHeader, AppFooter } from '../../components';
 import { LIST_ALL_MESSAGES, ON_CREATE_MESSAGE, ON_UPDATE_MESSAGE } from './graphql/queries';
-import { fetchUserChats, enrichChatData, EnrichedChatData } from '../../src/api';
+import { fetchUserChats, enrichChatData, EnrichedChatData } from '../../services/ChatService';
 
 interface Message {
   chat_id: string;

@@ -13,8 +13,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList, Dog } from '../../App';
-import { getAccessToken } from '../../services/CognitoService';
-import { getPresignedUrls,uploadImagesToS3 } from '../../src/api';
+import { getAccessToken } from '../../services/AuthService';
+import { getPresignedUrls, uploadImagesToS3 } from '../../services/UploadService';
 
 const MAX_PHOTOS = 6;
 const windowWidth = Dimensions.get('window').width;

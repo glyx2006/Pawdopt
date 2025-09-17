@@ -6,10 +6,11 @@ import { RootStackParamList } from '../../App';
 import { AppHeader, BackButton } from '../../components';
 import { Ionicons } from '@expo/vector-icons';
 import { client } from '../../apolloClient';
-import { CREATE_MESSAGE, LIST_MESSAGES, ON_NEW_MESSAGE, getDogProfileById } from '../../src/api'
+import { CREATE_MESSAGE, LIST_MESSAGES, ON_NEW_MESSAGE } from '../../services/ChatService';
+import { getDogProfileById } from '../../services/DogService';
 import { useMutation,  useSubscription } from '@apollo/client';
 import { Dog } from '../../App';
-import { getIdToken } from '../../services/CognitoService';
+import { getIdToken } from '../../services/AuthService';
 
 const { width } = Dimensions.get('window');
 

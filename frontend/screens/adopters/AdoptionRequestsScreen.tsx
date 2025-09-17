@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Dog, RootStackParamList } from '../../App';
 import { AdoptionRequest, getAdoptionRequests } from '../../services/RequestService';
-import { getDogsByIds } from '../../src/api';
+import { getDogsByIds } from '../../services/DogService';
 import { AppHeader } from '../../components/layout';
 import { LoadingSpinner, Button } from '../../components/ui';
 import { RequestCard } from '../../components/domain';
@@ -57,7 +57,7 @@ const AdoptionRequestsScreen: React.FC<AdoptionRequestsScreenProps> = ({ navigat
 
       // Step 4: Combine the requests with the fetched dog details
       const combinedRequests: FullAdoptionRequest[] = requestsFromApi.map(req => {
-        const dogDetails = fetchedDogs.find(dog => dog.dog_id === req.dogId);
+        const dogDetails = fetchedDogs.find(dog => dog.id === req.dogId);
         // It's possible a dog was deleted, so we'll check if dogDetails exists.
         if (!dogDetails) {
           console.log(`No dog details found for dogId: ${req.dogId}`);
