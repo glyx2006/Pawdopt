@@ -79,18 +79,19 @@ const ChatScreen: React.FC = () => {
   // Whenever a new message arrives via subscription, push it into state
   useEffect(() => {
     if (subData?.onCreateMessage) {
+      console.log("Subscription message arrived")
       setMessages(prev => {
         const incoming = subData.onCreateMessage;
         
         // Create a new object to avoid read-only property issues
         const newMessage: Message = {
-          messageId: incoming.messageId,
-          chatId: incoming.chatId,
-          senderId: incoming.senderId,
-          receiverId: incoming.receiverId,
+          messageId: incoming.message_id,
+          chatId: incoming.chat_id,
+          senderId: incoming.sender_id,
+          // receiverId: incoming.receiver_Id,
           text: incoming.text,
-          sentAt: incoming.sentAt,
-          readStatus: incoming.readStatus
+          sentAt: incoming.sent_at,
+          readStatus: incoming.read_status
         };
         
         const exists = prev.some(msg => msg.messageId === newMessage.messageId);
@@ -197,7 +198,7 @@ const ChatScreen: React.FC = () => {
       readStatus: false, // Will be true when other party reads
     };
 
-    setMessages(prevMessages => [...prevMessages, messageToSend]);
+    // setMessages(prevMessages => [...prevMessages, messageToSend]);
     setNewMessage('');
     // TODO: Send message to backend (Messages table)
       try {
@@ -214,6 +215,7 @@ const ChatScreen: React.FC = () => {
           },
         });
 
+/*
         // Apollo will automatically update cache if normalized properly,
         // but if you want to ensure UI update immediately:
         if (data?.createMessage) {
@@ -232,6 +234,7 @@ const ChatScreen: React.FC = () => {
             return [...prev, responseMessage]
           });
         }
+*/
 
         setNewMessage('');
         setTimeout(
