@@ -26,6 +26,7 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { handleAlert } from '../utils/AlertUtils';
 
 import { getAccessToken, getIdToken } from '../../services/CognitoService';
+import { jwtDecode } from 'jwt-decode';
 import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest, SwipeCreateDirectionEnum, SwipeCreateToJSON } from '../../generated';
 import { swipesApi } from '../../src/api';
 import { DogsApi, DogPage } from '../../generated';
@@ -461,8 +462,18 @@ const DogSwipeScreen: React.FC = () => {
   };
 
   // Navigate to chat list (placeholder for now)
-  const goToChat = () => {
-    navigation.navigate('ChatListScreen', {role: "adopter", userId: "hi"}); // You'll create this screen later
+  const goToChat = async () => {
+    type IdTokenPayload = {
+      sub: string;
+      [key: string]: any;
+    };
+    const idToken = await getIdToken() ?? '';
+    console.log("idToken: ", idToken)
+    const decoded: IdTokenPayload = jwtDecode(idToken);
+    console.log("decoded: ", decoded)
+    const userId = decoded.sub;
+    console.log("userId: ", userId)
+    navigation.navigate('ChatListScreen', {role: "adopter", userId: userId}); // You'll create this screen later
   };
 
   // Navigate to home (placeholder for now)

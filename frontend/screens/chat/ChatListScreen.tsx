@@ -63,6 +63,7 @@ const ChatListScreen: React.FC = () => {
 
   // Subscribe to new messages across all chats
   useSubscription(ON_CREATE_MESSAGE, {
+    variables: { chat_ids: chatIds },
     onData: ({ data }) => {
       if (data?.data?.onCreateMessage) {
         handleNewMessage(data.data.onCreateMessage);
@@ -72,6 +73,7 @@ const ChatListScreen: React.FC = () => {
 
   // Subscribe to message updates (read status changes)
   useSubscription(ON_UPDATE_MESSAGE, {
+    variables: { chat_ids: chatIds },
     onData: ({ data }) => {
       if (data?.data?.onUpdateMessage) {
         handleMessageUpdate(data.data.onUpdateMessage);
@@ -130,12 +132,14 @@ const ChatListScreen: React.FC = () => {
       // Update enriched chats with message data
       const updatedChats = enrichedChats.map(chat => {
         const messageData = chatMap.get(chat.chatId);
+        console.log("Message data: ", messageData)
         
         if (messageData) {
           // Calculate unread count (messages not sent by user and not read)
           const unreadCount = messageData.messages.filter(
             msg => msg.sender_id !== userId && msg.read_status === false
           ).length;
+          console.log("User id: ", userId)
 
           return {
             ...chat,

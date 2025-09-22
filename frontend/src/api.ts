@@ -509,9 +509,32 @@ export const CREATE_MESSAGE = gql`
   }
 `;
 
+export const UPDATE_MESSAGE = gql`
+  mutation UpdateMessage($input: UpdateMessageInput!) {
+    updateMessage(input: $input) {
+      chat_id
+      message_id
+      sent_at
+      read_status
+    }
+  }
+`;
+
 export const ON_NEW_MESSAGE = gql`
-  subscription OnNewMessage($chat_id: ID!) {
-    onCreateMessage(chat_id: $chat_id) {
+  subscription OnNewMessage($chat_id: ID, $chat_ids: [ID]) {
+    onCreateMessage(chat_id: $chat_id, chat_ids: $chat_ids) {
+      message_id
+      chat_id
+      sent_at
+      sender_id
+      text
+      read_status
+  }
+}
+`;
+export const ON_UPDATE_MESSAGE = gql`
+  subscription OnUpdateMessage($chat_ids: [ID]) {
+    onUpdateMessage(chat_ids: $chat_ids) {
       message_id
       chat_id
       sent_at

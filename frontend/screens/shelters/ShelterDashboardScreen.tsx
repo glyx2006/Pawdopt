@@ -17,6 +17,8 @@ import { DogPage } from '../../generated/models';
 import { getIdToken } from '../../services/CognitoService';
 import { dogApiConfig } from '../../src/api';
 
+import { jwtDecode } from 'jwt-decode';
+
 type ShelterDashboardScreenNavigationProp = NavigationProp<RootStackParamList, 'ShelterDashboard'>;
 type AddDogScreenNavigationProp = NavigationProp<RootStackParamList, 'AddDog'>;
 
@@ -155,8 +157,15 @@ const ShelterDashboardScreen: React.FC = () => {
     navigation.navigate({ name: 'ShelterDashboard', params: {} }); // Stay on the current screen
   };
 
-  const goToChat = () => {
-    navigation.navigate('ChatListScreen', {role: "shelter", userId: ""}); // You'll create this screen later
+  const goToChat = async () => {
+    type IdTokenPayload = {
+      sub: string;
+      [key: string]: any;
+    };
+    const idToken = await getIdToken() ?? '';
+    const decoded: IdTokenPayload = jwtDecode(idToken);
+    const userId = decoded.sub;
+    navigation.navigate('ChatListScreen', {role: "shelter", userId: userId}); // You'll create this screen later
   };
 
   const goToProfile = () => {
