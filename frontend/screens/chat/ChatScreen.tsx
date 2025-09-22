@@ -215,7 +215,7 @@ const ChatScreen: React.FC = () => {
           },
         });
 
-/*
+
         // Apollo will automatically update cache if normalized properly,
         // but if you want to ensure UI update immediately:
         if (data?.createMessage) {
@@ -234,7 +234,7 @@ const ChatScreen: React.FC = () => {
             return [...prev, responseMessage]
           });
         }
-*/
+
 
         setNewMessage('');
         setTimeout(
