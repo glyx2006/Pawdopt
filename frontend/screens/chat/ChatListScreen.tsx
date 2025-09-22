@@ -30,6 +30,7 @@ const ChatListScreen: React.FC = () => {
   const [chats, setChats] = useState<ChatThread[]>([]);
   const [chatIds, setChatIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true); // Start with loading
+  const [chatsProcessed, setChatsProcessed] = useState(false); // Track if chat processing is complete
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Query to get all messages
@@ -45,18 +46,10 @@ const ChatListScreen: React.FC = () => {
     fetchPolicy: 'cache-first', // Use cache for faster navigation
     errorPolicy: 'all',
     notifyOnNetworkStatusChange: true,
-    onCompleted: (data) => {
-      console.log('📤 Messages query completed successfully:', data?.listMessages?.items?.length || 0, 'messages');
+    onCompleted: () => {
       setLoading(false); // Stop loading when query completes
     },
     onError: (error) => {
-      console.error('❌ Messages query failed:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        graphQLErrors: error.graphQLErrors,
-        networkError: error.networkError,
-        extraInfo: error.extraInfo
-      });
       setLoading(false); // Stop loading even on error
     },
   });
@@ -89,10 +82,13 @@ const ChatListScreen: React.FC = () => {
       const userChatIds = rawChats.map(chat => chat.chatId);
       setChatIds(userChatIds);
 
+      // Enrich chat data with metadata first
+      const enrichedChats = await enrichChatData(rawChats, userRole);
+
       if (!messages || messages.length === 0) {
         // Even if no messages, still show chats with empty state
-        const enrichedChats = await enrichChatData(rawChats, userRole);
         setChats(enrichedChats);
+        setChatsProcessed(true); // Mark chat processing as complete
         return;
       }
 
@@ -125,9 +121,6 @@ const ChatListScreen: React.FC = () => {
           }
         }
       });
-
-      // Enrich chat data with metadata
-      const enrichedChats = await enrichChatData(rawChats, userRole);
 
       // Update enriched chats with message data
       const updatedChats = enrichedChats.map(chat => {
@@ -165,9 +158,11 @@ const ChatListScreen: React.FC = () => {
       });
 
       setChats(updatedChats);
+      setChatsProcessed(true); // Mark chat processing as complete
     } catch (error) {
       console.error('Failed to process messages:', error);
       setChats([]);
+      setChatsProcessed(true); // Mark as complete even on error
     }
   }, [userRole, userId]);
 
@@ -231,15 +226,16 @@ const ChatListScreen: React.FC = () => {
   useEffect(() => {
     if (messagesData?.listMessages?.items) {
       processMessages(messagesData.listMessages.items);
-    } else if (!messagesLoading) {
-      // No data and not loading - still try to get chat metadata
+    } else if (!messagesLoading && !loading) {
+      // Only process empty messages if both GraphQL query and our loading are complete
       processMessages([]);
     }
-  }, [messagesData, processMessages, messagesLoading]);
+  }, [messagesData, processMessages, messagesLoading, loading]);
 
   // Refresh function for pull-to-refresh
   const fetchChats = useCallback(async () => {
     setIsRefreshing(true);
+    setChatsProcessed(false); // Reset processing state when refreshing
     
     try {
       await refetchMessages();
@@ -253,11 +249,11 @@ const ChatListScreen: React.FC = () => {
   // Smart focus behavior
   useFocusEffect(
     useCallback(() => {
-      // Only refetch if we don't have any chats loaded yet
-      if (chats.length === 0 && !loading) {
+      // Refetch when focusing if we don't have processed chats yet
+      if (!chatsProcessed) {
         refetchMessages();
       }
-    }, [chats.length, loading, refetchMessages])
+    }, [chatsProcessed, refetchMessages])
   );
 
   const navigateToChat = (chat: ChatThread) => {
@@ -337,8 +333,8 @@ const ChatListScreen: React.FC = () => {
     // Already on chat list screen
   };
 
-  // Show loading during initial data fetch or when we don't have any chats yet
-  const shouldShowLoading = chats.length === 0 && !messagesError;
+  // Show loading during initial data fetch
+  const shouldShowLoading = (loading || messagesLoading) && !chatsProcessed;
 
   if (shouldShowLoading) {
     return (
@@ -383,19 +379,28 @@ const ChatListScreen: React.FC = () => {
             )}
           </View>
         )}
-        <FlatList
-          data={chats}
-          keyExtractor={(item) => item.chatId}
-          renderItem={renderChatItem}
-          refreshControl={
-            <RefreshControl 
-              refreshing={isRefreshing} 
-              onRefresh={fetchChats}
-              colors={['#F7B781']}
-            />
-          }
-          contentContainerStyle={styles.flatListContent}
-        />
+        {chatsProcessed && chats.length === 0 && !messagesError ? (
+          <View style={styles.noChatsContainer}>
+            <Text style={styles.noChatsTitle}>No Active Chats</Text>
+            <Text style={styles.noChatsSubtitle}>
+              Start a conversation by swiping right on a dog you're interested in!
+            </Text>
+          </View>
+        ) : chatsProcessed && chats.length > 0 ? (
+          <FlatList
+            data={chats}
+            keyExtractor={(item) => item.chatId}
+            renderItem={renderChatItem}
+            refreshControl={
+              <RefreshControl 
+                refreshing={isRefreshing} 
+                onRefresh={fetchChats}
+                colors={['#F7B781']}
+              />
+            }
+            contentContainerStyle={styles.flatListContent}
+          />
+        ) : null}
       </View>
       <AppFooter
         onPressProfile={goToProfile}
@@ -463,6 +468,25 @@ const styles = StyleSheet.create({
     marginTop: 30,
     fontSize: 18,
     color: '#777',
+  },
+  noChatsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  noChatsTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#F7B781',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  noChatsSubtitle: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 24,
   },
   flatListContent: {
     paddingBottom: 20,
