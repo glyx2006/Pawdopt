@@ -6,7 +6,7 @@ import { RootStackParamList } from '../../App';
 import { AppHeader, BackButton } from '../../components';
 import { Ionicons } from '@expo/vector-icons';
 import { client } from '../../apolloClient';
-import { CREATE_MESSAGE, LIST_MESSAGES, ON_NEW_MESSAGE, getDogProfileById } from '../../src/api'
+import { CREATE_MESSAGE, UPDATE_MESSAGE, LIST_MESSAGES, ON_NEW_MESSAGE, getDogProfileById } from '../../src/api'
 import { useMutation,  useSubscription } from '@apollo/client';
 import { Dog } from '../../App';
 import { getIdToken } from '../../services/CognitoService';
@@ -75,6 +75,29 @@ const ChatScreen: React.FC = () => {
   const { data: subData, error: subError } = useSubscription(ON_NEW_MESSAGE, {
     variables: { chat_id: chatId },
   });
+  const [updateMessage] = useMutation(UPDATE_MESSAGE);
+
+  function readMessage(msg: Message) {
+    console.log("is reading messages")
+    try {
+      if (msg.senderId !== currentUserId && !(msg.readStatus)) {
+        updateMessage({
+          variables: {
+            input: {
+              chat_id: msg.chatId,
+              message_id: msg.messageId,
+              sent_at: msg.sentAt,
+              read_status: true
+            }
+          }
+        })
+        console.log("Should have read messages")
+      }
+    } catch (error) {
+        console.log("Read status update failed error:", error)
+    };
+  }
+
 
   // Whenever a new message arrives via subscription, push it into state
   useEffect(() => {
@@ -93,6 +116,11 @@ const ChatScreen: React.FC = () => {
           sentAt: incoming.sent_at,
           readStatus: incoming.read_status
         };
+
+        console.log("New message: ", newMessage)
+        console.log("Current user ID: ", currentUserId)
+        
+        readMessage(newMessage);
         
         const exists = prev.some(msg => msg.messageId === newMessage.messageId);
         return exists ? prev : [...prev, newMessage];
@@ -135,7 +163,11 @@ const ChatScreen: React.FC = () => {
         sentAt: msg.sentAt,
         readStatus: msg.readStatus
       }));
-      
+
+      console.log("Current user id:", currentUserId)
+      mappedMessages.filter((msg: Message) => msg.senderId !== currentUserId && !msg.readStatus)
+                    .map((msg: Message) => readMessage(msg))
+
       // Sort messages chronologically
       mappedMessages.sort((a: any, b: any) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
       
@@ -198,9 +230,9 @@ const ChatScreen: React.FC = () => {
       readStatus: false, // Will be true when other party reads
     };
 
-    // setMessages(prevMessages => [...prevMessages, messageToSend]);
+    setMessages(prevMessages => [...prevMessages, messageToSend]);
     setNewMessage('');
-    // TODO: Send message to backend (Messages table)
+    // Send message to backend (Messages table)
       try {
         const { data } = await createMessage({
           variables: {
@@ -215,28 +247,6 @@ const ChatScreen: React.FC = () => {
           },
         });
 
-
-        // Apollo will automatically update cache if normalized properly,
-        // but if you want to ensure UI update immediately:
-        if (data?.createMessage) {
-          const responseMessage: Message = {
-            messageId: data.createMessage.messageId,
-            chatId: data.createMessage.chatId,
-            senderId: data.createMessage.senderId,
-            receiverId: data.createMessage.receiverId,
-            text: data.createMessage.text,
-            sentAt: data.createMessage.sentAt,
-            readStatus: data.createMessage.readStatus
-          };
-          
-          setMessages(prev => {
-            if (prev.find(msg => msg.messageId === responseMessage.messageId)) return prev;
-            return [...prev, responseMessage]
-          });
-        }
-
-
-        setNewMessage('');
         setTimeout(
           () => flatListRef.current?.scrollToEnd({ animated: true }),
           100
