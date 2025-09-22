@@ -499,27 +499,27 @@ export const GET_MESSAGES = gql`
 export const CREATE_MESSAGE = gql`
   mutation CreateMessage($input: CreateMessageInput!) {
     createMessage(input: $input) {
-      messageId: message_id
-      chatId: chat_id
-      senderId: sender_id
+      message_id
+      chat_id
+      sender_id
       text
-      sentAt: sent_at
-      readStatus: read_status
+      sent_at
+      read_status
     }
   }
 `;
 
 export const ON_NEW_MESSAGE = gql`
-  subscription OnNewMessage {
-    onCreateMessage {
+  subscription OnNewMessage($chat_id: ID!) {
+    onCreateMessage(chat_id: $chat_id) {
       message_id
       chat_id
       sent_at
       sender_id
       text
       read_status
-    }
   }
+}
 `;
 
 export const LIST_MESSAGES = gql`

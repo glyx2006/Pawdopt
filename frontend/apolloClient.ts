@@ -3,6 +3,7 @@ import { createSubscriptionHandshakeLink } from 'aws-appsync-subscription-link';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { setContext } from '@apollo/client/link/context';
 import { getAccessToken, getIdToken } from './services/CognitoService';
+import { createClient } from "graphql-ws"
 
 const API_URL = "https://kjjewznlvbb6xfmdwmezado724.appsync-api.eu-west-2.amazonaws.com/graphql";
 const WS_URL = "wss://kjjewznlvbb6xfmdwmezado724.appsync-realtime-api.eu-west-2.amazonaws.com/graphql";
@@ -61,51 +62,27 @@ const httpLink = new HttpLink({
   uri: API_URL,
 });
 
-// AppSync subscription link for real-time subscriptions - using Cognito auth
-const subscriptionLink = createSubscriptionHandshakeLink({
-  url: WS_URL,
-  region: 'eu-west-2',
-  auth: {
-    type: 'AMAZON_COGNITO_USER_POOLS',
-    jwtToken: async () => {
-      try {
-        const token = await getIdToken(); // Changed from getAccessToken to getIdToken
-        console.log('🔑 Subscription auth: ID token retrieved for WebSocket:', token ? 'Yes' : 'No');
-        return token || '';
-      } catch (error) {
-        console.error('🔑 Subscription auth error:', error);
-        return '';
+const subscriptionLink = createSubscriptionHandshakeLink(
+  {
+    url: API_URL,
+    region: "eu-west-2",
+    auth: {
+      type: 'AMAZON_COGNITO_USER_POOLS',
+      jwtToken: async () => {
+        try {
+          const token = await getIdToken(); // Changed from getAccessToken to getIdToken
+          console.log('🔑 Subscription auth: ID token retrieved for WebSocket:', token ? "yes" : "no");
+          return token || '';
+        } catch (error) {
+          console.error('🔑 Subscription auth error:', error);
+          return '';
+        }
       }
-    },
-  },
-}, from([authLink, httpLink]));
-
-console.log('🔗 AppSync subscription link created successfully');
-
-// Split link: use AppSync subscription for subscriptions, HTTP for queries and mutations
-const splitLink = split(
-  ({ query }) => {
-    const definition = getMainDefinition(query);
-    const isSubscription = (
-      definition.kind === 'OperationDefinition' &&
-      definition.operation === 'subscription'
-    );
-    
-    if (isSubscription) {
-      console.log('🔀 Routing to subscription link:', definition.name?.value);
-    } else {
-      console.log('🔀 Routing to HTTP link:', definition.name?.value, 
-        definition.kind === 'OperationDefinition' ? definition.operation : 'fragment');
     }
-    
-    return isSubscription;
-  },
-  subscriptionLink,
-  from([authLink, httpLink]),
-);
+  }, authLink.concat(httpLink));
 
 export const client = new ApolloClient({
-  link: splitLink,
+  link: subscriptionLink,
   cache: new InMemoryCache(),
 });
 

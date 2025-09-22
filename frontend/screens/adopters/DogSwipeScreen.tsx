@@ -12,8 +12,6 @@ import {
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 // Import gesture-handler and reanimated components/hooks
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -27,7 +25,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { handleAlert } from '../utils/AlertUtils';
 
-import { getAccessToken } from '../../services/CognitoService';
+import { getAccessToken, getIdToken } from '../../services/CognitoService';
 import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest, SwipeCreateDirectionEnum, SwipeCreateToJSON } from '../../generated';
 import { swipesApi } from '../../src/api';
 import { DogsApi, DogPage } from '../../generated';
@@ -58,14 +56,13 @@ interface Dog {
 async function fetchDogs(): Promise<Dog[]> {
   try {
     // Debug: Check all stored tokens
-    const idToken = await AsyncStorage.getItem("idToken");
-    const accessToken = await AsyncStorage.getItem("accessToken");
-    const refreshToken = await AsyncStorage.getItem("refreshToken");
+    const idToken = await getIdToken();
+    const accessToken = await getAccessToken();
     
     console.log('=== TOKEN DEBUG ===');
     console.log('ID Token:', idToken ? `${idToken.substring(0, 20)}...` : 'null');
     console.log('Access Token:', accessToken ? `${accessToken.substring(0, 20)}...` : 'null');
-    console.log('Refresh Token:', refreshToken ? `${refreshToken.substring(0, 20)}...` : 'null');
+    // console.log('Refresh Token:', refreshToken ? `${refreshToken.substring(0, 20)}...` : 'null');
     
     // Helper function to decode base64url (JWT uses base64url encoding, not regular base64)
     const base64UrlDecode = (str: string) => {
