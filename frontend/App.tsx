@@ -134,8 +134,8 @@ export type RootStackParamList = {
   AddDogSuccess: undefined; // No parameters expected for success screen
   ShelterProfile: undefined; 
   EditShelterProfile: {profile: ShelterProfile };
-  IncomingRequests: undefined; // For shelters to see incoming adoption requests
-  AdopterProfileTemplate: { // For shelters to view adopter profiles
+  IncomingRequests: undefined; 
+  AdopterProfileTemplate: { 
     adopter: {
       adopterId: string;
       adopterName: string;
