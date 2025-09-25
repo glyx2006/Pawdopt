@@ -2,7 +2,7 @@ import * as FileSystem from 'expo-file-system';
 import { Buffer } from 'buffer';
 import { Configuration, DogsApi, SwipesApi } from '../generated';
 import { getIdToken, getAccessToken } from '../services/CognitoService';
-import { Dog, AdopterProfile } from '../App';
+import { Dog, AdopterProfile, ShelterProfile } from '../App';
 import { gql } from '@apollo/client';
 
 global.Buffer = Buffer;
@@ -12,6 +12,7 @@ const API_ENDPOINTS = {
   PRESIGN_IMAGE_URLS: 'https://1g53nof6f8.execute-api.eu-west-2.amazonaws.com/presignImageUrls',
   DOG_API_BASE: 'https://m4gwfeebyk.execute-api.eu-west-2.amazonaws.com',
   ADOPTER_API_BASE: 'https://hljqzvnyla.execute-api.eu-west-2.amazonaws.com/default/adoptersCRUD',
+  SHELTER_API_BASE: 'https://y3qna47xq6.execute-api.eu-west-2.amazonaws.com/default/sheltersCRUD', 
   CHAT_API_BASE: 'https://7ng635vzx5.execute-api.eu-west-2.amazonaws.com/default/chatCRUD',
 } as const;
 
@@ -276,6 +277,49 @@ export async function getAdoptersByIds(adopterIds: string[]): Promise<AdopterPro
   }
 }
 
+// Shelters API with retry logic and error handling
+export async function getSheltersByIds(shelterIds: string[]): Promise<ShelterProfile[]> {
+  if (shelterIds.length === 0) return [];
+  
+  const token = await getIdToken();
+  if (!token) throw new Error("Authentication token not found.");
+
+  try {
+    return await retryWithBackoff(async () => {
+      const response = await fetch(`${API_ENDPOINTS.SHELTER_API_BASE}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ shelterIds }),
+        signal: createTimeoutSignal(10000) // 10 second timeout
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      return response.json();
+    }, 2, 500); // 2 retries with 500ms base delay
+    
+  } catch (error) {
+    console.error('Failed to fetch shelter profiles after retries:', error);
+    
+    // Return fallback data for all requested IDs
+    return shelterIds.map(id => ({
+      shelterId: id,
+      shelterName: `Shelter (${id.substring(0, 8)})`,
+      email: `shelter${id.substring(0, 4)}@example.com`,
+      contact: '+44 20 XXXX XXXX',
+      address: { formatted: 'Location not available' },
+      postcode: 'SW1A 1AA',
+      iconUrl: 'https://via.placeholder.com/50/C1FFDD/000000?text=SH'
+    } as ShelterProfile));
+  }
+}
+
 // ================== CHAT API FUNCTIONS ==================
 
 // Interface for raw chat data from DynamoDB
@@ -333,8 +377,20 @@ export async function fetchUserChats(): Promise<RawChatData[]> {
 
 // Fetch shelter details by ID
 export async function getShelterDetails(shelterId: string): Promise<{ name: string; photoUrl?: string }> {
-  // TODO: Implement when shelter API is available
-  // For now, return placeholder data
+  try {
+    const shelters = await getSheltersByIds([shelterId]);
+    if (shelters.length > 0) {
+      const shelter = shelters[0];
+      return {
+        name: shelter.shelterName,
+        photoUrl: shelter.iconUrl
+      };
+    }
+  } catch (error) {
+    console.warn(`Failed to fetch shelter details for ${shelterId}:`, error);
+  }
+  
+  // Fallback data
   return {
     name: `Shelter (${shelterId.substring(0, 8)})`,
     photoUrl: 'https://via.placeholder.com/50/C1FFDD/000000?text=SH'
