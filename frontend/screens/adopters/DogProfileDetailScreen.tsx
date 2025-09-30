@@ -5,8 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
 import { handleAlert } from '../utils/AlertUtils';
-import { dogsApi } from '../../src/api';
-import { Dog } from '../../generated';
+import { getDogProfileById } from '../../src/api';
+import { Dog } from '../../App';
 import { swipe } from './DogSwipeScreen';
 import MapView, { Marker } from 'react-native-maps';
 import { getIdToken } from '../../services/CognitoService';
@@ -51,7 +51,7 @@ const DogProfileDetailScreen: React.FC<{
         }
 
         // Fetch dog details first
-        const foundDog = await dogsApi.getDog({ dogId, dogCreatedAt });
+        const foundDog = await getDogProfileById(dogId, dogCreatedAt, token);
         console.log("Successfully fetched dog details:", foundDog.name);
         setDog(foundDog);
 

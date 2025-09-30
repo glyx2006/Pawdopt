@@ -43,6 +43,12 @@ export interface Dog {
   shelterId: string;
   status: string; // e.g., "Available", "Adopted", "Pending"
   createdAt: string; // Using string for simplicity with mock data
+  shelterName: string;
+  distance: string;
+  shelterEmail: string;
+  shelterContact: string;
+  shelterAddress: string;
+  shelterPostcode: string;
 }
 
 export interface ShelterProfile {

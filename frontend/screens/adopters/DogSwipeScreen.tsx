@@ -28,7 +28,7 @@ import { handleAlert } from '../utils/AlertUtils';
 import { getAccessToken, getIdToken } from '../../services/CognitoService';
 import { jwtDecode } from 'jwt-decode';
 import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest, SwipeCreateDirectionEnum, SwipeCreateToJSON } from '../../generated';
-import { swipesApi } from '../../src/api';
+import { createSwipe } from '../../src/api';
 import { DogsApi, DogPage } from '../../generated';
 
 // Import the new modular components
@@ -269,22 +269,19 @@ const SWIPE_THRESHOLD = width * 0.25;
 const SWIPE_OUT_DURATION = 250; // milliseconds
 
 // Swipe function
-export async function swipe(dogId: string, dogCreatedAt: string, direction: SwipeCreateDirectionEnum, shelterId: string): Promise<boolean>{
-    const swipeData: SwipeCreate = {
+export async function swipe(dogId: string, dogCreatedAt: string, direction: string, shelterId: string): Promise<boolean>{
+    const swipeData = {
       dogId: dogId,
       dogCreatedAt: dogCreatedAt,
       direction: direction,
       shelterId: shelterId
     }
 
-    const swipeReq: CreateSwipeRequest = {
-      swipeCreate: swipeData
-    }
-
     console.log("swipedate:", swipeData)
     console.log("swipecreatetojson output:", SwipeCreateToJSON(swipeData))
 
-    const res = await swipesApi.createSwipe(swipeReq);
+    const token = await getIdToken() ?? '';
+    const res = await createSwipe(swipeData, token);
 
     return !!res;
   }

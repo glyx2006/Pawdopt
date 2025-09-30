@@ -10,7 +10,7 @@ import { LoadingSpinner, Button, Card } from '../../components/ui';
 import { colors, globalStyles } from '../../components/styles/GlobalStyles';
 import DogProfileModal from '../shelters/DogProfileModal';
 import { handleAlert } from '../utils/AlertUtils';
-import { deleteDog } from '../../src/api';
+import { deleteDog, getDogs } from '../../src/api';
 
 import { DogsApi } from '../../generated/apis';
 import { DogPage } from '../../generated/models';
@@ -34,29 +34,17 @@ const ShelterDashboardScreen: React.FC = () => {
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null); // For modal
   const [isModalVisible, setIsModalVisible] = useState(false); // For modal visibility
 
-  const dogsApi = new DogsApi(dogApiConfig);
-
   // Simulate fetching dogs (replace with actual API call later)
   const fetchDogs = useCallback(async () => {
     setIsRefreshing(true);
     setLoading(true);
     // In a real app, you'd fetch dogs specific to 'shelterId' from your backend
     // For now, we'll filter the mock data
-    try {
-      const response: DogPage = await dogsApi.listDogs();
-      if (response.dogs) {
-        setDogs(response.dogs);
-      }
-    } catch (error: any) {
-      console.error('Failed to fetch dogs:', error);
+    const token = await getIdToken() ?? '';
+    const response = await getDogs(token);
+    setDogs(response)
 
-      if (error.response) {
-        const text = await error.response.text();
-        console.error('Backend error response: ', text);
-      }
-    }  
-
-    // await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
     // const filteredMockDogs = initialMockDogs.filter(dog => dog.shelterId === shelterId);
     // setDogs(filteredMockDogs);
     setLoading(false);

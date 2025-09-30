@@ -14,6 +14,7 @@ const API_ENDPOINTS = {
   ADOPTER_API_BASE: 'https://hljqzvnyla.execute-api.eu-west-2.amazonaws.com/default/adoptersCRUD',
   SHELTER_API_BASE: 'https://y3qna47xq6.execute-api.eu-west-2.amazonaws.com/default/sheltersCRUD', 
   CHAT_API_BASE: 'https://7ng635vzx5.execute-api.eu-west-2.amazonaws.com/default/chatCRUD',
+  SWIPE_API_BASE: 'https://yvj4ov9377.execute-api.eu-west-2.amazonaws.com/swipe'
 } as const;
 
 // ================== UTILITY FUNCTIONS ==================
@@ -154,6 +155,25 @@ export async function uploadDogProfile(data: any, token: string) {
   return response;
 }
 
+export async function getDogs(token: string){
+  console.log('inside g');
+  const response = await fetch(`${API_ENDPOINTS.DOG_API_BASE}/dog`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error (`Response status: ${response.status}`);
+  }
+
+  const res = await response.json()
+  console.log(res);
+
+  return res['dogs'];
+}
+
 export async function deleteDog(dogId: string, dogCreatedAt: string, token: string) {
   const response = await fetch(`${API_ENDPOINTS.DOG_API_BASE}/dog/${dogId}`, {
     method: 'DELETE',
@@ -189,12 +209,17 @@ export const dogApiConfig = new Configuration({
 
 export const dogsApi = new DogsApi(dogApiConfig);
 
-export const swipeApiConfig = new Configuration({
-  basePath: 'https://yvj4ov9377.execute-api.eu-west-2.amazonaws.com',
-  accessToken: async () => (await getIdToken()) ?? ''
-})
-
-export const swipesApi = new SwipesApi(swipeApiConfig);
+export async function createSwipe(data: any, token: string) {
+  const response = await fetch (API_ENDPOINTS.SWIPE_API_BASE, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  return response;
+}
 
 export async function getDogProfileById(dogId: string, dogCreatedAt: string, token: string): Promise<Dog> {
   const response = await fetch(`${API_ENDPOINTS.DOG_API_BASE}/dog/${dogId}`, {
@@ -211,7 +236,9 @@ export async function getDogProfileById(dogId: string, dogCreatedAt: string, tok
     throw new Error(`Failed to get dog profile: ${text}`);
   }
 
-  return response.json();
+  const r = await response.json()
+  console.log('response.json: ', r)
+  return r;
 }
 
 // Function to fetch details for multiple dogs by their IDs

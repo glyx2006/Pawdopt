@@ -61,8 +61,8 @@ const isTokenExpired = (token: string): boolean => {
 // ================== AUTH FUNCTIONS ==================
 export const getCurrentUserAttributes = async (): Promise<UserAttributes | null> => {
   try {
-    let idToken = await AsyncStorage.getItem('idToken');
-    let accessToken = await AsyncStorage.getItem('accessToken');
+    let idToken = await getIdToken();
+    let accessToken = await getAccessToken();
 
     if (!idToken || !accessToken) {
       const refreshedTokens = await refreshSession();
