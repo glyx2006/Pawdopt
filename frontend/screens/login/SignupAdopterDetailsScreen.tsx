@@ -4,28 +4,27 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Alert,
   ScrollView,
   Platform,
   KeyboardAvoidingView
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
-import { userPool, CognitoUserAttribute } from '../../services/CognitoService'; 
-
-
 import { RootStackParamList } from '../../App';
+import { Dropdown } from 'react-native-element-dropdown';
+import { handleAlert } from '../utils/AlertUtils';
+
+// Import the new modular components
+import { Input, GradientButton, AppHeader, BackButton } from '../../components';
+import { colors } from '../../components/styles/GlobalStyles';
 
 type SignupAdopterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupAdopterDetails'>;
 type SignupAdopterDetailsScreenNavigationProp = NavigationProp<RootStackParamList, 'SignupAdopterDetails'>;
 
-const SignupAdopterDetailsScreen: React.FC<{
-  navigation: SignupAdopterDetailsScreenNavigationProp;
-  route: SignupAdopterDetailsScreenRouteProp;
-}> = ({ navigation, route }) => {
-  const { email = '', password = '' } = route.params || {};
+const SignupAdopterDetailsScreen: React.FC = () => {
+  const navigation = useNavigation<SignupAdopterDetailsScreenNavigationProp>();
+  const route = useRoute<SignupAdopterDetailsScreenRouteProp>();
+
+  const { email, password } = route.params;
 
   const [name, setName] = useState<string>('');
   const [dob, setDob] = useState<string>('');
@@ -33,10 +32,10 @@ const SignupAdopterDetailsScreen: React.FC<{
   const [address, setAddress] = useState<string>('');
   const [postcode, setPostcode] = useState<string>('');
   const [phoneNo, setPhoneNo] = useState<string>('');
-
+  const [latitude, setLatitude] = useState<string>('');
+  const [longitude, setLongitude] = useState<string>('');
   const [nameError, setNameError] = useState<string>('');
   const [dobError, setDobError] = useState<string>('');
-  const [genderError, setGenderError] = useState<string>('');
   const [addressError, setAddressError] = useState<string>('');
   const [postcodeError, setPostcodeError] = useState<string>('');
   const [phoneNoError, setPhoneNoError] = useState<string>('');
@@ -77,7 +76,7 @@ const SignupAdopterDetailsScreen: React.FC<{
       setNameError('Name must be at least 2 characters.');
       return false;
     }
-    //Optional: Add regex for only alphabetic characters if desired
+    //Add regex for only alphabetic characters if desired
     if (!/^[a-zA-Z\s]+$/.test(nameString)) {
       setNameError('Name can only contain letters and spaces.');
       return false;
@@ -103,12 +102,6 @@ const SignupAdopterDetailsScreen: React.FC<{
     const year = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10);
     const day = parseInt(parts[2], 10);
-
-    // Check if parsed parts are valid numbers
-    if (isNaN(year) || isNaN(month) || isNaN(day)) {
-      setDobError('Invalid date components (not numbers).');
-      return false;
-    }
 
     // Basic range checks for year, month, day
     const currentYear = new Date().getFullYear();
@@ -146,6 +139,7 @@ const SignupAdopterDetailsScreen: React.FC<{
   };
 
 
+
   const validateAddress = (addressString: string): boolean => {
     setAddressError('');
     if (addressString.trim().length < 5) {
@@ -179,31 +173,44 @@ const SignupAdopterDetailsScreen: React.FC<{
 
   const handleNameChange = (text: string) => {
     setName(text);
-    validateName(text); // Validate as user types
+    validateName(text);
   };
 
   const handleDobChange = (text: string) => {
     formatDob(text);
-    validateDob(text); // Validate as user types
+    validateDob(text); 
   };
 
-  const handleGenderChange = (text: string) => {
-    setGender(text);
-  };
 
   const handleAddressChange = (text: string) => {
     setAddress(text);
-    validateAddress(text); // Validate as user types
+    validateAddress(text); 
   };
 
-  const handlePostcodeChange = (text: string) => {
+  const handlePostcodeChange = async (text: string) => {
     setPostcode(text);
-    validatePostcode(text); // Validate as user types
+    const isValid = validatePostcode(text);
+    
+    // If postcode is valid, fetch coordinates
+    if (isValid && text.trim().length > 0) {
+      try {
+        const response = await fetch(`https://api.postcodes.io/postcodes/${text.trim()}`);
+        const data = await response.json();
+        if (data.result && data.result.latitude && data.result.longitude) {
+          console.log('Fetched coordinates for adopter:', data.result.latitude, data.result.longitude);
+          setLatitude(data.result.latitude.toString());
+          setLongitude(data.result.longitude.toString());
+        }
+      } catch (error) {
+        // Silently fail if coordinates can't be fetched
+        console.error('Failed to fetch coordinates:', error);
+      }
+    }
   };
 
   const handlePhoneNoChange = (text: string) => {
     formatPhoneNo(text);
-    validatePhoneNo(text); // Validate as user types
+    validatePhoneNo(text); 
   };
 
   const handleNext = () => {
@@ -215,17 +222,18 @@ const SignupAdopterDetailsScreen: React.FC<{
 
     // Check if any field is empty (required check)
     if (!name.trim() || !dob.trim() || !gender.trim() || !address.trim() || !postcode.trim() || !phoneNo.trim()) {
-      Alert.alert('Error', 'All fields are required.');
+      handleAlert('Error', 'All fields are required.');
       return;
     }
 
     // Check if all individual validations passed
-    if (!isNameValid || !isDobValid  || !isAddressValid || !isPostcodeValid || !isPhoneNoValid) {
-      Alert.alert('Validation Error', 'Please correct the highlighted fields before proceeding.');
+    if (!isNameValid || !isDobValid || !isAddressValid || !isPostcodeValid || !isPhoneNoValid) {
+      handleAlert('Validation Error', 'Please correct the highlighted fields before proceeding.');
       return;
     }
 
     // Pass all collected info to experience screen for final sign-up
+    console.log('Passing coordinates to experience screen:', { latitude, longitude });
     navigation.navigate('SignupAdopterExperience', {
       email,
       password,
@@ -235,6 +243,8 @@ const SignupAdopterDetailsScreen: React.FC<{
       address,
       postcode,
       phoneNo,
+      latitude,
+      longitude,
     });
   };
 
@@ -248,109 +258,93 @@ const SignupAdopterDetailsScreen: React.FC<{
         contentContainerStyle={styles.scrollViewContent}
         keyboardShouldPersistTaps="handled"
       >
+        <AppHeader
+        leftComponent={
+          <BackButton
+            onPress={() => navigation.goBack()}
+          />
+        }
+        />
         <View style={styles.container}>
-          {/* Back Arrow */}
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>{'<'}</Text>
-          </TouchableOpacity>
 
           <Text style={styles.title}>Create Account</Text>
 
           {/* Name Input */}
-          <Text style={styles.inputLabel}>Name</Text>
-          <TextInput
-            style={[styles.input, nameError ? styles.inputError : null]}
+          <Input
+            label="Name"
             placeholder="Enter Your Name"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.grey}
             value={name}
             onChangeText={handleNameChange}
+            style={styles.customInput}
+            error={nameError}
           />
-          {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null} {/* <-- Used here to display the message */}
-
 
           {/* Date of Birth Input */}
-          <Text style={styles.inputLabel}>Date of Birth</Text>
-          <TextInput
-            style={[styles.input, dobError ? styles.inputError : null]}
+          <Input
+            label="Date of Birth"
             placeholder="YYYY/MM/DD"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.grey}
             keyboardType="numeric"
             value={dob}
             onChangeText={handleDobChange}
-            maxLength={10} 
+            maxLength={10}
+            style={styles.customInput}
+            error={dobError}
           />
-          {dobError ? <Text style={styles.errorText}>{dobError}</Text> : null} {/* <-- Used here to display the message */}
 
 
-          {/* Gender Dropdown */}
+          {/* Gender Input (as TextInput) */}
           <Text style={styles.inputLabel}>Gender</Text>
-          <Dropdown
+          <TextInput
             style={[styles.input, genderError ? styles.inputError : null]}
-            data={[
-              { label: 'Male', value: 'Male' },
-              { label: 'Female', value: 'Female' },
-              { label: 'Non-binary', value: 'Non-binary' },
-              { label: 'Prefer not to say', value: 'Prefer not to say' },
-            ]}
-            labelField="label"
-            valueField="value"
-            placeholder="Select Gender"
-            placeholderStyle={{ color: '#999' }}
+            placeholder="Enter Your Gender"
+            placeholderTextColor="#999"
             value={gender}
-            onChange={item => handleGenderChange(item.value)}
-            selectedTextStyle={{ color: '#333', fontSize: 18 }}
-            itemTextStyle={{ color: '#333', fontSize: 18 }}
-            containerStyle={{ borderRadius: 8 }}
-            activeColor="#F7B781"
-            renderLeftIcon={() => null}
+            onChangeText={handleGenderChange}
           />
           {genderError ? <Text style={styles.errorText}>{genderError}</Text> : null}
 
           {/* Address Input */}
-          <Text style={styles.inputLabel}>Address</Text>
-          <TextInput
-            style={[styles.input, addressError ? styles.inputError : null]}
+          <Input
+            label="Address"
             placeholder="Enter Your Location"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.grey}
             value={address}
             onChangeText={handleAddressChange}
+            style={styles.customInput}
+            error={addressError}
           />
-          {addressError ? <Text style={styles.errorText}>{addressError}</Text> : null}
 
           {/* Postcode Input */}
-          <Text style={styles.inputLabel}>Postcode</Text>
-          <TextInput
-            style={[styles.input, postcodeError ? styles.inputError : null]}
+          <Input
+            label="Postcode"
             placeholder="Enter Your Postcode"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.grey}
             value={postcode}
             onChangeText={handlePostcodeChange}
+            style={styles.customInput}
+            error={postcodeError}
           />
-          {postcodeError ? <Text style={styles.errorText}>{postcodeError}</Text> : null}
 
           {/* Phone No. Input */}
-          <Text style={styles.inputLabel}>Phone No.</Text>
-          <TextInput
-            style={[styles.input, phoneNoError ? styles.inputError : null]}
+          <Input
+            label="Phone No."
             placeholder="+44-"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.grey}
             keyboardType="phone-pad"
             value={phoneNo}
             onChangeText={handlePhoneNoChange}
+            style={styles.customInput}
+            error={phoneNoError}
           />
-          {phoneNoError ? <Text style={styles.errorText}>{phoneNoError}</Text> : null}
 
           {/* Next Button */}
-          <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
-            <LinearGradient
-              colors={['#F48B7B', '#F9E286']}
-              style={styles.nextButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <Text style={styles.nextButtonText}>Next</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          <GradientButton 
+            onPress={handleNext} 
+            title="Next"
+            style={styles.nextButtonWrapper}
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -363,75 +357,57 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
+    paddingTop: Platform.OS === 'ios' ? 60 : 0,
     paddingBottom: 100,
-    paddingTop: 0,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     paddingHorizontal: 30,
-    paddingTop: 60,
-    alignItems: 'center',
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 30,
-    padding: 5,
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: '#F7B781',
-    fontWeight: 'bold',
+    paddingTop: 15,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#F7B781',
+    color: colors.orange,
     marginBottom: 40,
     alignSelf: 'center',
   },
   inputLabel: {
     alignSelf: 'flex-start',
     fontSize: 16,
-    color: '#F7B781',
+    fontWeight: '500',
+    color: colors.orange,
     marginBottom: 5,
-    marginTop: 15,
+    marginTop: 0,
   },
-  input: {
+  // Custom input styling to match your original design
+  customInput: {
+    borderWidth: 0,
+    borderBottomWidth: 1,
+    borderColor: colors.lightGrey,
+    borderRadius: 0,
+    paddingHorizontal: 0,
+    fontSize: 18,
+    marginBottom: 10,
+   
+  },
+  // Dropdown styling
+  dropdown: {
     width: '100%',
     height: 50,
-    borderColor: '#ddd',
+    borderColor: colors.lightGrey,
     borderBottomWidth: 1,
     paddingHorizontal: 0,
     fontSize: 18,
-    color: '#333',
-    marginBottom: 10,
+    color: colors.darkGrey,
+    marginBottom: 20,
   },
   nextButtonWrapper: {
     width: '100%',
     marginTop: 50,
     marginBottom: 100,
-    borderRadius: 50,
-    overflow: 'hidden',
-  },
-  nextButtonGradient: {
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  nextButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  inputError: {
-    borderColor: '#FF6F61', 
-  },
-  errorText: {
-    color: '#FF6F61',
-    fontSize: 14,
-    marginBottom: 5,
-    alignSelf: 'flex-start',
   },
 });
 

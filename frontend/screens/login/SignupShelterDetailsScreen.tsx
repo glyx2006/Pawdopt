@@ -1,15 +1,33 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
-import {
-  userPool,
-  CognitoUserAttribute,
-} from '../../services/CognitoService';
+import { signUp } from '../../services/CognitoService';
+import { handleAlert } from '../utils/AlertUtils';
+
+// Import the new modular components
+import { Input, GradientButton, AppHeader, BackButton } from '../../components';
+import { colors } from '../../components/styles/GlobalStyles';
 
 // Define the type for the route parameters for this screen
 type SignupShelterDetailsScreenRouteProp = RouteProp<RootStackParamList, 'SignupShelterDetails'>;
+
+const axios = require('axios');
+
+async function getCoordinatesFromPostcode(postcode: any) {
+    try {
+        const response = await axios.get(`https://api.postcodes.io/postcodes/${postcode}`);
+        const { latitude, longitude } = response.data.result;
+        return { latitude, longitude };
+    } catch (err) {
+        if (err instanceof Error) {
+            console.error('Postcode lookup failed:', err.message);
+        } else {
+            console.error('Postcode lookup failed:', err);
+        }
+        throw new Error('Invalid postcode or failed to fetch coordinates.');
+    }
+}
 
 const SignupShelterDetailsScreen: React.FC = () => {
   const navigation = useNavigation<import('@react-navigation/native').NavigationProp<RootStackParamList>>();
@@ -45,8 +63,8 @@ const SignupShelterDetailsScreen: React.FC = () => {
       setNameError('Name must be at least 2 characters.');
       return false;
     }
-    //Optional: Add regex for only alphabetic characters if desired
-    if (!/^[a-zA-Z\s]+$/.test(nameString)) {
+    // Add regex for only numeric and alphabetic characters if desired
+    if (!/^[a-zA-Z0-9\s]+$/.test(nameString)) {
       setNameError('Name can only contain letters and spaces.');
       return false;
     }
@@ -85,61 +103,68 @@ const SignupShelterDetailsScreen: React.FC = () => {
 
   const handleNameChange = (text: string) => {
     setShelterName(text);
-    validateName(text); // Validate as user types
+    validateName(text); 
   };
 
   const handleAddressChange = (text: string) => {
     setAddress(text);
-    validateAddress(text); // Validate as user types
+    validateAddress(text); 
   };
 
   const handlePostcodeChange = (text: string) => {
     setPostcode(text);
-    validatePostcode(text); // Validate as user types
+    validatePostcode(text); 
   };
 
   const handlePhoneNoChange = (text: string) => {
     formatPhoneNo(text);
-    validatePhoneNo(text); // Validate as user types
+    validatePhoneNo(text); 
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const isNameValid = validateName(shelterName);
     const isAddressValid = validateAddress(address);
     const isPostcodeValid = validatePostcode(postcode);
     const isPhoneNoValid = validatePhoneNo(phoneNo);
     
-    // Basic client-side validation
-    if (!shelterName.trim || !address.trim || !postcode.trim || !phoneNo.trim) {
-      Alert.alert('Error', 'All fields are required.');
+    if (!shelterName.trim() || !address.trim() || !postcode.trim() || !phoneNo.trim()) {
+      handleAlert('Error', 'All fields are required.');
       return;
     }
-    // Add more specific validation (e.g., phone number regex)
+    
     if (!isNameValid || !isAddressValid || !isPostcodeValid || !isPhoneNoValid) {
-      Alert.alert('Validation Error', 'Please correct the highlighted fields before proceeding.');
+      handleAlert('Validation Error', 'Please correct the highlighted fields before proceeding.');
       return;
     }
-    // Prepare Cognito attributes
-    const attributeList = [
-      new CognitoUserAttribute({ Name: 'email', Value: email }),
-      new CognitoUserAttribute({ Name: 'name', Value: shelterName }),
-      new CognitoUserAttribute({ Name: 'address', Value: address }),
-      new CognitoUserAttribute({ Name: 'phone_number', Value: phoneNo }),
-      new CognitoUserAttribute({ Name: 'custom:postcode', Value: postcode }),
-      new CognitoUserAttribute({ Name: 'custom:role', Value: 'shelter' }),
-    ];
-
-    userPool.signUp(email, password, attributeList, [], (err, result) => {
-      if (err) {
-        Alert.alert('Sign Up Error', err.message || JSON.stringify(err));
-        return;
+    
+    try {
+      // Get coordinates from postcode
+      const { latitude, longitude } = await getCoordinatesFromPostcode(postcode);
+      
+      // Sign up the user with Cognito (Lambda backend)
+      await signUp({
+        email,
+        password,
+        name: shelterName,
+        dob: "",           // Not used for shelter, pass empty string
+        gender: "",        // Not used for shelter, pass empty string
+        address,
+        postcode,
+        phoneNo,
+        role: "shelter",
+        shelterName,
+        latitude: latitude.toString(),
+        longitude: longitude.toString(),
+      });
+      handleAlert("Shelter Account Created!", "Please verify your email and login.");
+      navigation.navigate("Login");
+    } catch (err: any) {
+      if (err.message && err.message.includes('coordinates')) {
+        handleAlert('Location Error', 'Failed to get coordinates from postcode. Please check the postcode and try again.');
+      } else {
+        handleAlert("Sign Up Error", err.message || "Something went wrong.");
       }
-      Alert.alert(
-        "Shelter Account Created!", 
-        "Please verify your email and login."
-      );      
-      navigation.navigate('Login'); 
-    });
+    }
   };
 
   return (
@@ -148,73 +173,70 @@ const SignupShelterDetailsScreen: React.FC = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
-            <ScrollView contentContainerStyle={styles.scrollViewContent}>
-      <View style={styles.container}>
-        {/* Back Arrow */}
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>{'<'}</Text>
-        </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
 
+      <AppHeader
+        leftComponent={
+          <BackButton
+            onPress={() => navigation.goBack()}
+          />
+        }
+      />
+      <View style={styles.container}>
+  
         <Text style={styles.title}>Create Account</Text>
 
         {/* Shelter Name Input */}
-        <Text style={styles.inputLabel}>Shelter Name</Text>
-        <TextInput
-          style={[styles.input, nameError ? styles.inputError : null]}
+        <Input
+          label="Shelter Name"
           placeholder="Enter Shelter Name"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.grey}
           value={shelterName}
           onChangeText={handleNameChange}
+          style={styles.customInput}
+          error={nameError}
         />
-        {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null} {/* <-- Used here to display the message */}
-        
 
         {/* Address Input */}
-        <Text style={styles.inputLabel}>Address</Text>
-        <TextInput
-          style={[styles.input, addressError ? styles.inputError : null]}
+        <Input
+          label="Address"
           placeholder="Enter Your Location"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.grey}
           value={address}
           onChangeText={handleAddressChange}
+          style={styles.customInput}
+          error={addressError}
         />
-        {addressError ? <Text style={styles.errorText}>{addressError}</Text> : null}
 
         {/* Postcode Input */}
-        <Text style={styles.inputLabel}>Postcode</Text>
-        <TextInput
-          style={[styles.input, postcodeError ? styles.inputError : null]}
+        <Input
+          label="Postcode"
           placeholder="Enter Your Postcode"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.grey}
           value={postcode}
           onChangeText={handlePostcodeChange}
+          style={styles.customInput}
+          error={postcodeError}
         />
-        {postcodeError ? <Text style={styles.errorText}>{postcodeError}</Text> : null}
 
         {/* Phone No. Input */}
-        <Text style={styles.inputLabel}>Phone No.</Text>
-        <TextInput
-          style={[styles.input, phoneNoError ? styles.inputError : null]}
+        <Input
+          label="Phone No."
           placeholder="+44-"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.grey}
           keyboardType="phone-pad"
           value={phoneNo}
           onChangeText={handlePhoneNoChange}
+          style={styles.customInput}
+          error={phoneNoError}
         />
-        {phoneNoError ? <Text style={styles.errorText}>{phoneNoError}</Text> : null}
-
 
         {/* Next Button */}
-        <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
-          <LinearGradient
-            colors={['#F48B7B', '#F9E286']}
-            style={styles.nextButtonGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Text style={styles.nextButtonText}>Next</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        <GradientButton 
+          onPress={handleNext} 
+          title="Next"
+          style={styles.nextButtonWrapper}
+        />
       </View>
     </ScrollView>
             
@@ -230,72 +252,36 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     justifyContent: 'center',
+    backgroundColor: colors.white,
+    paddingTop: Platform.OS === 'ios' ? 60 : 0,
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     paddingHorizontal: 30,
-    paddingTop: 60,
+    paddingTop: 15,
     paddingBottom: 40,
-    alignItems: 'center',
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 30,
-    padding: 5,
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: '#F7B781',
-    fontWeight: 'bold',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#F7B781',
+    color: colors.orange,
     marginBottom: 40,
     alignSelf: 'center',
   },
-  inputLabel: {
-    alignSelf: 'flex-start',
-    fontSize: 16,
-    color: '#F7B781',
-    marginBottom: 5,
-    marginTop: 15,
-  },
-  input: {
-    width: '100%',
-    height: 50,
-    borderColor: '#ddd',
+  // Custom input styling to match your original design
+  customInput: {
+    borderWidth: 0,
     borderBottomWidth: 1,
+    borderColor: colors.lightGrey,
+    borderRadius: 0,
     paddingHorizontal: 0,
     fontSize: 18,
-    color: '#333',
     marginBottom: 10,
   },
   nextButtonWrapper: {
     width: '100%',
     marginTop: 50,
-    borderRadius: 50,
-    overflow: 'hidden',
-  },
-  nextButtonGradient: {
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  nextButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  inputError: {
-    borderColor: '#FF6F61', 
-  },
-  errorText: {
-    color: '#FF6F61',
-    fontSize: 14,
-    marginBottom: 5,
-    alignSelf: 'flex-start',
   },
 });
 

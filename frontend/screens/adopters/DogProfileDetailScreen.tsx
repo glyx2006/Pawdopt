@@ -1,113 +1,201 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions, ScrollView, Alert, Platform } from 'react-native';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient'; // For the Apply button
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { RootStackParamList } from '../../App';
+import { handleAlert } from '../utils/AlertUtils';
+import { dogsApi } from '../../src/api';
+import { Dog } from '../../generated';
+import { swipe } from './DogSwipeScreen';
+import MapView, { Marker } from 'react-native-maps';
+import { getIdToken } from '../../services/CognitoService';
+import { updateDogProfile } from '../../src/api';
+import { LoadingSpinner, GradientButton, Card } from '../../components/ui';
+import { colors } from '../../components/styles/GlobalStyles';
 
-import { RootStackParamList } from '../../App'; // Import RootStackParamList
-
-// Define the type for the route parameters for this screen
+// Define types (assuming they are correct)
 type DogProfileDetailScreenRouteProp = RouteProp<RootStackParamList, 'DogProfileDetail'>;
-// Define the type for the navigation prop for this screen
 type DogProfileDetailScreenNavigationProp = NavigationProp<RootStackParamList, 'DogProfileDetail'>;
 
-// Re-defining Dog interface for clarity, ensure it matches mockDogs in DogSwipeScreen
-interface Dog {
-  id: string;
-  name: string;
-  breed: string;
-  age: number;
-  gender: string;
-  description: string;
-  photoUrl: string;
-}
-
-// Mock Data for Dogs (should ideally be fetched from a central place or backend)
-// This is a copy from DogSwipeScreen for standalone testing.
-const mockDogs: Dog[] = [
-  {
-    id: 'dog1',
-    name: 'Cooper',
-    breed: 'Samoyed',
-    age: 2,
-    gender: 'Male',
-    description: 'Cooper is a fluffy, friendly, and playful Samoyed looking for a loving home. He loves belly rubs, long walks in the park, and playing fetch. Cooper is great with kids and other dogs, making him a perfect family companion. He is fully vaccinated and house-trained. Come meet Cooper and let him steal your heart!',
-    photoUrl: 'https://placehold.co/600x400/FFD194/FFF?text=Cooper',
-  },
-  {
-    id: 'dog2',
-    name: 'Luna',
-    breed: 'Labradoodle',
-    age: 1,
-    gender: 'Female',
-    description: 'Luna is an energetic and intelligent Labradoodle. She loves to learn new tricks and enjoys active playtime. Luna is very affectionate and thrives on human companionship. She is looking for a home where she can get plenty of exercise and mental stimulation. Luna is spayed and up-to-date on all her vaccinations.',
-    photoUrl: 'https://placehold.co/600x400/FFACAC/FFF?text=Luna',
-  },
-  {
-    id: 'dog3',
-    name: 'Max',
-    breed: 'German Shepherd',
-    age: 3,
-    gender: 'Male',
-    description: 'Max is a loyal and intelligent German Shepherd. He is well-trained and has a protective but gentle nature. Max enjoys outdoor adventures and would thrive in a home with a large yard or access to open spaces. He is looking for an experienced owner who can continue his training and provide him with plenty of love and attention.',
-    photoUrl: 'https://placehold.co/600x400/94D1FF/FFF?text=Max',
-  },
-  {
-    id: 'dog4',
-    name: 'Daisy',
-    breed: 'Beagle',
-    age: 4,
-    gender: 'Female',
-    description: 'Daisy is a sweet and curious Beagle with an excellent nose! She loves to explore new scents and enjoys long walks. Daisy is very affectionate and loves to cuddle up on the couch. She would do well in a home where she is the center of attention or with another calm dog. Daisy is spayed and ready for her new adventure.',
-    photoUrl: 'https://placehold.co/600x400/94FFD1/FFF?text=Daisy',
-  },
-];
-
+// CORRECTED API_BASE_URL
+const API_BASE_URL = 'https://qka5mqb8xl.execute-api.eu-west-2.amazonaws.com/default/getLocation';
 
 const DogProfileDetailScreen: React.FC<{
   navigation: DogProfileDetailScreenNavigationProp;
   route: DogProfileDetailScreenRouteProp;
 }> = ({ navigation, route }) => {
-  const { dogId } = route.params; // Get the dogId passed from the previous screen
+  const { dogId, dogCreatedAt, distance, role = 'adopter', adopterId, fromChat = false } = route.params;
+  
+  interface Location {
+    latitude: number;
+    longitude: number;
+  }
+  
+  const [adopterLocation, setAdopterLocation] = useState<Location | null>(null);
+  const [dogLocation, setDogLocation] = useState<Location | null>(null);
   const [dog, setDog] = useState<Dog | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // New loading state
+  const screenWidth = Dimensions.get('window').width;
 
   useEffect(() => {
-    // In a real app, you'd fetch dog details from your backend using dogId
-    // For now, find the dog from mock data
-    const foundDog = mockDogs.find(d => d.id === dogId);
-    if (foundDog) {
-      setDog(foundDog);
-    } else {
-      Alert.alert('Error', 'Dog not found!');
-      navigation.goBack(); // Go back if dog not found
-    }
-  }, [dogId]); // Re-run effect if dogId changes
+    const fetchDogAndLocations = async () => {
+      console.log("Starting data fetch for Dog ID:", dogId);
+      setIsLoading(true);
 
-  const handleApplyForAdoption = () => {
+      try {
+        // Fetch JWT token for authentication
+        const token = await getIdToken();
+        if (!token) {
+          throw new Error('No authentication token found. Please log in.');
+        }
+
+        // Fetch dog details first
+        const foundDog = await dogsApi.getDog({ dogId, dogCreatedAt });
+        console.log("Successfully fetched dog details:", foundDog.name);
+        setDog(foundDog);
+
+        // Now fetch location data from the new API endpoint
+        // CORRECTED: Passing dogId and dogCreatedAt as query parameters
+        const locationApiUrl = `${API_BASE_URL}?dogId=${dogId}&dogCreatedAt=${dogCreatedAt}`;
+        console.log("Fetching location data from:", locationApiUrl);
+        
+        const response = await fetch(locationApiUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("API call failed with status:", response.status, "and message:", errorData.message);
+          throw new Error(errorData.message || 'Failed to fetch location data');
+        }
+
+        const locationData = await response.json();
+        console.log('Successfully received location data:', locationData);
+        
+        // CRITICAL CHECK: Validate the data before setting state
+        if (locationData && locationData.adopter && locationData.dog) {
+          setAdopterLocation(locationData.adopter);
+          setDogLocation(locationData.dog);
+          console.log("Locations set successfully.");
+        } else {
+          console.warn("Location data is missing 'adopter' or 'dog' properties. Received data:", locationData);
+          handleAlert('Warning', 'Location data is incomplete. Map may not display correctly.');
+        }
+
+      } catch (e) {
+        console.error("An error occurred during fetchDogAndLocations:", e);
+        handleAlert('Error', `Failed to fetch data`);
+        navigation.goBack();
+      } finally {
+        setIsLoading(false); // Set loading to false regardless of success or failure
+      }
+    };
+    fetchDogAndLocations();
+  }, [dogId, dogCreatedAt]);
+
+  const handleApplyForAdoption = async () => {
     if (dog) {
-      Alert.alert('Apply for Adoption', `Applying for ${dog.name}! (TODO: Implement actual adoption application process)`);
-      // TODO: Implement actual adoption application logic (API call to backend)
-      // This would likely navigate to an application form or confirmation screen
+      const success = await swipe(dogId, dogCreatedAt, 'right', dog.shelterId);
+      try {
+        if (success) {
+          handleAlert(`Request Success`, `Applying for ${dog.name} from ${dog.shelterName}!`);
+        }
+      } catch (e) {
+        handleAlert('Error', `${e}`);
+      }
+    }
+    navigation.navigate('AdopterDashboard');
+  };
+
+  const handleAcceptAdopter = async () => {
+    if (dog && adopterId) {
+      try {
+        // TODO: FOR SHELTER TO ACCEPT ADOPTER
+        // Here you would call an API to accept the adoption request
+        // For now, I'll create a placeholder
+        try {
+              const token = await getIdToken();
+              if (!token) return alert('Please sign in first');
+        
+              const payload = {
+                dogStatus: 'ADOPTED',
+                adopterId: adopterId
+              };
+
+              let response;
+              
+              response = await updateDogProfile(dog.id, payload, token);
+                
+                if (response.ok) {
+                  alert('Dog updated successfully!');
+                  // Navigate back to dashboard
+                  navigation.navigate('AddDogSuccess');
+                } else {
+                  const text = await response.text();
+                  alert('Update failed: ' + text);
+                }
+            } catch (e) {
+              handleAlert('Error', 'Update dog status error');
+            }
+              
+
+        handleAlert('Adoption Accepted', `You have accepted the adoption request for ${dog.name}!`);
+        
+        // Navigate back to shelter dashboard
+        navigation.navigate('ShelterDashboard', {});
+      } catch (e) {
+        handleAlert('Error', `Failed to accept adoption request: ${e}`);
+      }
+    } else {
+      handleAlert('Error', 'Missing adopter information');
     }
   };
 
-  if (!dog) {
+  if (isLoading || !dog) {
     return (
       <View style={styles.loadingContainer}>
+        <LoadingSpinner size="large" color={colors.red} />
         <Text style={styles.loadingText}>Loading dog profile...</Text>
       </View>
     );
   }
+  
+  const initialRegion = adopterLocation && dogLocation ? {
+    latitude: (adopterLocation.latitude + dogLocation.latitude) / 2,
+    longitude: (adopterLocation.longitude + dogLocation.longitude) / 2,
+    latitudeDelta: Math.abs(adopterLocation.latitude - dogLocation.latitude) * 2 || 0.0922,
+    longitudeDelta: Math.abs(adopterLocation.longitude - dogLocation.longitude) * 2 || 0.0421,
+  } : null;
 
   return (
-    <View style={styles.container}>
-      {/* Back Arrow */}
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>{'<'}</Text>
-      </TouchableOpacity>
-
+    <SafeAreaView style={styles.safeAreaContainer}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <Image source={{ uri: dog.photoUrl }} style={styles.dogImage} />
+        {/* Back Button */}
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={28} color={colors.red} />
+        </TouchableOpacity>
 
+        {/* Horizontal Image Gallery */}
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={true}
+          style={styles.imageGallery}
+        >
+          {dog.photoURLs.map((url, index) => (
+            <Image
+              key={index}
+              source={{ uri: url }}
+              style={[styles.dogImage, { width: screenWidth }]}
+            />
+          ))}
+        </ScrollView>
+
+        {/* Dog Information Section */}
         <View style={styles.infoContainer}>
           <View style={styles.nameAgeGender}>
             <Text style={styles.dogName}>{dog.name}</Text>
@@ -115,62 +203,136 @@ const DogProfileDetailScreen: React.FC<{
             <Text style={styles.dogGender}> ({dog.gender})</Text>
           </View>
           <Text style={styles.dogBreed}>{dog.breed}</Text>
+          
+          <Card style={styles.aboutCard}>
+            <Text style={styles.sectionTitle}>About {dog.name}</Text>
+            <Text style={styles.dogDescription}>{dog.description}</Text>
+          </Card>
+          
+          <Card style={styles.shelterCard}>
+              <View style={styles.shelterTitleContainer}>
+                <Ionicons name="home" size={20} color={colors.red} />
+                <Text style={styles.shelterTitle}>Shelter Information</Text>
+              </View>
+              <View style={styles.shelterDetailRow}>
+                <Ionicons name="location" size={16} color={colors.grey} />
+                <Text style={styles.shelterDetail}>{dog.shelterName}</Text>
+              </View>
+              <View style={styles.shelterDetailRow}>
+                <Ionicons name="map" size={16} color={colors.grey} />
+                <Text style={styles.shelterDetail}>{dog.shelterAddress} {dog.shelterPostcode}</Text>
+              </View>
+              <View style={styles.shelterDetailRow}>
+                <Ionicons name="resize" size={16} color={colors.grey} />
+                <Text style={styles.shelterDetail}>Distance: {distance} km</Text>
+              </View>
+              <View style={styles.shelterDetailRow}>
+                <Ionicons name="mail" size={16} color={colors.grey} />
+                <Text style={styles.shelterDetail}>{dog.shelterEmail}</Text>
+              </View>
+              <View style={styles.shelterDetailRow}>
+                <Ionicons name="call" size={16} color={colors.grey} />
+                <Text style={styles.shelterDetail}>{dog.shelterContact}</Text>
+              </View>
+            </Card>
+          </View>
+        
 
-          <Text style={styles.sectionTitle}>About {dog.name}</Text>
-          <Text style={styles.dogDescription}>{dog.description}</Text>
-
-          {/* Apply for Adoption Button */}
-          <TouchableOpacity onPress={handleApplyForAdoption} style={styles.applyButtonWrapper}>
-            <LinearGradient
-              colors={['#FFD194', '#FFACAC']}
-              style={styles.applyButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+        <View style={styles.mapContainer}>
+          <View style={styles.sectionTitleContainer}>
+            <Ionicons name="globe" size={22} color={colors.darkGrey} />
+            <Text style={styles.sectionTitle}> Location</Text>
+          </View>
+          {initialRegion ? (
+            <MapView
+              style={styles.map}
+              initialRegion={initialRegion}
+              onMapReady={() => console.log('Map is ready')}
             >
-              <Text style={styles.applyButtonText}>Apply for Adoption</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              {/* Adopter Marker */}
+              {adopterLocation && (
+                <Marker
+                  coordinate={{
+                    latitude: adopterLocation.latitude,
+                    longitude: adopterLocation.longitude,
+                  }}
+                  title="You"
+                  description="Your Location"
+                  pinColor="blue"
+                />
+              )}
+              {/* Dog/Shelter Marker */}
+              {dogLocation && (
+                <Marker
+                  coordinate={{
+                    latitude: dogLocation.latitude,
+                    longitude: dogLocation.longitude,
+                  }}
+                  title={dog.name}
+                  description={`Location of ${dog.name}'s shelter`}
+                  pinColor="red"
+                />
+              )}
+            </MapView>
+          ) : (
+            <Text>Loading map...</Text>
+          )}
         </View>
+
       </ScrollView>
-    </View>
+
+      {/* Apply for Adoption Button at the bottom - only show if not from chat or if shelter */}
+      {(!fromChat || role === 'shelter') && (
+        <View style={styles.bottomButtonContainer}>
+          <GradientButton
+            title={role === 'shelter' ? 'Accept Adopter to Adopt' : `Request to Chat with ${dog.shelterName}`}
+            onPress={role === 'shelter' ? handleAcceptAdopter : handleApplyForAdoption}
+          />
+        </View>
+      )}
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeAreaContainer: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'ios' ? 50 : 20, // Adjust for status bar
+    backgroundColor: colors.white,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   loadingText: {
     fontSize: 18,
-    color: '#666',
-  },
-  backButton: {
-    position: 'absolute', // Position absolutely to overlay content
-    top: Platform.OS === 'ios' ? 50 : 20,
-    left: 20,
-    zIndex: 10, // Ensure it's above other content
-    padding: 10,
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: '#FF7B7B',
-    fontWeight: 'bold',
+    color: colors.grey,
+    marginTop: 16,
   },
   scrollViewContent: {
     flexGrow: 1,
-    paddingBottom: 40, // Space for the bottom of the scroll view
+    paddingBottom: 50, // Add padding at the bottom for the main scroll view
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20, // Adjusted top for SafeAreaView
+    left: 20,
+    zIndex: 10,
+    padding: 10,
+    backgroundColor: colors.white,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  imageGallery: {
+    height: Dimensions.get('window').height * 0.5, // Use a percentage of the screen height
   },
   dogImage: {
-    width: '100%',
-    height: 350, // Fixed height for the image
+    height: '100%',
     resizeMode: 'cover',
   },
   infoContainer: {
@@ -184,50 +346,81 @@ const styles = StyleSheet.create({
   dogName: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.darkGrey,
   },
   dogAge: {
     fontSize: 24,
-    color: '#666',
+    color: colors.grey,
     marginLeft: 5,
   },
   dogGender: {
     fontSize: 20,
-    color: '#888',
+    color: colors.grey,
     marginLeft: 5,
   },
   dogBreed: {
     fontSize: 20,
-    color: '#888',
+    color: colors.grey,
     marginBottom: 20,
+  },
+  shelterCard: {
+    marginTop: 20,
+    padding: 15,
+  },
+  shelterTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  shelterTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.darkGrey,
+    marginLeft: 8,
+  },
+  shelterDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  shelterDetail: {
+    fontSize: 16,
+    color: colors.grey,
+    marginLeft: 8,
+    flex: 1,
+  },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
-    marginTop: 20,
-    marginBottom: 10,
+    color: colors.darkGrey,
   },
   dogDescription: {
     fontSize: 16,
-    color: '#555',
+    color: colors.grey,
     lineHeight: 24,
   },
-  applyButtonWrapper: {
+  aboutCard: {
+    marginTop: 20,
+    padding: 16,
+  },
+  bottomButtonContainer: {
+    backgroundColor: colors.white,
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: colors.lightGrey,
+  },
+  mapContainer: {
+    padding: 20,
+    height: 300,
+  },
+  map: {
     width: '100%',
-    marginTop: 30,
-    borderRadius: 50,
-    overflow: 'hidden',
-    alignSelf: 'center', // Center the button
-  },
-  applyButtonGradient: {
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  applyButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
+    height: '100%',
   },
 });
 

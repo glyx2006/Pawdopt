@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient'; // Make sure this is installed: npx expo install expo-linear-gradient
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'; // Import hooks for navigation and route params
-import { RootStackParamList } from '../../App'; // Import your RootStackParamList type
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../../App';
+import { handleAlert } from '../utils/AlertUtils';
+import { Ionicons } from '@expo/vector-icons';
 
-// Define the type for the route parameters for this screen
+// Import the new modular components
+import { Input, GradientButton, AppHeader, BackButton } from '../../components';
+import { colors } from '../../components/styles/GlobalStyles';
+
+// Define the type for the route and navigation parameters for this screen
+type UniversalCreateAccountScreenNavigationProp = NavigationProp<RootStackParamList, 'UniversalCreateAccount'>;
 type UniversalCreateAccountScreenRouteProp = RouteProp<RootStackParamList, 'UniversalCreateAccount'>;
 
 const UniversalCreateAccountScreen: React.FC = () => {
-  const navigation = useNavigation<import('@react-navigation/native').NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<UniversalCreateAccountScreenNavigationProp>();
   const route = useRoute<UniversalCreateAccountScreenRouteProp>();
   const { role } = route.params; // Get the 'role' parameter passed from OnboardingScreen
 
@@ -20,19 +26,17 @@ const UniversalCreateAccountScreen: React.FC = () => {
   const handleNext = () => {
     // Basic client-side validation
     if (!email || !password || !rePassword) {
-      Alert.alert('Error', 'All fields are required.');
+      handleAlert('Error', 'All fields are required.');
       return;
     }
     if (password !== rePassword) {
-      Alert.alert('Error', 'Passwords do not match.');
+      handleAlert('Error', 'Passwords do not match.');
       return;
     }
-    if (password.length < 6) { // Example: Minimum password length
-      Alert.alert('Error', 'Password must be at least 6 characters long.');
+    if (password.length < 6) { // Minimum password length
+      handleAlert('Error', 'Password must be at least 6 characters long.');
       return;
     }
-    // Add more complex regex for email/password strength if needed
-
     console.log(`Universal Account creation for ${role}:`, { email, password });
 
     // Navigate to the next specific screen based on the role
@@ -41,72 +45,76 @@ const UniversalCreateAccountScreen: React.FC = () => {
     } else if (role === 'shelter') {
       navigation.navigate('SignupShelterDetails', { email, password }); // Pass credentials to next screen
     } else {
-      Alert.alert('Error', 'Invalid role specified for signup.');
+      handleAlert('Error', 'Invalid role specified for signup.');
     }
   };
 
   return (
     <View style={styles.container}>
       {/* Back Arrow */}
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>{'<'}</Text> {/* Simple arrow, can be an icon */}
-      </TouchableOpacity>
+      <AppHeader
+        leftComponent={
+          <BackButton
+            onPress={() => navigation.goBack()}
+          />
+        }
+      />
 
       <Text style={styles.title}>Create Account</Text>
 
-      {/* Email Input */}
-      <Text style={styles.inputLabel}>Email Address</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your email"
-        placeholderTextColor="#999"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      {/* Password Input */}
-      <Text style={styles.inputLabel}>Password</Text>
-      <View style={styles.passwordInputContainer}>
-        <TextInput
-          style={styles.passwordInput}
-          placeholder="Enter your password"
-          placeholderTextColor="#999"
-          secureTextEntry={!showPassword}
-          value={password}
-          onChangeText={setPassword}
+      <View style={styles.miniContainer}> 
+        {/* Email Input */}
+        <Input
+          label="Email Address"
+          placeholder="Enter your email"
+          placeholderTextColor={colors.grey}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
+          style={styles.customInput}
         />
-        <TouchableOpacity
-          style={styles.passwordToggle}
-          onPress={() => setShowPassword(!showPassword)}
-        >
-          <Text style={styles.passwordToggleText}>{showPassword ? '👁️' : '🔒'}</Text>
-        </TouchableOpacity>
-      </View>
 
-      {/* Re-enter Password Input */}
-      <Text style={styles.inputLabel}>Re-enter password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Re-enter your password"
-        placeholderTextColor="#999"
-        secureTextEntry={true} // Always secure for re-entry
-        value={rePassword}
-        onChangeText={setRePassword}
-      />
+        {/* Password Input with toggle */}
+        <View style={styles.passwordWrapper}>
+          <Input
+            label="Password"
+            placeholder="Enter your password"
+            placeholderTextColor={colors.grey}
+            secureTextEntry={!showPassword}
+            value={password}
+            onChangeText={setPassword}
+            style={styles.customInput}
+            containerStyle={styles.passwordInputStyle}
+          />
+          <TouchableOpacity
+            style={styles.passwordToggle}
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            <Ionicons name={showPassword ? 'eye-off' : 'eye'} 
+              size={24} 
+              color={colors.grey} />
+          </TouchableOpacity>
+        </View>
 
-      {/* Next Button */}
-      <TouchableOpacity onPress={handleNext} style={styles.nextButtonWrapper}>
-        <LinearGradient
-          colors={['#F48B7B', '#F9E286']} // Matching your Figma gradient
-          style={styles.nextButtonGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
-          <Text style={styles.nextButtonText}>Next</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+        {/* Re-enter Password Input */}
+        <Input
+          label="Re-enter password"
+          placeholder="Re-enter your password"
+          placeholderTextColor={colors.grey}
+          secureTextEntry={true}
+          value={rePassword}
+          onChangeText={setRePassword}
+          style={styles.customInput}
+        />
+
+        {/* Next Button */}
+        <GradientButton 
+          onPress={handleNext} 
+          title="Next"
+          style={styles.nextButtonWrapper}
+        />
+      </View> 
     </View>
   );
 };
@@ -114,79 +122,50 @@ const UniversalCreateAccountScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
+    paddingHorizontal: 0,
+    paddingTop: Platform.OS === 'ios' ? 60 : 0,
+  },
+  miniContainer: {
     paddingHorizontal: 30,
-    paddingTop: 60, // Adjust for top bar content
-  },
-  backButton: {
-    alignSelf: 'flex-start', // Align to top-left
-    marginBottom: 30,
-    padding: 5, // Make it easier to tap
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: '#F7B781', // Matching your app's accent color
-    fontWeight: 'bold',
+    backgroundColor: colors.white,
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#F7B781',
-    marginBottom: 40, // Space below title
-    alignSelf: 'center', // Align to left
-  },
-  inputLabel: {
-    alignSelf: 'flex-start',
-    fontSize: 16,
-    color: '#F7B781',
-    marginBottom: 5,
+    color: colors.orange,
     marginTop: 15,
+    marginBottom: 40,
+    alignSelf: 'center',
   },
-  input: {
-    width: '100%',
-    height: 50,
-    borderColor: '#ddd',
+  // Custom input styling to match your original design
+  customInput: {
+    borderWidth: 0,
     borderBottomWidth: 1,
+    borderColor: colors.lightGrey,
+    borderRadius: 0,
     paddingHorizontal: 0,
     fontSize: 18,
-    color: '#333',
-    marginBottom: 10, // Space below input
-  },
-  passwordInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    borderColor: '#ddd',
-    borderBottomWidth: 1,
     marginBottom: 10,
   },
-  passwordInput: {
-    flex: 1,
-    height: 50,
-    paddingHorizontal: 0,
-    fontSize: 18,
-    color: '#333',
+  // Password input wrapper for the icon
+  passwordWrapper: {
+    width: '100%',
+    position: 'relative',
+  },
+  passwordInputStyle: {
+    marginBottom: 20, // Remove margin from Input component for password
   },
   passwordToggle: {
+    position: 'absolute',
+    right: 0,
+    top: 35, // Adjust based on label height
     padding: 10,
   },
-  passwordToggleText: {
-    fontSize: 20,
-  },
   nextButtonWrapper: {
+    marginTop: 50,
     width: '100%',
-    marginTop: 50, // Space above the button
-    borderRadius: 50,
-    overflow: 'hidden',
-  },
-  nextButtonGradient: {
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  nextButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
   },
 });
 

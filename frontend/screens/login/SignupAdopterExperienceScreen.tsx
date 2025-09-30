@@ -3,28 +3,23 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Alert,
   ScrollView,
+  Platform,
+  KeyboardAvoidingView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-
 import {
   useNavigation,
   useRoute,
   RouteProp,
-  NavigationProp, // <--- Import NavigationProp as well
+  NavigationProp,
 } from "@react-navigation/native";
+import { RootStackParamList } from "../../App";
+import { signUp } from "../../services/CognitoService";
+import { handleAlert } from "../utils/AlertUtils";
 
-import { RootStackParamList } from "../../App"; // Import your RootStackParamList type
-
-import {
-  userPool,
-  CognitoUser,
-  AuthenticationDetails,
-  CognitoUserAttribute,
-} from "../../services/CognitoService";
+// Import the new modular components
+import { Input, GradientButton, AppHeader, BackButton } from '../../components';
+import { colors } from '../../components/styles/GlobalStyles';
 
 // Define the type for the route parameters for this screen
 type SignupAdopterExperienceScreenRouteProp = RouteProp<
@@ -38,175 +33,137 @@ type SignupAdopterExperienceScreenNavigationProp = NavigationProp<
   "SignupAdopterExperience"
 >;
 
-const SignupAdopterExperienceScreen: React.FC<{
-  navigation: SignupAdopterExperienceScreenNavigationProp;
-  route: SignupAdopterExperienceScreenRouteProp;
-}> = ({ navigation, route }) => {
-  // Get all previously collected data - ENSURE THESE ARE DEFINED IN RootStackParamList IN App.tsx
-  const { email, password, name, dob, gender, address, postcode, phoneNo } = route.params;
+const SignupAdopterExperienceScreen: React.FC = () => {
+  const navigation = useNavigation<SignupAdopterExperienceScreenNavigationProp>();
+  const route = useRoute<SignupAdopterExperienceScreenRouteProp>();
 
-  const [experience, setExperience] = useState<string>("");
+  const { email, password, name, dob, gender, address, postcode, phoneNo, latitude, longitude } = route.params;
+  
+  console.log('Received coordinates in experience screen:', { latitude, longitude });
+  
+  const [experience, setExperience] = useState<string>('');
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!experience) {
-      Alert.alert("Error", "Please describe your experience with pets.");
+      handleAlert("Error", "Please describe your experience with pets.");
       return;
     }
 
-    // Prepare Cognito attributes (required and custom)
-    const attributeList = [
-      new CognitoUserAttribute({ Name: "email", Value: email }),
-      new CognitoUserAttribute({ Name: "name", Value: name }),
-      new CognitoUserAttribute({ Name: "address", Value: address }),
-      new CognitoUserAttribute({ Name: "birthdate", Value: dob }),
-      new CognitoUserAttribute({ Name: "gender", Value: gender }),
-      new CognitoUserAttribute({ Name: "phone_number", Value: phoneNo }),
-      new CognitoUserAttribute({ Name: "custom:postcode", Value: postcode }),
-      new CognitoUserAttribute({ Name: "custom:role", Value: "adopter" }),
-      new CognitoUserAttribute({ Name: "custom:experience", Value: experience }),
-    ];
-
-    userPool.signUp(email, password, attributeList, [], (err, result) => {
-      if (err) {
-        Alert.alert("Sign Up Error", err.message || JSON.stringify(err));
-        return;
-      }
-      Alert.alert(
-        "Adopter Account Created!", 
-        "Please verify your email and login."
-      );
+    // Use coordinates already fetched from previous screen
+    try {
+      console.log('About to call signUp with coordinates:', { latitude, longitude });
+      console.log('Coordinates are empty?', { latEmpty: !latitude, lngEmpty: !longitude });
+      
+      const signUpData = {
+        email,
+        password,
+        name,
+        dob,
+        gender,
+        address,
+        postcode,
+        phoneNo,
+        role: "adopter",
+        experience,
+        latitude: latitude || "",
+        longitude: longitude || "",
+      };
+      
+      console.log('Complete signUp data:', JSON.stringify(signUpData, null, 2));
+      
+      await signUp(signUpData);
+      handleAlert("Adopter Account Created!", "Please verify your email and login.");
       navigation.navigate("Login");
-    });
+    } catch (err: any) {
+      handleAlert("Sign Up Error", err.message || "Something went wrong.");
+    }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollViewContent}>
-      <View style={styles.container}>
-        {/* Back Arrow */}
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Text style={styles.backButtonText}>{"<"}</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.title}>Experience with pets</Text>
-
-        {/* Experience Input */}
-        <Text style={styles.inputLabel}>Experience</Text>
-        <TextInput
-          style={styles.textAreaInput} // Use a different style for multi-line text
-          placeholder="Enter your experience with pets
-        (e.g. Any current pets? Have you ever had a dog?)"
-          placeholderTextColor="#999"
-          multiline={true} // Enable multi-line input
-          numberOfLines={6} // Suggest initial height
-          textAlignVertical="top" // Align text to top for multi-line
-          value={experience}
-          onChangeText={setExperience}
+    <KeyboardAvoidingView
+      style={styles.keyboardAvoidingContainer}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <AppHeader
+          leftComponent={
+            <BackButton
+              onPress={() => navigation.goBack()}
+            />
+          }
         />
+        <View style={styles.container}>
+          <Text style={styles.title}>Experience with pets</Text>
 
-        {/* Continue Button */}
-        <TouchableOpacity
-          onPress={handleContinue}
-          style={styles.continueButtonWrapper}
-        >
-          <LinearGradient
-            colors={["#F48B7B", "#F9E286"]}
-            style={styles.continueButtonGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Text style={styles.continueButtonText}>CONTINUE</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          {/* Experience Input */}
+          <Input
+            label="Experience"
+            placeholder="Enter your experience with pets&#10;(e.g. Any current pets? Have you ever had a dog?)"
+            placeholderTextColor={colors.grey}
+            multiline={true}
+            numberOfLines={6}
+            textAlignVertical="top"
+            value={experience}
+            onChangeText={setExperience}
+            style={styles.textAreaInput}
+          />
+
+          {/* Continue Button */}
+          <GradientButton 
+            onPress={handleContinue} 
+            title="CONTINUE"
+            style={styles.continueButtonWrapper}
+          />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  keyboardAvoidingContainer: {
+    flex: 1,
+  },
   scrollViewContent: {
     flexGrow: 1,
     justifyContent: "center",
+    backgroundColor: colors.white,
+    paddingBottom: 40,
+    paddingTop: Platform.OS === "ios" ? 60 : 0,
   },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     paddingHorizontal: 30,
-    paddingTop: 60,
-    paddingBottom: 40,
-    alignItems: "center",
-  },
-  backButton: {
-    alignSelf: "flex-start",
-    marginBottom: 30,
-    padding: 5,
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: "#F7B781",
-    fontWeight: "bold",
+    paddingTop: 15,
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#F7B781",
+    color: colors.orange,
     marginBottom: 50,
     alignSelf: "center",
   },
-  inputLabel: {
-    alignSelf: "flex-start",
-    fontSize: 16,
-    color: "#F7B781",
-    marginBottom: 5,
-    marginTop: 15,
-  },
   textAreaInput: {
     width: "100%",
-    height: 370, // Adjust height for multi-line input
-    borderColor: "#ddd",
-    borderWidth: 1, // Solid border for text area
+    height: 370,
+    borderColor: colors.lightGrey,
+    borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 15,
-    paddingVertical: 10, // Vertical padding for multi-line
+    paddingVertical: 10,
     fontSize: 18,
-    color: "#333",
+    color: colors.darkGrey,
     marginBottom: 10,
   },
   continueButtonWrapper: {
     width: "100%",
     marginTop: 50,
-    borderRadius: 50,
-    overflow: "hidden",
-  },
-  continueButtonGradient: {
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  continueButtonText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
   },
 });
-
-// // Optional: signIn helper function if you need it elsewhere
-// const signIn = (username, password) => {
-//   const user = new CognitoUser({ Username: username, Pool: userPool });
-//   const authDetails = new AuthenticationDetails({
-//     Username: username,
-//     Password: password,
-//   });
-
-//   user.authenticateUser(authDetails, {
-//     onSuccess: (session) => {
-//       console.log("Logged in:", session.getIdToken().getJwtToken());
-//     },
-//     onFailure: (err) => {
-//       console.error("Login failed:", err);
-//     },
-//   });
-// };
 
 export default SignupAdopterExperienceScreen;

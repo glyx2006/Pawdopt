@@ -1,60 +1,61 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native"; // Import necessary components
-import { LinearGradient } from "expo-linear-gradient"; // Import LinearGradient from expo-linear-gradient
-import { NavigationProp } from '@react-navigation/native'; // <-- Import NavigationProp
-import { RootStackParamList } from '../../App'; // <-- Import RootStackParamList
+import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native"; 
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../../App'; 
+
+// Import the new modular components
+import { GradientBackground, Button } from '../../components';
+import { colors } from '../../components/styles/GlobalStyles';
 
 // Define the type for the navigation prop for this screen
-type OnboardingScreenProps = NavigationProp<RootStackParamList, 'Onboarding'>; // <-- Define specific type
+type OnboardingScreenProps = NavigationProp<RootStackParamList, 'Onboarding'>; 
 
-
-const OnboardingScreen: React.FC<{navigation: OnboardingScreenProps}> = ({ navigation }) => {
+const OnboardingScreen: React.FC = () => {
+  const navigation = useNavigation<OnboardingScreenProps>();
   return (
-    <LinearGradient // Use LinearGradient for the background
-      colors={["#F9E286", "#F48B7B"]} // Adjust these colors to match your Figma gradient
-      style={styles.gradient}
-    >
+    <GradientBackground colors={[colors.yellow, colors.red]}>
       <View style={styles.container}>
         {/* Pawdopt Logo */}
         <Image
-          source={require("../../assets/pawdopt_logo_white.png")} // Make sure you have your logo in the assets folder
+          source={require("../../assets/pawdopt_logo_white.png")} 
           style={styles.logo}
         />
-        <Text style={styles.logoText}>Pawdopt</Text> {/* Text for 'Pawdopt' */}
-        {/* Buttons */}
-        <TouchableOpacity
-          style={[styles.button, styles.adopterButton]}
+        <Text style={styles.logoText}>Pawdopt</Text>
+        
+        {/* Buttons using modular Button component */}
+        <Button
+          title="SIGN UP AS ADOPTER"
+          variant="primary"
           onPress={() =>
             navigation.navigate("UniversalCreateAccount", { role: "adopter" })
-          } // Pass role
-        >
-          <Text style={styles.buttonText}>SIGN UP AS ADOPTER</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.shelterButton]}
+          }
+          style={styles.adopterButton}
+          textStyle={styles.buttonText}
+        />
+        
+        <Button
+          title="SIGN UP AS SHELTER"
+          variant="primary"
           onPress={() =>
             navigation.navigate("UniversalCreateAccount", { role: "shelter" })
-          } // Pass role
-        >
-          <Text style={styles.buttonText}>SIGN UP AS SHELTER</Text>
-        </TouchableOpacity>
+          }
+          style={styles.shelterButton}
+          textStyle={styles.buttonText}
+        />
+        
         {/* Login Link */}
         <View style={styles.loginContainer}>
           <Text style={styles.loginText}>Already have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-            {/* Navigate to your Login screen */}
             <Text style={styles.loginLink}>Login</Text>
           </TouchableOpacity>
         </View>
       </View>
-    </LinearGradient>
+    </GradientBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  gradient: {
-    flex: 1,
-  },
   container: {
     flex: 1,
     justifyContent: "center",
@@ -62,51 +63,50 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   logo: {
-    width: 150, // Adjust size as needed
-    height: 150, // Adjust size as needed
+    width: 150, 
+    height: 150, 
     resizeMode: "contain",
     marginBottom: 10,
   },
   logoText: {
-    fontSize: 48, // Adjust font size
+    fontSize: 48, 
     fontWeight: "bold",
-    color: "#fff", // White color for the text on the gradient
-    marginBottom: 50, // Space below logo
-  },
-  button: {
-    width: "80%", // Occupy 80% of screen width
-    paddingVertical: 15,
-    borderRadius: 50, // Make it pill-shaped
-    alignItems: "center",
-    marginBottom: 15,
-    borderWidth: 1, // Add border to match Figma
+    color: colors.white, 
+    marginBottom: 50, 
   },
   adopterButton: {
-    backgroundColor: "white", // White background
-    borderColor: "transparent", // No border color as it's filled
+    width: "80%",
+    backgroundColor: colors.white,
+    borderRadius: 50,
+    marginBottom: 15,
+    paddingVertical: 15,
   },
   shelterButton: {
-    backgroundColor: "white", // White background
-    borderColor: "transparent", // No border color as it's filled
+    width: "80%", 
+    backgroundColor: colors.white,
+    borderRadius: 50,
+    marginBottom: 15,
+    paddingVertical: 15,
   },
   buttonText: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#F5A27E", // Reddish color for text on white button
+    color: colors.orange,
   },
   loginContainer: {
-    flexDirection: "row", // Align text and link horizontally
+    flexDirection: "row",
     marginTop: 20,
+    alignItems: "center",
   },
   loginText: {
-    color: "#fff", // White text for "Already have an account?"
+    color: colors.white,
     fontSize: 16,
   },
   loginLink: {
-    color: "#fff", // White color for the "Login" link
+    color: colors.white, 
     fontSize: 16,
     fontWeight: "bold",
-    textDecorationLine: "underline", // Underline the link
+    textDecorationLine: "underline", 
   },
 });
 
