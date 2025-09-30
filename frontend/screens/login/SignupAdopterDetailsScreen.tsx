@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Dropdown } from 'react-native-element-dropdown';
 import {
   View,
   Text,
@@ -10,7 +9,6 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
-import { Dropdown } from 'react-native-element-dropdown';
 import { handleAlert } from '../utils/AlertUtils';
 
 // Import the new modular components
