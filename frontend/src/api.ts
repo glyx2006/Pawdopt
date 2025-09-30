@@ -1,6 +1,5 @@
 import * as FileSystem from 'expo-file-system';
 import { Buffer } from 'buffer';
-import { Configuration, DogsApi, SwipesApi } from '../generated';
 import { getIdToken, getAccessToken } from '../services/CognitoService';
 import { Dog, AdopterProfile, ShelterProfile } from '../App';
 import { gql } from '@apollo/client';
@@ -201,13 +200,6 @@ export async function updateDogProfile(dogId: string, data: any, token: string) 
 
   return response;
 }
-
-export const dogApiConfig = new Configuration({
-  basePath: API_ENDPOINTS.DOG_API_BASE,
-  accessToken: async () => (await getIdToken()) ?? '',
-});
-
-export const dogsApi = new DogsApi(dogApiConfig);
 
 export async function createSwipe(data: any, token: string) {
   const response = await fetch (API_ENDPOINTS.SWIPE_API_BASE, {

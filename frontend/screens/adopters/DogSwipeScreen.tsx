@@ -27,9 +27,7 @@ import { handleAlert } from '../utils/AlertUtils';
 
 import { getAccessToken, getIdToken } from '../../services/CognitoService';
 import { jwtDecode } from 'jwt-decode';
-import { Swipe, SwipeCreate, Configuration, SwipesApi, instanceOfSwipeCreate, CreateSwipeRequest, SwipeCreateDirectionEnum, SwipeCreateToJSON } from '../../generated';
 import { createSwipe } from '../../src/api';
-import { DogsApi, DogPage } from '../../generated';
 
 // Import the new modular components
 import { AppHeader, AppFooter, Card, LoadingSpinner } from '../../components';
