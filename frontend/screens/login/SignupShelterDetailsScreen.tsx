@@ -146,7 +146,7 @@ const SignupShelterDetailsScreen: React.FC = () => {
         email,
         password,
         name: shelterName,
-        dob: "",           // Not used for shelter, pass empty string
+        dob: "1999/11/11",           // Not used for shelter, pass empty string
         gender: "",        // Not used for shelter, pass empty string
         address,
         postcode,

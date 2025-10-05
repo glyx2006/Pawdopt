@@ -544,6 +544,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 20,
+    marginBottom: 100,
     paddingHorizontal: 20,
   },
   dogCard: {
@@ -551,14 +552,14 @@ const styles = StyleSheet.create({
     height: width * 1.2, // Better aspect ratio
     borderRadius: 15,
     backgroundColor: colors.white,
-    borderWidth: 2,
-    borderColor: colors.lightGrey, // More visible border with your color
+    // borderWidth: 2,
+    // borderColor: colors.lightGrey, // More visible border with your color
     shadowColor: colors.darkGrey, // Use dark grey shadow instead of black
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 10,
-    overflow: 'hidden',
+    // overflow: 'hidden',
   },
   noDogsContent: {
     justifyContent: 'center',
@@ -569,6 +570,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '75%',
     resizeMode: 'cover',
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
   },
   dogInfo: {
     padding: 15,
