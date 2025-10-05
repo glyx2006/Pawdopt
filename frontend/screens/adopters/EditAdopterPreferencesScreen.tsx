@@ -23,9 +23,8 @@ import { BackButton } from '../../components/ui/Button';
 // =====================
 // Constants
 // =====================
-const API_BASE_URL =
-  'https://y2wy5m6frb.execute-api.eu-west-2.amazonaws.com/default';
-const PREFERENCE_CRUD_ENDPOINT = `${API_BASE_URL}/preferences`;
+const API_BASE_URL = process.env.EXPO_PUBLIC_PREFERENCES_API_URL;
+const PREFERENCE_CRUD_ENDPOINT = API_BASE_URL;
 
 // Define the structure for adopter preferences
 interface Preferences {

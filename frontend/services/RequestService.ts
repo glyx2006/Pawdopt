@@ -3,8 +3,8 @@ import { Configuration } from "../generated";
 import { getIdToken } from "./CognitoService";
 
 // ================== API ENDPOINT CONSTANTS ==================
-const REQUEST_API_BASE = "https://151hivlwt4.execute-api.eu-west-2.amazonaws.com/default/requestsCRUD"; // Replace with your actual API Gateway base URL
-const CHAT_API_BASE = "https://7ng635vzx5.execute-api.eu-west-2.amazonaws.com/default/chatCRUD";
+const REQUEST_API_BASE = process.env.EXPO_PUBLIC_REQUEST_API_BASE;
+const CHAT_API_BASE = process.env.EXPO_PUBLIC_CHAT_API_BASE;
 // ================== INTERFACES ==================
 export interface AdoptionRequest {
   requestId: string;

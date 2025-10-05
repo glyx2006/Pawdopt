@@ -2,10 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 // ================== API ENDPOINT CONSTANTS ==================
-const COGNITO_API_BASE_URL = 'https://pj0r2r59y5.execute-api.eu-west-2.amazonaws.com/default';
+const COGNITO_API_BASE_URL = process.env.EXPO_PUBLIC_COGNITO_API_BASE_URL;
 const SIGNUP_URL = `${COGNITO_API_BASE_URL}/signup`;
 const LOGIN_URL = `${COGNITO_API_BASE_URL}/login`;
-const PREFERENCES_URL = 'https://y2wy5m6frb.execute-api.eu-west-2.amazonaws.com/default/preferences';
+const PREFERENCES_URL = process.env.EXPO_PUBLIC_PREFERENCES_API_URL;
 const REFRESH_SESSION_URL = `${COGNITO_API_BASE_URL}/refresh`;
 const UPDATE_USER_ATTRIBUTES_URL = `${COGNITO_API_BASE_URL}/update`;
 // ================== INTERFACES ==================

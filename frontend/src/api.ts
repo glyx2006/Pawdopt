@@ -9,11 +9,12 @@ global.Buffer = Buffer;
 
 // ================== API ENDPOINT CONSTANTS ==================
 const API_ENDPOINTS = {
-  PRESIGN_IMAGE_URLS: 'https://1g53nof6f8.execute-api.eu-west-2.amazonaws.com/presignImageUrls',
-  DOG_API_BASE: 'https://m4gwfeebyk.execute-api.eu-west-2.amazonaws.com',
-  ADOPTER_API_BASE: 'https://hljqzvnyla.execute-api.eu-west-2.amazonaws.com/default/adoptersCRUD',
-  SHELTER_API_BASE: 'https://y3qna47xq6.execute-api.eu-west-2.amazonaws.com/default/sheltersCRUD', 
-  CHAT_API_BASE: 'https://7ng635vzx5.execute-api.eu-west-2.amazonaws.com/default/chatCRUD',
+  PRESIGN_IMAGE_URLS: process.env.EXPO_PUBLIC_PRESIGN_IMAGE_URLS_API || '',
+  DOG_API_BASE: process.env.EXPO_PUBLIC_DOG_API_BASE || '',
+  ADOPTER_API_BASE: process.env.EXPO_PUBLIC_ADOPTER_API_BASE || '',
+  SHELTER_API_BASE: process.env.EXPO_PUBLIC_SHELTER_API_BASE || '',
+  CHAT_API_BASE: process.env.EXPO_PUBLIC_CHAT_API_BASE || '',
+  SWIPE_API_BASE: process.env.EXPO_PUBLIC_SWIPE_API_BASE || '',
 } as const;
 
 // ================== UTILITY FUNCTIONS ==================
@@ -190,7 +191,7 @@ export const dogApiConfig = new Configuration({
 export const dogsApi = new DogsApi(dogApiConfig);
 
 export const swipeApiConfig = new Configuration({
-  basePath: 'https://yvj4ov9377.execute-api.eu-west-2.amazonaws.com',
+  basePath: API_ENDPOINTS.SWIPE_API_BASE,
   accessToken: async () => (await getIdToken()) ?? ''
 })
 
